@@ -4,6 +4,7 @@
   let auth,db,mods;
   let teacherProfile=null;
   let currentRows=[];
+  let manageRow=null;
   const $=s=>document.querySelector(s);
 
   const configured=()=>!!(
@@ -50,6 +51,18 @@
       );
       const best={...group[0]};
       best.duplicateCount=group.length;
+      best.sourceRecords=group.map(r=>({
+        id:r.id,
+        className:String(r.className||""),
+        seatNo:String(r.seatNo||""),
+        name:String(r.name||""),
+        stars:Number(r.stars||0),
+        totalStars:Number(r.totalStars||26),
+        currentStation:String(r.currentStation||""),
+        currentChallenge:r.currentChallenge||"",
+        completed:!!r.completed,
+        updatedAt:r.updatedAt||null
+      }));
       if(group.length>1){
         const merged={};
         for(const r of group){
@@ -103,6 +116,7 @@
       <td>${esc(r.className)}</td>
       <td>${esc(r.seatNo)}</td>
       <td>${esc(r.name)}</td>
+      <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
       <td>⭐ ${Number(r.stars||0)}/${Number(r.totalStars||26)}</td>
       <td>${Number(r.score||0)}</td>
       <td>${esc(r.currentStation||"")} ${r.currentChallenge?`・第 ${r.currentChallenge} 題`:""}</td>
@@ -110,6 +124,91 @@
       <td>${esc(fmtTime(r.updatedAt))}</td>
       <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併顯示 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
     </tr>`).join("");
+
+    document.querySelectorAll(".manageBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
+        if(row) openStudentManage(row);
+      });
+    });
+  }
+
+
+  function canManageClass(className){
+    return isAdmin() || allowedClasses().includes(String(className));
+  }
+
+  function openStudentManage(row){
+    if(!canManageClass(row.className)){
+      alert("這個教師帳號沒有維護此班級的權限。");
+      return;
+    }
+
+    manageRow=row;
+    const dlg=$("#studentManageDialog");
+    const title=$("#manageStudentTitle");
+    const list=$("#manageRecordList");
+    const note=$("#manageStudentNote");
+
+    title.textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
+    note.textContent=Number(row.duplicateCount||1)>1
+      ? `目前合併顯示 ${row.duplicateCount} 筆原始紀錄。請只刪除確認錯誤的那一筆。`
+      : "這位學生目前只有 1 筆原始紀錄。";
+
+    const records=(row.sourceRecords||[row]).slice().sort((a,b)=>
+      Number(b.stars||0)-Number(a.stars||0)
+    );
+
+    list.innerHTML=records.map((rec,index)=>`
+      <div class="recordCard">
+        <div class="recordInfo">
+          <b>紀錄 ${index+1}</b>
+          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}</span>
+          <span>${esc(rec.currentStation||"尚未開始")}${rec.currentChallenge?`・第 ${esc(rec.currentChallenge)} 題`:""}</span>
+          <span>${rec.completed?"已完成":"進行中"}</span>
+          <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
+        </div>
+        <button class="deleteRecordBtn danger" type="button"
+          data-docid="${esc(rec.id)}"
+          data-class="${esc(rec.className)}"
+          data-seat="${esc(rec.seatNo)}"
+          data-name="${esc(rec.name)}">
+          🗑️ 刪除此筆
+        </button>
+      </div>
+    `).join("");
+
+    list.querySelectorAll(".deleteRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>deleteStudentRecord(btn.dataset));
+    });
+
+    dlg.showModal();
+  }
+
+  async function deleteStudentRecord(data){
+    const className=String(data.class||"");
+    if(!canManageClass(className)){
+      alert("你沒有刪除此班級資料的權限。");
+      return;
+    }
+
+    const ok=confirm(
+      `確定刪除這筆學生紀錄？\\n\\n`+
+      `${className} 班 ${data.seat} 號 ${data.name}\\n\\n`+
+      `刪除後無法從教師端復原。`
+    );
+    if(!ok)return;
+
+    try{
+      $("#manageDeleteStatus").textContent="正在刪除…";
+      await mods.fs.deleteDoc(mods.fs.doc(db,"students",data.docid));
+      $("#manageDeleteStatus").textContent="已刪除。正在重新讀取資料…";
+      $("#studentManageDialog").close();
+      await loadRows();
+    }catch(e){
+      $("#manageDeleteStatus").textContent="";
+      alert("刪除失敗："+(e?.code||e?.message||"未知錯誤"));
+    }
   }
 
   function buildClassFilter(){
@@ -307,6 +406,10 @@
   $("#refreshBtn").onclick=loadRows;
   $("#classFilter").onchange=render;
   $("#exportBtn").onclick=exportExcel;
+  $("#closeManageBtn").onclick=()=>{
+    $("#manageDeleteStatus").textContent="";
+    $("#studentManageDialog").close();
+  };
 
   init();
 })();

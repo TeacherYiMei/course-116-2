@@ -119,3 +119,17 @@ npm run quick     ← 快速：洩漏掃描、伺服器驗證、亂猜模擬、�
 - 多教師可依 `teachers/{uid}.classes` 只查看授權班級；admin 可查看全部班級。
 - Python 進度會同步回 116-1 闖關地圖；舊版 Python localStorage 進度也會被地圖讀取。
 - Firestore 規則與設定說明見根目錄 `firestore.rules` 與 `FIREBASE_SETUP.md`。
+
+
+## v13：教師學生資料維護
+- 教師端新增「🛠️ 維護」欄。
+- 任課教師可刪除自己 `classes` 授權班級中的錯誤學生 Firestore 紀錄。
+- `admin` 可維護全部班級。
+- 同班同座號若有多筆歷史紀錄，維護視窗會列出每一筆原始紀錄，可單獨刪除，不會把合併後的正確進度整組誤刪。
+- Firestore Security Rules 同步限制刪除權限，不只靠前端按鈕。
+- 刪除的是學生學習紀錄；Firebase Authentication 登入帳號不會由瀏覽器教師端自動刪除。
+
+## v13.1：教師維護欄固定顯示
+- 將「維護」欄從最右側移到姓名後方。
+- 強制維護按鈕可見，避免被表格寬度或容器裁切。
+- 保留 v13 的逐筆刪除、重複紀錄展開、授權班級刪除限制。

@@ -11,8 +11,43 @@ button,select{font:inherit}button{border:0;border-radius:11px;padding:10px 14px;
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.metric{background:#f7f8fb;border-radius:14px;padding:14px}.metric b{display:block;font-size:25px}
 table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e8ebef;text-align:left;font-size:14px}th{background:#f7f8fb;position:sticky;top:0}.tableWrap{overflow:auto;max-height:65vh}
 .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef1f5}.done{background:#e4f7eb;color:#267148}.hidden{display:none!important}.error{color:#b43b3b;font-weight:800}.status{font-size:13px;color:#687385}
+.manageBtn{background:#eef1f5;color:#364152;padding:7px 10px;white-space:nowrap}
+dialog.manageDialog{width:min(720px,calc(100% - 28px));border:0;border-radius:18px;padding:0;box-shadow:0 20px 60px #21304735}
+dialog.manageDialog::backdrop{background:#22314a80}
+.manageHead{padding:18px 20px;border-bottom:1px solid #e8ebef}.manageBody{padding:18px 20px}.recordList{display:grid;gap:10px;margin:14px 0}
+.recordCard{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid #e2e6eb;border-radius:14px;padding:13px}
+.recordInfo{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;min-width:0}.danger{background:#fdebec;color:#a12f35}
+.manageFooter{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 20px 18px}.warn{color:#9a5b19;font-size:13px}
+@media(max-width:700px){.recordCard{align-items:stretch;flex-direction:column}.deleteRecordBtn{width:100%}}
 @media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}}
-</style></head>
+</style>
+<style>
+  /* v13.1：維護欄固定可見 */
+  table{width:100%; table-layout:auto}
+  th,td{white-space:nowrap}
+  th.maintainCol,td.maintainCol{
+    min-width:96px;
+    width:96px;
+  }
+  .manageBtn{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    min-width:84px;
+    min-height:36px;
+    padding:7px 10px;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  .tableWrap{
+    overflow-x:auto !important;
+  }
+  @media(max-width:900px){
+    th:nth-child(7),td:nth-child(7){max-width:220px;white-space:normal}
+  }
+</style>
+
+</head>
 <body>
 <header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
@@ -28,8 +63,24 @@ table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px s
 <button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><span id="dbStatus" class="status"></span></div>
 <div class="summary"><div class="metric">學生人數<b id="studentCount">0</b></div><div class="metric">平均星星<b id="avgStars">0</b></div><div class="metric">平均評分<b id="avgScore">0</b></div><div class="metric">完成人數<b id="doneCount">0</b></div></div>
 </div>
-<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section></main>
+
+<dialog id="studentManageDialog" class="manageDialog">
+  <div class="manageHead">
+    <h2 style="margin:0 0 6px">🛠️ 學生資料維護</h2>
+    <div id="manageStudentTitle"></div>
+  </div>
+  <div class="manageBody">
+    <p id="manageStudentNote" class="status"></p>
+    <div class="warn">⚠️ 請只刪除確認輸入錯誤或重複的紀錄。刪除 Firestore 學習紀錄不會自動刪除 Firebase Authentication 的登入帳號。</div>
+    <div id="manageRecordList" class="recordList"></div>
+  </div>
+  <div class="manageFooter">
+    <span id="manageDeleteStatus" class="status"></span>
+    <button id="closeManageBtn" class="soft" type="button">關閉</button>
+  </div>
+</dialog>
 <script src="shared/firebase-config.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/teacher-dashboard.js"></script>

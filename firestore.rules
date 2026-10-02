@@ -59,7 +59,13 @@ service cloud.firestore {
       allow create, update: if signedIn() &&
         request.auth.uid == studentUid;
 
-      allow delete: if isAdmin();
+      // 任課教師只能刪除自己授權班級的錯誤學生紀錄。
+      // admin 可刪除所有班級。
+      allow delete: if isAdmin() ||
+        (
+          isTeacher() &&
+          teachesClass(resource.data.className)
+        );
     }
 
     match /teachers/{teacherUid} {

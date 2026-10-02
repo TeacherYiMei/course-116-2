@@ -1,0 +1,92 @@
+/* 🧪 網路世界・視覺化實驗站（net-labs.js） */
+.lab-done{pointer-events:none;opacity:.85}
+.lab .btn.on{border-color:var(--unit);background:var(--unit-soft)}
+/* 📦 封包快遞 */
+.pk-net{display:grid;gap:.4rem;background:var(--unit-soft);border:2px dashed var(--unit-line);border-radius:1rem;padding:.6rem}
+.pk-lane{display:grid;grid-template-columns:7.5rem 1fr;align-items:center;gap:.5rem}
+.pk-lab{font-weight:900;font-size:.85rem;display:flex;flex-direction:column}.pk-lab small{font-weight:700;color:var(--ink-soft);font-size:.7rem}
+.pk-track{position:relative;height:2.2rem;background:#fff;border-radius:999px;border:2px solid var(--line);overflow:hidden}
+.pk-track::before{content:'📤';position:absolute;left:.3rem;top:.25rem}.pk-track::after{content:'📥';position:absolute;right:.3rem;top:.25rem}
+.pk-fly{position:absolute;left:1.6rem;top:.25rem;background:var(--unit);color:#fff;font-weight:900;font-size:.8rem;border-radius:.5rem;padding:.15rem .4rem}
+.pk-fly.lost{background:transparent;font-size:1.2rem;opacity:.9}
+.pk-tray,.pk-slots{display:flex;flex-wrap:wrap;gap:.45rem;min-height:3rem;align-items:center}
+.pk-pkt,.pk-slot{font:inherit;cursor:pointer;border:2px solid var(--line);background:#fff;border-radius:.7rem;padding:.3rem .55rem;display:flex;flex-direction:column;align-items:center;min-width:3rem}
+.pk-pkt{font-weight:900;font-size:.8rem;color:var(--unit)}.pk-pkt b{font-size:1.2rem;color:var(--ink)}
+.pk-pkt.on{border-color:var(--unit);background:var(--unit-soft);transform:translateY(-2px)}
+.pk-slot small{font-weight:800;color:var(--ink-soft)}.pk-slot b{font-size:1.2rem}
+.pk-slot.full{border-color:var(--unit)}.pk-slot.want{border-color:var(--warn);background:#fff7ed}
+@media (max-width:560px){.pk-lane{grid-template-columns:1fr}.pk-lab{flex-direction:row;gap:.4rem}}
+/* 📶 Wi-Fi 覆蓋地圖 */
+.wf{--wf-3:#86efac;--wf-2:#bbf7d0;--wf-1:#ecfccb}
+.wf-map{width:100%;max-width:40rem;height:auto;display:block;border:3px solid var(--ink);border-radius:.6rem;background:#fff;touch-action:manipulation}
+.wf-c{cursor:pointer}.wf-c:hover{stroke:var(--unit);stroke-width:2}
+.wf-w{stroke:var(--ink);stroke-width:6;stroke-linecap:round}
+.wf-devs{display:grid;gap:.45rem}
+.wf-dev{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.45rem .6rem}
+.wf-dev .ic{font-size:1.4rem}.wf-bands{margin-left:auto;display:flex;gap:.3rem}
+/* 🔌 教室拉線 */
+.wr-board{position:relative;background:var(--unit-soft);border:2px dashed var(--unit-line);border-radius:1rem;padding:.7rem}
+.wr-lines{position:absolute;inset:0;pointer-events:none;z-index:2}
+.wr-row{display:flex;flex-wrap:wrap;gap:.6rem;position:relative;z-index:1}
+.wr-pcs{margin-top:2.2rem}
+.wr-node{background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.4rem .5rem}
+.wr-node.lit{border-color:var(--ok);background:var(--ok-bg)}.wr-node.dead{border-color:var(--bad);background:var(--bad-bg)}
+.wr-t{font-weight:900;font-size:.85rem;display:flex;align-items:center;gap:.3rem}.wr-t .ic{font-size:1.2rem}
+.wr-ports{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.3rem}
+.wr-port{position:relative;z-index:3;font:inherit;font-size:.7rem;font-weight:800;cursor:pointer;border:2px solid #94a3b8;background:#f8fafc;border-radius:.4rem;padding:.15rem .35rem;min-width:1.9rem}
+.wr-port.on{background:#1e293b;color:#fff;border-color:#1e293b}.wr-port.sel{background:var(--warn);color:#fff;border-color:var(--warn)}
+.wf-legend{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:.35rem;font-weight:700;color:var(--ink-soft)}.wf-legend i{display:inline-block;width:.9rem;height:.9rem;border:1px solid #cbd5e1;border-radius:.2rem;vertical-align:-2px;margin-right:.25rem}
+/* 🧵 佈線工程師 */
+.cp-rule{display:flex;flex-wrap:wrap;gap:.4rem;font-size:.8rem}.cp-rule span{border:2px solid;border-radius:.6rem;padding:.2rem .5rem;background:#fff}
+.cp-list{display:grid;gap:.45rem}
+.cp-row{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;background:#fff;border:2px solid var(--line);border-left:8px solid var(--line);border-radius:.8rem;padding:.5rem .7rem}
+.cp-row>div:first-child{display:flex;flex-direction:column;min-width:12rem;flex:1}.cp-btns{display:flex;flex-wrap:wrap;gap:.3rem}.cp-cost{margin-left:.3rem}
+/* 🔎 IP 設定面板 */
+.ip-rows{display:grid;gap:.4rem}.ip-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.ip-bits{display:flex;gap:.2rem;flex-wrap:nowrap;overflow-x:auto}
+.ip-bit{font:inherit;font-weight:900;width:2.35rem;border:2px solid var(--line);background:#fff;border-radius:.45rem;padding:.1rem 0;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.ip-bit small{font-size:.58rem;color:var(--ink-soft);font-weight:700}.ip-bit.on{background:var(--unit);border-color:var(--unit);color:#fff}.ip-bit.on small{color:#fff}
+.ip-dec{min-width:2.6rem;font-size:1.1rem}.ip-out{font-weight:800}
+@media (max-width:560px){.ip-bit{width:1.95rem}}
+/* ✂️ IPv6 壓縮機 */
+.v6-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}
+@media (min-width:760px){.v6-grid{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.v6-g{position:relative;background:#fff;border:2px solid var(--line);border-radius:.6rem;padding:.45rem .2rem .3rem;display:flex;justify-content:center;gap:.05rem;min-height:2.6rem}
+.v6-g.sel{border-color:var(--warn);background:#fff7ed}.v6-g.col{border-color:var(--unit);background:var(--unit-soft)}
+.v6-ch{font:inherit;font-family:ui-monospace,Consolas,monospace;font-weight:900;font-size:1.05rem;border:0;background:none;padding:0 .05rem;cursor:pointer;color:var(--ink)}
+.v6-ch.lead{color:var(--bad);text-decoration:underline dotted}
+.v6-pick{position:absolute;top:-.55rem;right:-.35rem;font:inherit;font-size:.8rem;border:0;background:#fff;border-radius:.3rem;cursor:pointer}
+.v6-c{font-weight:900;color:var(--unit);font-size:1.1rem}
+/* 🌐 DNS 電話簿 */
+.dn-bar{background:#fff;border:2px solid var(--line);border-radius:999px;padding:.4rem .8rem;font-weight:800;overflow-wrap:anywhere}
+.dn-parts{display:flex;flex-wrap:wrap;gap:.5rem}.dn-part{display:flex;flex-direction:column;gap:.2rem;background:#fff;border:2px solid var(--line);border-radius:.7rem;padding:.4rem .5rem}
+.dn-part select{margin:0}
+.dn-book{max-width:32rem}.dn-row{cursor:pointer}.dn-row:hover td{background:var(--unit-soft)}
+.dn-srv{display:flex;flex-wrap:wrap;gap:.5rem}.dn-s{font:inherit;display:flex;flex-direction:column;align-items:center;gap:.2rem;border:2px solid var(--line);background:#fff;border-radius:.8rem;padding:.5rem .7rem;cursor:pointer;font-size:1.3rem}
+.dn-s span{font-size:.8rem;font-weight:800}.dn-s.on{border-color:var(--ok);background:var(--ok-bg)}
+/* 📨 郵件旅程・偷看者 */
+.mt-map{display:flex;flex-wrap:wrap;gap:.5rem}
+.mt-st{position:relative;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.5rem .7rem;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:.35rem}
+.mt-st.here{border-color:var(--unit);background:var(--unit-soft)}.mt-st.done{border-color:var(--ok)}
+.mt-env{position:absolute;top:-.8rem;right:-.4rem;font-size:1.3rem;animation:dropin .3s}
+.mt-opts{display:flex;flex-wrap:wrap;gap:.35rem}
+.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media (max-width:640px){.sp-grid{grid-template-columns:1fr}}
+.sp-form{background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.7rem;display:flex;flex-direction:column;gap:.3rem}
+.sp-spy{background:#0f172a;color:#e2e8f0;border-radius:.8rem;padding:.7rem}.sp-spy pre{white-space:pre-wrap;word-break:break-all;font-size:.85rem;margin:.4rem 0 0;color:#fca5a5}
+/* 🚀 下載模擬器 */
+.dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media (max-width:640px){.dl-grid{grid-template-columns:1fr}}
+.dl-grid .btn{display:flex;flex-direction:column;align-items:flex-start;width:100%;margin:.2rem 0;text-align:left}.dl-grid small{font-weight:700;color:var(--ink-soft)}
+.dl-bar{position:relative;height:1.8rem;background:rgba(15,23,42,.08);border-radius:999px;overflow:hidden}
+.dl-bar i{display:block;height:100%;width:0;background:var(--ok)}.dl-bar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem}
+/* ▮ 條碼 */
+.bc-code{position:relative;display:inline-flex;height:5rem;border:3px solid var(--ink);padding:.3rem;background:#fff;width:min(100%,24rem)}
+.bc-code i,.bc-cell{flex:1;display:block;height:100%}.bc-code i.k,.bc-cell.k{background:#0f172a}.bc-code i.w,.bc-cell.w{background:#fff}
+.bc-cell{border:1px dashed #cbd5e1;cursor:pointer}
+.bc-laser{display:none;position:absolute;top:0;bottom:0;width:3px;background:#ef4444;box-shadow:0 0 8px #ef4444;transition:left .22s linear}
+.bc-read{display:flex;gap:.25rem;margin-top:.5rem}.bc-read span{width:2.2rem;text-align:center;font-weight:900;font-family:ui-monospace,monospace;border:2px solid var(--line);border-radius:.4rem;background:#fff}
+.bc-read span.on{border-color:var(--unit);background:var(--unit-soft)}
+.ip-out b{overflow-wrap:anywhere;word-break:break-all}
+.bc-code{gap:3px;background:#e2e8f0}.bc-code i,.bc-cell{border-radius:1px}
+.bc-read{width:min(100%,24rem);padding:0 .45rem}.bc-read span{flex:1;width:auto}

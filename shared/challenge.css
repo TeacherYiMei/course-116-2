@@ -1,0 +1,29 @@
+/* 🏁 課堂挑戰模式（challenge.js）：投影用，字要大 */
+.ch-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem}
+.ch-names{display:grid;grid-template-columns:repeat(auto-fill,minmax(8rem,1fr));gap:.35rem}
+.ch-names .input{margin:0;border-width:3px}
+.ch-topic{display:flex;align-items:center;gap:.4rem;font-weight:800;cursor:pointer}
+.ch-setup .btn.on{border-color:var(--unit,#1d4ed8);background:#dbeafe}
+.ch-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.5rem}
+.ch-team{position:relative;font:inherit;background:#fff;border:3px solid var(--c);border-radius:1rem;padding:.55rem .6rem .45rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.1rem}
+.ch-team b{font-size:1.05rem}
+.ch-team .ch-score{font-size:2rem;font-weight:900;color:var(--c);line-height:1.1}
+.ch-team .ch-key{position:absolute;left:.4rem;top:.25rem;font-size:.7rem;font-weight:900;color:#fff;background:var(--c);border-radius:.3rem;padding:0 .3rem}
+.ch-team small{font-size:.7rem;color:#b91c1c;font-weight:800}
+.ch-team.on{box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 30%,transparent);transform:scale(1.04)}
+.ch-team.locked{opacity:.55}
+.ch-team:disabled{cursor:default;opacity:1}
+.ch-team.locked:disabled{opacity:.55}
+.ch-card{text-align:center;padding:1rem;border:3px dashed var(--line);border-radius:1rem;background:#fff}
+.ch-ic{font-size:2.6rem}
+.ch-t{font-size:clamp(1.4rem,4vw,2.6rem);font-weight:900;word-break:break-word}
+.ch-sub{font-size:clamp(1rem,2.2vw,1.35rem);font-weight:800;color:var(--ink-soft);margin-top:.3rem}
+.ch-bar{height:.9rem}
+.ch-answer{border:3px solid var(--c);border-radius:1rem;padding:.7rem .8rem;background:#fff}
+.ch-answer .input{font-size:1.3rem}
+.ch-big{font-size:1.3rem;font-weight:900}
+.ch-rank{list-style:none;padding:0;max-width:30rem;margin-left:auto;margin-right:auto;display:grid;gap:.5rem}
+.ch-rank li{display:flex;align-items:center;gap:.8rem;border:3px solid var(--c);border-radius:1rem;padding:.6rem 1rem;background:#fff;font-size:1.3rem}
+.ch-rank .ch-medal{font-size:1.8rem;min-width:2.4rem}
+.ch-rank .ch-score{margin-left:auto;font-weight:900;color:var(--c)}
+@media (max-width:640px){.ch-grid{grid-template-columns:minmax(0,1fr)}}

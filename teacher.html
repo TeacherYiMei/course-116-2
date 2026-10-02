@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 學習進度｜教師端</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#24324a}
+header{background:#fff;border-bottom:1px solid #e2e6eb;padding:16px max(18px,calc((100vw - 1180px)/2));display:flex;justify-content:space-between;align-items:center}
+main{max-width:1180px;margin:auto;padding:20px}.card{background:white;border-radius:18px;padding:20px;box-shadow:0 8px 28px #34475b10;margin-bottom:16px}
+.login{max-width:480px;margin:50px auto}.field{display:block;margin:12px 0}.field input{width:100%;padding:11px;border:1px solid #ccd4de;border-radius:10px}
+button,select{font:inherit}button{border:0;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}.primary{background:#4f59c7;color:white}.soft{background:#e9ecf2;color:#475466}.export{background:#e4f7eb;color:#267148}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.toolbar select{padding:9px 12px;border:1px solid #ccd4de;border-radius:10px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.metric{background:#f7f8fb;border-radius:14px;padding:14px}.metric b{display:block;font-size:25px}
+table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e8ebef;text-align:left;font-size:14px}th{background:#f7f8fb;position:sticky;top:0}.tableWrap{overflow:auto;max-height:65vh}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef1f5}.done{background:#e4f7eb;color:#267148}.hidden{display:none!important}.error{color:#b43b3b;font-weight:800}.status{font-size:13px;color:#687385}
+@media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}}
+</style></head>
+<body>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<main>
+<section id="loginCard" class="card login">
+<h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
+<label class="field">Email<input id="email" type="email"></label>
+<label class="field">密碼<input id="password" type="password"></label>
+<div id="loginError" class="error"></div><button id="loginBtn" class="primary">登入教師端</button>
+</section>
+<section id="dashboard" class="hidden">
+<div class="card">
+<div class="toolbar"><b>授權班級：</b><select id="classFilter"><option value="">全部班級</option></select>
+<button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><span id="dbStatus" class="status"></span></div>
+<div class="summary"><div class="metric">學生人數<b id="studentCount">0</b></div><div class="metric">平均星星<b id="avgStars">0</b></div><div class="metric">平均評分<b id="avgScore">0</b></div><div class="metric">完成人數<b id="doneCount">0</b></div></div>
+</div>
+<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section></main>
+<script src="shared/firebase-config.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="shared/teacher-dashboard.js"></script>
+</body></html>

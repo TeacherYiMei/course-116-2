@@ -1,0 +1,26 @@
+/* 5016B 實驗室樣式（labkit.js）── 兩學期共用 */
+  /* 五節課的導覽用全站「課程小卡」（theme.css 的 .ucards），這裡不另外定義 */
+  @media (min-width:821px){ #tabs.ucards .ds{min-height:2.4em} }
+  .mini h4{font-size:.85rem;font-weight:900;color:var(--ink-soft)}
+  .mini ul{margin:.35rem 0 0;padding-left:1.1rem;font-size:.9rem}
+  .sim{background:#0f172a;color:#e2e8f0;border-radius:1rem;padding:1rem}
+  .sim label{font-size:.85rem;font-weight:800;color:#cbd5e1}
+  .sim input[type=range]{width:100%;accent-color:#818cf8}
+  .sim .val{font-family:ui-monospace,Consolas,monospace;font-weight:900;color:#fde68a}
+  .sim.light{background:#fff;color:var(--ink);padding:0}
+  .sim.light label{color:var(--ink)}
+  .sim canvas{width:100%;height:auto;background:#111827;border-radius:.7rem;display:block}
+  .leds{display:flex;gap:.35rem;justify-content:center;margin:.6rem 0}
+  .led{width:2rem;height:2rem;border-radius:50%;background:#334155;box-shadow:inset 0 -3px 6px rgba(0,0,0,.4);transition:background .2s,box-shadow .2s}
+  .code{background:#1e293b;color:#e2e8f0;border-radius:.7rem;padding:.8rem;font:14px/1.7 ui-monospace,Consolas,monospace;white-space:pre;overflow-x:auto}
+  .code .on{background:rgba(250,204,21,.25);outline:1px solid rgba(250,204,21,.6);border-radius:.2rem}
+  .blocks{display:flex;flex-direction:column;gap:.35rem}
+  .blk{display:inline-block;padding:.35rem .7rem;border-radius:.5rem;font-weight:800;font-size:.88rem;color:#fff;width:fit-content}
+  .b-ev{background:#b45309}.b-ctl{background:#c2410c}.b-op{background:#15803d}.b-var{background:#c2410c;filter:hue-rotate(-15deg)}.b-hw{background:#4338ca}.b-sense{background:#0369a1}   /* 投影可讀性：積木顏色取深一階，白字對比 ≥ 4.5 */
+  .indent{margin-left:1.4rem}
+  .fan{width:7rem;height:7rem;margin:0 auto;display:block}
+  .step{display:flex;gap:.6rem;align-items:flex-start}
+  .step .no{flex:0 0 1.7rem;height:1.7rem;border-radius:50%;background:var(--unit);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+  .step.dim{opacity:.4}
+  table.log td,table.log th{padding:.25rem .5rem;text-align:center;border-bottom:1px solid #334155;font-size:.85rem}
+  #card-canvas{max-width:100%;border-radius:.8rem;box-shadow:var(--shadow)}

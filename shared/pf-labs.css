@@ -1,0 +1,56 @@
+/* 🧪 系統平臺大冒險・視覺化實驗站（pf-labs.js） */
+.lab-done{pointer-events:none;opacity:.85}
+.lab .btn.on{border-color:var(--unit);background:var(--unit-soft);color:var(--unit)}
+.pb-opts{display:flex;flex-wrap:wrap;gap:.35rem}
+.pb-opts .btn small{display:block;font-size:.7rem;color:var(--ink-soft);font-weight:700}
+.pb-stack{display:grid;gap:.5rem}
+.pb-row,.pc-row{display:grid;gap:.3rem;padding:.5rem .6rem;border:2px solid var(--line);border-radius:.8rem;background:#fff}
+.pb-row:last-child{border-style:dashed;border-color:var(--unit-line);background:var(--unit-soft)}
+.pc-parts{display:grid;gap:.5rem;margin-top:.6rem}
+/* 🏭 五大單元 */
+.fu-map{display:grid;grid-template-columns:1fr 1.2fr;gap:.6rem;align-items:stretch}
+.fu-cpu{border:3px dashed var(--unit);border-radius:1rem;padding:.5rem;background:var(--unit-soft);display:flex;flex-direction:column;gap:.35rem}
+.fu-cpu-in,.fu-side{display:grid;gap:.4rem}
+.fu-u{font:inherit;font-weight:900;cursor:pointer;background:#fff;border:2px solid var(--line);border-radius:.8rem;padding:.6rem .5rem;position:relative;min-height:2.8rem;text-align:center}
+.fu-u:hover{border-color:var(--unit)}
+.fu-u.here{border-color:var(--unit);background:var(--unit-bg);box-shadow:0 0 0 3px var(--unit-line)}
+.fu-tok{position:absolute;right:.35rem;top:-.55rem;font-size:1.2rem;animation:fuPop .35s}
+@keyframes fuPop{from{transform:scale(.3)}to{transform:scale(1)}}
+.fu-path{display:flex;flex-wrap:wrap;gap:.25rem;align-items:center;font-size:.8rem}
+/* 📦 記憶體調度 */
+.mp-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;font-size:.75rem}
+.mp-lv span{background:var(--unit-soft);border:1px solid var(--unit-line);border-radius:.6rem;padding:.35rem .45rem}
+.mp-lv b{display:block;font-size:.85rem}
+.mp-list{display:grid;gap:.35rem}
+.mp-row{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;border:2px solid var(--line);border-radius:.7rem;padding:.4rem .55rem;background:#fff}
+.mp-row small{display:block;font-size:.72rem;color:var(--ink-soft);font-weight:700}
+.mp-btns{display:flex;gap:.3rem;flex-wrap:wrap}
+/* 🧑‍💼 作業系統總管 */
+.om-bar{display:flex;height:2.2rem;border:2px solid var(--ink);border-radius:.6rem;overflow:hidden;background:#fff}
+.om-bar i{font-style:normal;font-size:.7rem;font-weight:900;display:flex;align-items:center;justify-content:center;background:var(--unit-bg);border-right:1px solid #fff;white-space:nowrap;overflow:hidden}
+.om-bar i.os{background:var(--ink);color:#fff}.om-bar i.free{background:repeating-linear-gradient(45deg,#fff,#fff 6px,#f1f5f9 6px,#f1f5f9 12px);color:var(--ink-soft)}
+.om-list{display:grid;gap:.3rem}
+.om-p{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;border:1px solid var(--line);border-radius:.6rem;padding:.35rem .5rem;background:#fff}
+.om-p>span:first-child{flex:1;min-width:10rem}.om-p.off{opacity:.55;background:var(--soft)}.om-p.off>span:first-child{text-decoration:line-through}
+/* 🚑 電腦急診室 */
+.dr-stat{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}
+.dr-stat span{background:#fff;border:2px solid var(--line);border-radius:.6rem;padding:.3rem .5rem;font-size:.8rem}
+.dr-tools{display:flex;flex-wrap:wrap;gap:.35rem}
+.dr-panel{border:2px dashed var(--unit-line);border-radius:.8rem;padding:.5rem;min-height:2.5rem;background:var(--unit-soft);display:grid;gap:.3rem}
+.dr-panel:empty::before{content:'👆 點上面的工具打開它';font-size:.8rem;color:var(--ink-soft)}
+/* 🍕 雲端披薩店 */
+.cz-stack{display:grid;gap:.3rem}
+.cz-l{display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;border:2px solid var(--line);border-radius:.7rem;padding:.4rem .55rem;background:#fff}
+.cz-l small{display:block;font-size:.72rem;color:var(--ink-soft);font-weight:700}
+.cz-l.cloud{background:#eff6ff;border-color:#93c5fd}.cz-l.me{background:#fff7ed;border-color:#fdba74}
+/* 🔌 嵌入式（Scratch 積木樣式） */
+.em-code{display:grid;gap:.25rem;margin-top:.5rem;overflow-x:auto}
+.blk{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.35rem;color:#fff;font-weight:900;font-size:.85rem;padding:.4rem .6rem;border-radius:.5rem;width:fit-content;max-width:100%;box-sizing:border-box}
+.blk.ctl{background:#b45309}.blk.act{background:#2563eb}
+.blk .input{margin:0;padding:.2rem .35rem;font-size:.8rem;width:auto;max-width:14rem;color:var(--ink)}
+.blk .em-n{width:4.5rem}
+.em-in{padding-left:1.2rem;border-left:.6rem solid #ffab19;margin-left:.3rem}
+.em-tests{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center}
+.em-t{font-size:.8rem;font-weight:900;padding:.2rem .5rem;border-radius:.5rem;border:2px solid}
+.em-t.ok{border-color:var(--ok);color:var(--ok)}.em-t.bad{border-color:var(--bad);color:var(--bad)}
+@media (max-width:560px){.om-bar i{font-size:.6rem}.fu-map{grid-template-columns:1fr}.mp-lv{grid-template-columns:1fr}.blk .input{max-width:100%}.em-in{padding-left:.5rem;margin-left:.15rem}.em-code{overflow-x:visible}}

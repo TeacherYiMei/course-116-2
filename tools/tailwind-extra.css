@@ -1,0 +1,7 @@
+/* 投影可讀性（2026-09-27）：單元一沿用的淡色文字／按鈕加深到對比 ≥ 4.5；接在 Tailwind utilities 後面，同名 class 以這裡為準 */
+.text-slate-400{color:#64748b}
+.text-indigo-400{color:#4f46e5}.text-indigo-500{color:#4338ca}
+.text-emerald-600{color:#047857}.text-teal-600{color:#0f766e}
+.text-rose-500,.text-rose-600{color:#be123c}.text-sky-600{color:#0369a1}
+.bg-rose-500{background-color:#e11d48}.bg-teal-500{background-color:#0f766e}
+.bg-blue-500{background-color:#2563eb}.bg-indigo-500{background-color:#4f46e5}

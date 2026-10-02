@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資訊科技課程 · 116 學年度</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/semester.js"></script>
+</head>
+<body>
+<main class="wrap" style="max-width:34rem;text-align:center;padding-top:3rem">
+  <p class="kicker">前峰國中 九年級 · 116 學年度</p>
+  <h1 class="title mt1">資訊科技課程</h1>
+
+  <!-- 倒數可以取消，否則下面兩張卡片按不到 -->
+  <div id="auto" class="card mt3 hidden">
+    <p class="bold soft"><span id="sec">3</span> 秒後前往<span id="term-name" style="color:var(--ink)"></span>…</p>
+    <button id="cancel" class="btn sm mt1">先不要，我自己選</button>
+  </div>
+
+  <div class="grid mt3" style="grid-template-columns:1fr 1fr">
+    <a class="card" href="11601/hub.html" style="text-decoration:none"><div style="font-size:2rem">📘</div><div class="black">上學期</div><div class="tiny soft bold">116-1 · 數位時代／Python／系統平臺</div></a>
+    <a class="card" href="11602/hub.html" style="text-decoration:none"><div style="font-size:2rem">📗</div><div class="black">下學期</div><div class="tiny soft bold">116-2 · 多媒體／網路／資料處理</div></a>
+  </div>
+
+  <p class="tiny faint mt4">課程規劃與維護說明見 repo 的 README.md 與 docs/</p>
+</main>
+<script>
+/* ?term=11601 直接前往；?stay 停在這一頁；都沒帶就依 semester.js 倒數 3 秒導向 */
+(function () {
+  var q = new URLSearchParams(location.search);
+  var want = q.get('term');
+  if (want && SEMESTER.isTerm(want)) { location.replace(want + '/hub.html'); return; }
+  if (q.has('stay')) return;
+  try { if (sessionStorage.getItem('entry-stay') === '1') return; } catch (e) {}
+
+  var term = SEMESTER.current();
+  document.getElementById('term-name').textContent = SEMESTER.name(term);
+  document.getElementById('auto').classList.remove('hidden');
+  var left = 3, secEl = document.getElementById('sec');
+  var timer = setInterval(function () {
+    left--;
+    if (left <= 0) { clearInterval(timer); timer = null; location.replace(term + '/hub.html'); return; }
+    secEl.textContent = left;
+  }, 1000);
+  function stop() {
+    if (!timer) return;
+    clearInterval(timer); timer = null;
+    document.getElementById('auto').classList.add('hidden');
+    try { sessionStorage.setItem('entry-stay', '1'); } catch (e) {}
+  }
+  document.getElementById('cancel').addEventListener('click', function (e) { e.stopPropagation(); stop(); });
+  document.addEventListener('click', stop);
+  document.addEventListener('keydown', stop);
+})();
+</script>
+</body>
+</html>

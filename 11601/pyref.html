@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 語法小抄 · 單元二</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="../shared/pyapp.css">
+<script src="config.js"></script>
+<script src="../shared/semester.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/pyrunner.js"></script>
+<script>/* ?embed=1：放在 Python 闖關頁的浮動視窗裡（只留查詢需要的部分） */ if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<style>
+  /* 📚 Python 語法小抄（這一頁專用） */
+  .rf-intro{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center}
+  .rf-bar{position:sticky;top:0;z-index:30;background:rgba(250,250,249,.96);backdrop-filter:blur(6px);padding:.6rem 0 .5rem;margin:0 0 1rem;border-bottom:1px solid var(--line)}
+  .rf-bar .input{margin:0;max-width:22rem}
+  .rf-chips{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.45rem}
+  .rf-chip{appearance:none;font:inherit;font-size:.8rem;font-weight:800;border:2px solid var(--line);background:#fff;border-radius:999px;padding:.25rem .65rem;cursor:pointer;color:var(--ink)}
+  .rf-chip:hover{border-color:#94a3b8}
+  .rf-chip.on{border-color:var(--unit);background:var(--unit-bg);color:var(--ink)}
+  .rf-chip small{font-weight:700;color:var(--ink-soft)}
+  .rf-cat{scroll-margin-top:9.5rem;margin:2rem 0 .8rem;display:flex;align-items:center;gap:.5rem;font-size:1.3rem;font-weight:900}
+  .rf-cat small{font-size:.8rem;font-weight:700;color:var(--ink-soft)}
+  .rf-list{display:grid;gap:1rem}
+  .rf-card{scroll-margin-top:9.5rem}
+  .rf-card.flash{animation:rfFlash 1.6s ease-out}
+  @keyframes rfFlash{0%,40%{box-shadow:0 0 0 4px var(--unit-line)}100%{box-shadow:none}}
+  .rf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;flex-wrap:wrap}
+  .rf-head h3{font-size:1.2rem;font-weight:900;display:flex;align-items:center;gap:.4rem}
+  .rf-lv{display:flex;gap:.25rem;flex-wrap:wrap}
+  .rf-lv a{font-size:.72rem;font-weight:900;text-decoration:none;color:var(--ink);background:var(--unit-bg);border-radius:999px;padding:.12rem .5rem}
+  .rf-syn{font:700 1rem/1.5 ui-monospace,Consolas,monospace;background:var(--unit-soft);border:2px dashed var(--unit-line);border-radius:.7rem;padding:.45rem .7rem;margin:.6rem 0;white-space:pre-wrap;word-break:break-word}
+  .rf-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1rem;margin-top:.4rem}
+  .rf-desc{font-size:.95rem;line-height:1.75}
+  .rf-desc ul{margin:.3rem 0;padding-left:1.2rem}
+  .rf-desc code,.rf-tbl code,.rf-quick code{font-family:ui-monospace,Consolas,monospace;background:#f1f5f9;border-radius:.3rem;padding:0 .3rem;font-size:.92em}
+  .rf-ex{display:grid;gap:.4rem;margin-bottom:.8rem}
+  .rf-ex-t{font-size:.8rem;font-weight:900;color:var(--ink-soft)}
+  pre.rf-code{margin:0;background:#f8fafc;border:1px solid var(--line);border-radius:.7rem;padding:.6rem .75rem;font:14.5px/1.65 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word;overflow-x:auto}
+  .rf-code .kw{color:#9333ea;font-weight:700}.rf-code .fn{color:#2563eb;font-weight:700}.rf-code .st{color:#15803d}.rf-code .nm{color:#c2410c}.rf-code .cm{color:#64748b;font-style:italic}.rf-code .op{color:#be123c;font-weight:700}
+  .rf-out{background:#0f172a;color:#e2e8f0;border-radius:.7rem;padding:.5rem .75rem;font:14px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+  .rf-out .rf-when{display:block;color:#94a3b8;font-size:.75rem;margin-top:.35rem}.rf-out .rf-when:first-child{margin-top:0}
+  .rf-tools{display:flex;gap:.35rem;flex-wrap:wrap}
+  .rf-tbl{margin:.5rem 0}
+  .rf-tbl table.t{font-size:.88rem}
+  .rf-tbl td:first-child code{white-space:nowrap}
+  .rf-warn{margin-top:.6rem;font-size:.88rem}
+  .rf-warn li{margin:.15rem 0}
+  .rf-scratch{display:grid;gap:.3rem;margin-top:.5rem}
+  .rf-sc{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:.4rem;align-items:center;font-size:.85rem}
+  .rf-blk{background:#b45309;color:#fff;font-weight:900;border-radius:.45rem;padding:.25rem .5rem}
+  .rf-blk.lk{background:#2563eb}.rf-blk.op{background:#15803d}.rf-blk.vr{background:#c2410c}.rf-blk.se{background:#0369a1}   /* Scratch 顏色取深一階：投影時白字看得清楚 */
+  .rf-sc code{font-family:ui-monospace,Consolas,monospace;background:#f1f5f9;border-radius:.35rem;padding:.2rem .4rem;white-space:pre-wrap;word-break:break-word}
+  .rf-quick td:nth-child(2){white-space:nowrap}
+  .rf-quick a{color:inherit}
+  .rf-err{display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:.8rem}
+  .rf-err .card{padding:1rem}
+  .rf-empty{padding:2rem;text-align:center;color:var(--ink-soft)}
+  /* 🧪 試試看 */
+  /* 🧪 試試看：浮動視窗（拖曳標題列移動、拖曳右下角調整大小、可縮小） */
+  .rf-lab{position:fixed;right:1.2rem;bottom:1.2rem;width:min(40rem,calc(100vw - 2rem));height:min(36rem,calc(100vh - 2rem));min-width:20rem;min-height:14rem;z-index:900;
+    background:#fff;border:2px solid var(--unit);border-radius:1rem;box-shadow:0 18px 50px rgba(15,23,42,.28);display:flex;flex-direction:column;overflow:hidden;resize:both}
+  .rf-lab.min{height:auto!important;min-height:0;resize:none}
+  .rf-lab.min .rf-lab-body{display:none}
+  .rf-lab-hd{display:flex;align-items:center;gap:.5rem;padding:.5rem .6rem .5rem .9rem;background:var(--unit-bg);cursor:move;user-select:none;touch-action:none;flex:none}
+  .rf-lab-hd b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.92rem}
+  .rf-lab-hd .btn{cursor:pointer}
+  .rf-lab-body{flex:1;min-height:0;overflow:auto;padding:.8rem;display:flex;flex-direction:column;gap:.5rem}
+  .rf-lab textarea{width:100%;flex:none;height:11rem;font:14.5px/1.6 ui-monospace,Consolas,monospace;border:2px solid var(--line);border-radius:.7rem;padding:.6rem;resize:vertical;tab-size:4}
+  .rf-lab .console{min-height:7rem;flex:none}
+  .rf-lab #lab-fw:empty{display:none}
+  @media (max-width:760px){
+    .rf-body,.rf-intro{grid-template-columns:1fr}
+    .rf-lab{left:.5rem!important;right:.5rem!important;top:auto!important;bottom:.5rem!important;width:auto!important;height:min(34rem,80vh)!important;min-width:0;resize:none}
+    .rf-lab-hd{cursor:default}
+    .rf-bar{position:static}.rf-bar .input{max-width:none}
+    .rf-card{scroll-margin-top:1rem}
+    .rf-sc{grid-template-columns:1fr;gap:.15rem}.rf-sc .ar{display:none}
+    pre.rf-code{font-size:13.5px;white-space:pre}
+    .rf-quick tr:first-child{display:none}.rf-quick tr{display:block;padding:.45rem 0;border-bottom:1px solid var(--line)}
+    .rf-quick td{display:inline;border:0!important;padding:0 .4rem 0 0!important}.rf-quick td:first-child{display:block;font-weight:800;margin-bottom:.2rem}
+    .rf-quick td:nth-child(2){white-space:normal}.rf-quick td code{white-space:normal;word-break:break-word}
+  }
+  /* 嵌在闖關頁的浮動視窗裡 */
+  .embed .topbar,.embed .rf-intro,.embed #pager,.embed [data-try],.embed #cats,.embed .rf-lv{display:none!important}
+  .embed body{background:#fafaf9}
+  .embed .wrap-wide{padding:.5rem .7rem 2rem}
+  .embed .rf-bar{position:sticky!important;padding:.45rem 0 .4rem;margin-bottom:.6rem}
+  .embed .rf-chips{margin-top:.35rem}
+  .embed .rf-chip{padding:.18rem .5rem;font-size:.75rem}
+  .embed .rf-card{scroll-margin-top:6.5rem;padding:1rem}
+  .embed .rf-cat{scroll-margin-top:6.5rem;font-size:1.1rem;margin:1.2rem 0 .6rem}
+  .embed .rf-head h3{font-size:1.05rem}
+  @media print{.rf-bar,.rf-tools,.rf-lab,.topbar .back{display:none!important}.rf-card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<main class="wrap-wide">
+  <header id="topbar"></header>
+
+  <section class="card rf-intro">
+    <div>
+      <p class="kicker">單元二 · 課本第 2 章 · 隨時查、隨時試</p>
+      <h2 class="black" style="font-size:1.4rem">📚 這個單元會用到的 Python 語法，都在這裡</h2>
+      <p class="small mt1">每一種語法都有：<b>寫法</b>、<b>白話說明</b>、<b>範例和執行結果</b>、<b>Scratch 積木對照</b>、<b>常見錯誤</b>。範例可以按「🧪 試試看」直接改、直接跑。卡在哪一關，就點上面的關卡按鈕，只看那一關用到的語法。</p>
+    </div>
+    <div class="row"><a class="btn primary" href="python.html">🐍 回到畢旅籌備處</a></div>
+  </section>
+
+  <nav class="rf-bar" aria-label="篩選">
+    <div class="row">
+      <input id="q" class="input" type="search" placeholder="🔍 搜尋：例如 range、餘數、縮排、elif…" aria-label="搜尋語法">
+      <span id="count" class="tiny soft"></span>
+    </div>
+    <div class="rf-chips" id="cats"></div>
+    <div class="rf-chips" id="lvs"></div>
+  </nav>
+
+  <details class="card" id="quick" open>
+    <summary class="bold" style="cursor:pointer">⚡ 一頁速查表（我想要… → 怎麼寫）</summary>
+    <div class="scroll-x mt1"><table class="t rf-quick" id="quick-t"></table></div>
+  </details>
+
+  <div id="list"></div>
+
+  <h2 class="rf-cat" id="errors">🩺 常見錯誤訊息 <small>程式跑不動時，先找找看是哪一種</small></h2>
+  <div class="rf-err" id="err-list"></div>
+
+  <h2 class="rf-cat" id="scratch">🐱 Scratch 積木 ↔ Python 總對照</h2>
+  <section class="card"><div class="scroll-x"><table class="t" id="sc-t"></table></div></section>
+
+  <nav id="pager" class="pager"></nav>
+</main>
+
+<aside class="rf-lab hidden" id="lab" role="dialog" aria-label="試試看">
+  <div class="rf-lab-hd" id="lab-hd" title="按住這裡可以拖曳移動">
+    <b>🧪 試試看：<span id="lab-t"></span></b>
+    <button class="btn sm" id="lab-min" title="縮小／展開">－</button><button class="btn sm" id="lab-x" title="關閉">✕</button>
+  </div>
+  <div class="rf-lab-body">
+    <textarea id="lab-code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python 程式碼"></textarea>
+    <p id="lab-fw" class="small bold" style="color:var(--warn);margin:0"></p>
+    <div class="row"><button class="btn primary" id="lab-run" disabled>⏳ 準備 Python 中…</button><button class="btn sm" id="lab-reset">↺ 換回範例</button><span class="tiny soft">Ctrl＋Enter 也能執行</span></div>
+    <div id="lab-out" class="console" aria-live="polite">按「▶ 執行」看看結果。</div>
+    <div id="lab-err"></div>
+  </div>
+</aside>
+
+<script id="pyref-data">
+/* =====================================================================
+   語法小抄的內容。每一筆：
+     id    網址錨點（pyref.html#id）      cat  分類      lv  用到這個語法的關卡
+     t     標題                            syn  寫法（等寬字）
+     d     白話說明（HTML）                tbl  表格 { h:[…], r:[[…]] }（可省略）
+     ex    範例 [{ t, code, runs:[[輸入…]], out:[…] }]
+             out 是執行結果；使用者輸入用 ⟦ ⟧ 標起來。rand:true 表示每次結果不同
+             ★ out 由 tests/pyref_check.mjs 用真正的 Python 核對（--write 會自動填好）
+     sc    Scratch 對照 [[積木, Python, 積木顏色]]
+     warn  常見錯誤／小叮嚀（HTML）
+   ⚠️ 範例刻意避開各關的情境與答案：這裡教「語法」，關卡要自己想。
+   ===================================================================== */
+window.PYREF_CATS = [
+  { id: 'io', icon: '💬', t: '輸入與輸出' },
+  { id: 'num', icon: '🔢', t: '資料型態與計算' },
+  { id: 'if', icon: '🔀', t: '選擇結構（判斷）' },
+  { id: 'loop', icon: '🔁', t: '迴圈（重複）' },
+  { id: 'ext', icon: '🧰', t: '延伸工具' }
+];
+window.PYREF = [
+  { id: 'print', cat: 'io', lv: ['P1', 'P2'], t: '🖨️ print( ) 顯示在畫面上', syn: "print(要顯示的東西)",
+    d: '把小括號裡的東西顯示在畫面上，印完會<b>自動換行</b>。<ul><li><b>文字</b>要用一對引號包起來，單引號 <code>\' \'</code> 或雙引號 <code>" "</code> 都可以，但要成對。</li><li><b>數字、算式</b>不用引號，Python 會先算好再顯示。</li><li>一次印好幾樣東西，用<b>逗號</b>隔開，中間會自動空一格。</li></ul>',
+    ex: [
+      { t: '文字、數字、算式', code: "print('早安！')      # 文字要加引號\nprint(2027)          # 數字不用引號\nprint(3 + 4)         # 算式：先算再印\nprint('3 + 4')       # 加了引號就是文字，照樣印出來", out: ["早安！\n2027\n7\n3 + 4"] },
+      { t: '用逗號一次印好幾樣', code: "print('蘋果', 3, '顆')\nprint('A', 'B', 'C')", out: ["蘋果 3 顆\nA B C"] }
+    ],
+    sc: [['說出 (早安！)', "print('早安！')", 'lk']],
+    warn: ['括號、引號都要用<b>半形</b>；全形的 <code>（</code> <code>’</code> 電腦看不懂。', '<code>print</code> 全部小寫，寫成 <code>Print</code> 會出現 NameError。'] },
+
+  { id: 'comment', cat: 'io', lv: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10'], t: '💭 # 註解', syn: "# 這是寫給人看的說明",
+    d: '<code>#</code> 後面到這一行結束的文字叫做<b>註解</b>，電腦執行時會直接跳過。<ul><li>用來說明「這幾行在做什麼」，自己和別人以後比較看得懂。</li><li>想暫時讓某一行不要執行，也可以在最前面加 <code>#</code>。</li></ul>',
+    ex: [{ t: '註解不會被執行', code: "# 計算班上總人數\nboys = 14     # 男生人數\ngirls = 15    # 女生人數\nprint(boys + girls)\n# print('這一行被註解掉了，不會印')", out: ["29"] }],
+    warn: ['註解裡可以用中文和全形符號，不會出錯。'] },
+
+  { id: 'var', cat: 'io', lv: ['P2', 'P3', 'P4', 'P9', 'P10'], t: '📦 變數與 =', syn: "變數名稱 = 值",
+    d: '變數就像<b>貼了名字的收納盒</b>，用來存放資料，之後用名字就能拿出來用。<ul><li><code>=</code> 的意思是「<b>把右邊的值放進左邊的盒子</b>」，不是數學的「相等」。</li><li>同一個名字再存一次，舊的值就被換掉。</li><li><code>score = score + 5</code>：先算右邊（舊的 score 加 5），再放回 score。</li></ul>',
+    tbl: { h: ['變數名稱', '可以嗎？', '原因'], r: [['<code>name</code>、<code>age2</code>、<code>total_money</code>', '✅', '英文字母、數字、底線 _ 組成'], ['<code>2age</code>', '❌', '不能用數字開頭'], ['<code>my name</code>', '❌', '中間不能有空白（可以改成 my_name）'], ['<code>if</code>、<code>print</code>', '❌', 'Python 自己要用的字，不要拿來當名字'], ['<code>Score</code> 和 <code>score</code>', '⚠️', '大小寫不同，是兩個不一樣的變數']] },
+    ex: [{ t: '存進去、拿出來、更新', code: "score = 80           # 把 80 放進 score\nprint(score)\nscore = score + 5    # 先算 80 + 5，再放回 score\nprint(score)", out: ["80\n85"] }],
+    sc: [['變數 score 設為 (80)', 'score = 80', 'vr'], ['變數 score 改變 (5)', 'score = score + 5', 'vr']],
+    warn: ['變數要<b>先存值、後使用</b>。還沒存過就拿來用，會出現 NameError。'] },
+
+  { id: 'input', cat: 'io', lv: ['P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10'], t: '⌨️ input( ) 讓使用者輸入', syn: "變數 = input('提示文字')",
+    d: '顯示提示文字，然後<b>停下來等使用者打字</b>；按下 Enter 後，打的內容就是 input( ) 的結果，通常馬上存進一個變數。<ul><li>⚠️ input( ) 拿到的<b>一律是文字（字串）</b>，就算打的是 15 也一樣。要拿來計算或比大小，先轉成數字（見「型態轉換」）。</li><li>提示文字最後可以加一個「：」或空格，使用者打的字才不會黏在一起。</li></ul>',
+    ex: [{ t: '問一個問題，再用答案說一句話', code: "food = input('你最喜歡的食物：')\nprint('原來你喜歡', food)", out: ["你最喜歡的食物：⟦滷肉飯⟧\n原來你喜歡 滷肉飯"], runs: [['滷肉飯']] }],
+    sc: [['詢問 (你最喜歡的食物：) 並等待', "food = input('你最喜歡的食物：')", 'se'], ['(答案)', 'food（存在你取的變數裡）', 'se']],
+    warn: ['在這個網站的編輯器裡「▶ 試跑」時，程式會停下來讓你在執行結果區打字，打完按 Enter。'] },
+
+  { id: 'str', cat: 'io', lv: ['P2'], t: '🧵 把文字和變數組成一句話', syn: "'文字' + 變數 + '文字'\nprint('文字', 變數, '文字')\nstr(數字)",
+    d: '有兩種組句子的方法：<ul><li><b>用 + 接起來</b>：每一段都要是文字，接的地方<b>不會自動加空格</b>。數字要用 <code>str( )</code> 先變成文字才能接。</li><li><b>用逗號分開</b>：print 會在中間自動空一格，數字也可以直接放，最不容易出錯。</li></ul>',
+    ex: [{ t: '兩種寫法比一比', code: "city = '台南'\ndays = 3\nprint('我們要去' + city + '玩')     # + 接起來，沒有空格\nprint('一共', days, '天')           # 逗號：自動空一格\nprint('一共' + str(days) + '天')    # 數字先用 str() 變成文字", out: ["我們要去台南玩\n一共 3 天\n一共3天"] }],
+    sc: [['字串組合 (我們要去) (city)', "'我們要去' + city", 'op']],
+    warn: ["<code>'一共' + days + '天'</code> 會出現 TypeError：文字和數字不能直接用 + 接。", '每一段文字都要有自己的一對引號，數一數引號有沒有成對。'] },
+
+  { id: 'type', cat: 'num', lv: ['P3', 'P4'], t: '🏷️ 資料型態：整數、浮點數、字串', syn: "type(資料)   ← 查查看是哪一種",
+    d: 'Python 的每一個資料都有「型態」，型態決定它能做什麼事。',
+    tbl: { h: ['型態', '名稱', '例子', '可以做什麼'], r: [['<code>int</code>', '整數', '<code>15</code>、<code>-3</code>、<code>0</code>', '計算、比大小'], ['<code>float</code>', '浮點數（有小數點）', '<code>48.5</code>、<code>3.0</code>', '計算、比大小'], ['<code>str</code>', '字串（文字）', "<code>'15'</code>、<code>'哈囉'</code>", '顯示、用 + 接起來'], ['<code>bool</code>', '布林值（對或錯）', '<code>True</code>、<code>False</code>', '比較的結果，給 if、while 判斷']] },
+    ex: [{ t: '看起來一樣，型態不一樣', code: "print(type(15))\nprint(type(48.5))\nprint(type('15'))     # 有引號就是字串\nprint(type(3 > 2))", out: ["<class 'int'>\n<class 'float'>\n<class 'str'>\n<class 'bool'>"] }],
+    warn: ["<code>15</code> 和 <code>'15'</code> 不一樣：有引號的是文字，不能拿來計算。"] },
+
+  { id: 'convert', cat: 'num', lv: ['P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P10'], t: '🔄 型態轉換 int( )、float( )、str( )', syn: "int(資料)    float(資料)    str(資料)\n數字變數 = int(input('提示文字'))",
+    d: 'input( ) 拿到的是文字，要計算前先轉成數字。<ul><li><code>int( )</code>：轉成<b>整數</b>，例如人數、年齡。</li><li><code>float( )</code>：轉成<b>浮點數</b>，可能有小數的都用它，例如身高、體重、溫度。</li><li><code>str( )</code>：把數字轉成<b>文字</b>，才能用 + 和其他文字接在一起。</li></ul><code>int(input(…))</code> 是<b>由內往外</b>做：先 input 拿到文字，再用 int 轉成整數。',
+    tbl: { h: ['寫法', '結果', '說明'], r: [["<code>int('15')</code>", '<code>15</code>', '文字 → 整數'], ["<code>float('48.5')</code>", '<code>48.5</code>', '文字 → 浮點數'], ['<code>int(48.9)</code>', '<code>48</code>', '直接去掉小數（不是四捨五入）'], ['<code>str(15)</code>', "<code>'15'</code>", '數字 → 文字'], ["<code>int('48.5')</code>", '❌ ValueError', '有小數點的文字不能直接轉整數，改用 float( )']] },
+    ex: [{ t: '沒轉換 vs 有轉換', code: "a = input('第一個數：')\nb = input('第二個數：')\nprint(a + b)              # 文字 + 文字：接在一起\nprint(int(a) + int(b))    # 轉成整數再相加", out: ["第一個數：⟦12⟧\n第二個數：⟦30⟧\n1230\n42"], runs: [['12', '30']] }],
+    sc: [['（Scratch 的答案可以直接拿來算）', "int(input('…'))  ← Python 要先轉換", 'se']],
+    warn: ['括號要成對：<code>int(input(\'人數：\'))</code> 最後有<b>兩個</b>右括號。', '輸入「十五」或「15歲」這種不是純數字的內容，int( ) 會出錯。'] },
+
+  { id: 'math', cat: 'num', lv: ['P3', 'P4'], t: '➗ 算術運算子', syn: "+  -  *  /  //  %  **",
+    d: '電腦的加減乘除和數學課有一點不一樣：乘號是 <code>*</code>，而且除法有三種。',
+    tbl: { h: ['運算子', '意思', '例子', '結果'], r: [['<code>+</code>', '加', '<code>7 + 2</code>', '<code>9</code>'], ['<code>-</code>', '減', '<code>7 - 2</code>', '<code>5</code>'], ['<code>*</code>', '乘', '<code>7 * 2</code>', '<code>14</code>'], ['<code>/</code>', '除（結果一定是浮點數）', '<code>7 / 2</code>', '<code>3.5</code>'], ['<code>//</code>', '整數除法：只留「商」', '<code>7 // 2</code>', '<code>3</code>'], ['<code>%</code>', '取餘數', '<code>7 % 2</code>', '<code>1</code>'], ['<code>**</code>', '次方', '<code>7 ** 2</code>', '<code>49</code>']] },
+    ex: [
+      { t: '17 片餅乾分給 5 個人', code: "cookies = 17\nkids = 5\nprint(cookies // kids)    # 每人分到幾片\nprint(cookies % kids)     # 還剩幾片", out: ["3\n2"] },
+      { t: '三種除法、次方', code: "print(10 / 4)\nprint(10 / 5)     # 除得盡也會有 .0\nprint(10 // 4)\nprint(10 % 4)\nprint(3 ** 2)     # 3 的平方", out: ["2.5\n2.0\n2\n2\n9"] }
+    ],
+    sc: [['( ) + ( )、( ) * ( )', 'a + b、a * b', 'op'], ['( ) 除以 ( ) 的餘數', 'a % b', 'op'], ['無條件捨去 ( ( ) / ( ) )', 'a // b', 'op']],
+    warn: ['<code>//</code> 和 <code>%</code> 是好朋友：125 秒 → <code>125 // 60</code> 是 2 分、<code>125 % 60</code> 是 5 秒。', '判斷奇偶數：<code>n % 2</code> 是 0 就是偶數。'] },
+
+  { id: 'order', cat: 'num', lv: ['P4'], t: '🧮 運算順序與括號', syn: "( )  →  **  →  *  /  //  %  →  +  -",
+    d: '和數學一樣「先乘除、後加減」，而且：<ul><li><b>括號最優先</b>，想先算的就包起來。</li><li><b>次方 ** 比乘除還優先</b>。</li><li>同一級的由左往右算。</li></ul>不確定的時候，多加括號最保險。',
+    ex: [{ t: '有沒有括號差很多', code: "print(2 + 3 * 4)          # 先乘\nprint((2 + 3) * 4)        # 先算括號\nprint(2 * 3 ** 2)         # 先算次方\nprint((80 + 90 + 70) / 3) # 三科平均\nprint(80 + 90 + 70 / 3)   # 少了括號：只有 70 被除", out: ["14\n20\n18\n80.0\n193.33333333333334"] }],
+    warn: ['算式裡的括號只能用小括號 ( )，不能用 [ ] 或 { }。'] },
+
+  { id: 'round', cat: 'num', lv: ['P4'], t: '🎯 round( ) 四捨五入', syn: "round(數字, 小數位數)",
+    d: '把數字四捨五入到指定的小數位數。<ul><li>第二個數字是「留幾位小數」。</li><li>不寫第二個數字，就四捨五入到<b>整數</b>。</li></ul>',
+    ex: [{ t: '留 2 位、1 位、整數', code: "avg = 245 / 3\nprint(avg)\nprint(round(avg, 2))\nprint(round(avg, 1))\nprint(round(avg))", out: ["81.66666666666667\n81.67\n81.7\n82"] }],
+    warn: ['小知識：剛好是 .5 的時候，Python 會取到<b>偶數</b>，所以 <code>round(2.5)</code> 是 2、<code>round(3.5)</code> 是 4，和課本的四捨五入不太一樣。'] },
+
+  { id: 'compare', cat: 'if', lv: ['P5', 'P6', 'P7', 'P9', 'P10'], t: '⚖️ 關係運算子（比大小）', syn: "==  !=  >  >=  <  <=",
+    d: '比較兩個值，結果只有兩種：<code>True</code>（對）或 <code>False</code>（錯），給 if、while 用來判斷。',
+    tbl: { h: ['運算子', '意思', '中文說法 → 寫法'], r: [['<code>==</code>', '等於（兩個等號！）', "答案是 bye → <code>ans == 'bye'</code>"], ['<code>!=</code>', '不等於', "還不是 bye → <code>ans != 'bye'</code>"], ['<code>&gt;</code>', '大於', '超過 60 → <code>score &gt; 60</code>'], ['<code>&gt;=</code>', '大於或等於', '60 分以上（含 60）→ <code>score &gt;= 60</code>'], ['<code>&lt;</code>', '小於', '未滿 18 → <code>age &lt; 18</code>'], ['<code>&lt;=</code>', '小於或等於', '18 歲以下（含 18）→ <code>age &lt;= 18</code>']] },
+    ex: [{ t: '比較的結果是 True 或 False', code: "age = 14\nprint(age > 12)\nprint(age == 15)\nprint(age != 15)\nprint(age >= 14)", out: ["True\nFalse\nTrue\nTrue"] }],
+    sc: [['< ( ) > ( ) >　< ( ) = ( ) >', 'a > b　a == b', 'op'], ['（Scratch 沒有 ≥、≤、≠）', 'Python 有 >=、<=、!=', 'op']],
+    warn: ['<b>「以上、以下」有包含那個數字</b>，要用 <code>&gt;=</code>、<code>&lt;=</code>；「超過、未滿」才用 <code>&gt;</code>、<code>&lt;</code>。邊界的數字最容易出錯，記得拿來測試！', '<code>=</code> 是存放，<code>==</code> 才是比較。', '寫成 <code>=&gt;</code>、<code>=&lt;</code> 是錯的，等號要放在後面。', '文字和數字不能比大小：先把 input( ) 轉成 int( )。'] },
+
+  { id: 'if', cat: 'if', lv: ['P5'], t: '❓ if 單向選擇', syn: "if 條件:\n    條件成立時要做的事",
+    d: '條件成立（True）才執行底下<b>縮排</b>的程式；不成立就整段跳過。<ul><li>if 那一行最後要有<b>冒號 :</b></li><li>屬於 if 的程式往右縮 <b>4 格</b>（按 Tab）。</li><li>沒有縮排的程式不屬於 if，不管條件如何都會執行。</li></ul>',
+    ex: [{ t: '天氣熱才提醒帶水', code: "temp = int(input('今天幾度？'))\nif temp >= 30:\n    print('好熱，記得帶水！')\nprint('祝你有美好的一天')", out: ["今天幾度？⟦32⟧\n好熱，記得帶水！\n祝你有美好的一天","今天幾度？⟦25⟧\n祝你有美好的一天"], runs: [['32'], ['25']] }],
+    sc: [['如果 < > 那麼', 'if 條件:', 'lk']] },
+
+  { id: 'ifelse', cat: 'if', lv: ['P5'], t: '↔️ if／else 雙向選擇', syn: "if 條件:\n    成立時做這個\nelse:\n    不成立時做這個",
+    d: '二選一：條件成立做上面那段，不成立就做 else 底下那段，<b>一定會做其中一個</b>。<ul><li><code>else</code> 要和 <code>if</code> 對齊，後面也要有冒號。</li><li>else 後面<b>不寫條件</b>。</li></ul>',
+    ex: [{ t: '及格或不及格', code: "score = int(input('分數：'))\nif score >= 60:\n    print('及格')\nelse:\n    print('不及格，加油！')", out: ["分數：⟦75⟧\n及格","分數：⟦60⟧\n及格","分數：⟦42⟧\n不及格，加油！"], runs: [['75'], ['60'], ['42']] }],
+    sc: [['如果 < > 那麼 … 否則 …', 'if 條件:\n    …\nelse:\n    …', 'lk']] },
+
+  { id: 'elif', cat: 'if', lv: ['P6'], t: '🔀 if／elif／else 多向選擇', syn: "if 條件1:\n    …\nelif 條件2:\n    …\nelse:\n    …",
+    d: '三種以上的情況，用 <code>elif</code>（else if 的縮寫）一個一個排下去。<ul><li>電腦<b>由上往下</b>檢查，碰到<b>第一個成立</b>的就執行那一段，後面的全部跳過。</li><li>elif 可以有很多個；最後的 else 負責「以上都不是」，可以省略。</li><li>所以<b>條件的順序很重要</b>，範圍小的、特別的先寫。</li></ul>',
+    ex: [
+      { t: '分數換成等級', code: "score = int(input('分數：'))\nif score >= 90:\n    print('A 等')\nelif score >= 80:\n    print('B 等')\nelif score >= 70:\n    print('C 等')\nelse:\n    print('再努力')", out: ["分數：⟦95⟧\nA 等","分數：⟦80⟧\nB 等","分數：⟦50⟧\n再努力"], runs: [['95'], ['80'], ['50']] },
+      { t: '⚠️ 順序排錯的後果', code: "score = 95\nif score >= 70:\n    print('C 等')\nelif score >= 90:\n    print('A 等')     # 95 也 >= 70，永遠輪不到這裡！", out: ["C 等"] }
+    ],
+    sc: [['如果 … 那麼 … 否則（如果 … 那麼 … 否則 …）', 'if …:\nelif …:\nelse:', 'lk']],
+    warn: ['Python 要寫 <code>elif</code>，寫成 <code>else if</code> 會出錯。', '不要寫成好幾個獨立的 if：獨立的 if 每一個都會檢查，可能印出好幾個結果。'] },
+
+  { id: 'logic', cat: 'if', lv: ['P7', 'P9'], t: '🔗 邏輯運算子 and、or、not', syn: "條件A and 條件B\n條件A or 條件B\nnot 條件",
+    d: '把好幾個條件組合成一個。',
+    tbl: { h: ['運算子', '意思', '什麼時候成立', '生活例子'], r: [['<code>and</code>', '而且', '<b>兩邊都</b>成立', '沒下雨 <b>而且</b> 氣溫 20 度以上 → 出去打球'], ['<code>or</code>', '或', '<b>只要一邊</b>成立', '星期六 <b>或</b> 星期日 → 放假'], ['<code>not</code>', '不是', '把結果<b>反過來</b>', '<b>不是</b>假日 → 要上學']] },
+    ex: [
+      { t: 'and：兩個條件都要符合', code: "rain = input('有下雨嗎？(y/n)')\ntemp = int(input('氣溫幾度？'))\nif rain == 'n' and temp >= 20:\n    print('出去打球！')\nelse:\n    print('在家看書')", out: ["有下雨嗎？(y/n)⟦n⟧\n氣溫幾度？⟦25⟧\n出去打球！","有下雨嗎？(y/n)⟦y⟧\n氣溫幾度？⟦25⟧\n在家看書","有下雨嗎？(y/n)⟦n⟧\n氣溫幾度？⟦15⟧\n在家看書"], runs: [['n', '25'], ['y', '25'], ['n', '15']] },
+      { t: 'or 和 not', code: "day = '六'\nif day == '六' or day == '日':\n    print('週末放假')\nprint(not (3 > 5))     # 3 > 5 是 False，反過來是 True", out: ["週末放假\nTrue"] }
+    ],
+    sc: [['< > 且 < >', '… and …', 'op'], ['< > 或 < >', '… or …', 'op'], ['< > 不成立', 'not …', 'op']],
+    warn: ["<code>day == '六' or '日'</code> 是錯的！or 的<b>兩邊都要寫完整的比較</b>：<code>day == '六' or day == '日'</code>。", '同一個 if 裡用 and 接起來，比寫兩層 if 更清楚。'] },
+
+  { id: 'indent', cat: 'if', lv: ['P5', 'P6', 'P7', 'P8', 'P9', 'P10'], t: '↹ 冒號與縮排', syn: "if／elif／else／for／while … :\n    ← 往右縮 4 格的，都屬於它",
+    d: 'Python 用<b>縮排</b>決定「哪些程式屬於哪一段」，就像 Scratch 積木被 C 形積木「包住」。<ul><li><code>if</code>、<code>elif</code>、<code>else</code>、<code>for</code>、<code>while</code> 那一行最後要有<b>冒號 :</b></li><li>下一行開始往右縮 <b>4 格</b>（按 Tab），縮排的程式都屬於它。</li><li>同一層的程式要對齊；<b>縮排回到左邊，那一段就結束了</b>。</li></ul>',
+    ex: [
+      { t: '寫在迴圈外面：只印一次', code: "for i in range(3):\n    print('跳')\nprint('結束')", out: ["跳\n跳\n跳\n結束"] },
+      { t: '寫在迴圈裡面：每一圈都印', code: "for i in range(3):\n    print('跳')\n    print('結束')", out: ["跳\n結束\n跳\n結束\n跳\n結束"] }
+    ],
+    sc: [['C 形積木「包住」的積木', '縮排 4 格的程式', 'lk']],
+    warn: ['空白和 Tab 不要混著用；這個網站的編輯器按 Tab 會自動變成 4 個空白。', '寫完一段 if 或迴圈，想想看下一行應該「在裡面」還是「在外面」。'] },
+
+  { id: 'for', cat: 'loop', lv: ['P8'], t: '🔢 for 計次迴圈與 range( )', syn: "for 變數 in range(起點, 終點, 間隔):\n    要重複的事",
+    d: '事先知道要重複幾次，就用 for。range( ) 會產生一串數字，for 讓變數<b>一次拿一個</b>，每拿一個就執行一次底下縮排的程式。<ul><li><b>包含起點、不包含終點</b>（停在終點的前一個）。</li><li>起點不寫就從 0 開始；間隔不寫就是 1。</li><li>間隔是<b>負數</b>就會倒著數，這時起點要比終點大。</li></ul>',
+    tbl: { h: ['寫法', '產生的數字', '說明'], r: [['<code>range(5)</code>', '0 1 2 3 4', '從 0 開始，共 5 個'], ['<code>range(1, 6)</code>', '1 2 3 4 5', '不包含 6'], ['<code>range(0, 10, 2)</code>', '0 2 4 6 8', '每次加 2'], ['<code>range(10, 0, -3)</code>', '10 7 4 1', '每次減 3，不包含 0']] },
+    ex: [
+      { t: '從 1 數到 5', code: "for i in range(1, 6):\n    print('第', i, '圈')\nprint('跑完了！')", out: ["第 1 圈\n第 2 圈\n第 3 圈\n第 4 圈\n第 5 圈\n跑完了！"] },
+      { t: '倒著數，每次減 2', code: "for n in range(10, 0, -2):\n    print(n)", out: ["10\n8\n6\n4\n2"] },
+      { t: '次數由使用者決定', code: "times = int(input('要拍幾下手？'))\nfor i in range(times):\n    print('👏')", out: ["要拍幾下手？⟦3⟧\n👏\n👏\n👏"], runs: [['3']] }
+    ],
+    sc: [['重複 (10) 次', 'for i in range(10):', 'lk'], ['變數 i 設為 1、重複時 i 改變 1', 'for i in range(1, …):', 'vr']],
+    warn: ['想要 1 到 10，要寫 <code>range(1, 11)</code>，終點要多 1。', 'for 那一行最後別忘了冒號。'] },
+
+  { id: 'while', cat: 'loop', lv: ['P9', 'P10'], t: '🔁 while 條件迴圈', syn: "while 條件:\n    條件成立時一直重複",
+    d: '不知道要重複幾次，只知道「<b>什麼時候要繼續</b>」，就用 while。<ul><li>每一圈開始前先檢查條件：成立就做一圈，不成立就離開迴圈，接著做下面沒縮排的程式。</li><li>迴圈裡面一定要有機會<b>改變條件</b>（例如再問一次、數字加 1），不然會停不下來（無窮迴圈）。</li></ul>',
+    ex: [
+      { t: '一直重複，直到輸入 bye', code: "cmd = input('說點什麼（輸入 bye 結束）：')\nwhile cmd != 'bye':\n    print('你說了：', cmd)\n    cmd = input('說點什麼（輸入 bye 結束）：')\nprint('掰掰！')", out: ["說點什麼（輸入 bye 結束）：⟦哈囉⟧\n你說了： 哈囉\n說點什麼（輸入 bye 結束）：⟦今天好熱⟧\n你說了： 今天好熱\n說點什麼（輸入 bye 結束）：⟦bye⟧\n掰掰！"], runs: [['哈囉', '今天好熱', 'bye']] },
+      { t: '用數字控制', code: "n = 1\nwhile n <= 5:\n    print(n)\n    n = n + 1     # 沒有這一行，n 永遠是 1，停不下來", out: ["1\n2\n3\n4\n5"] }
+    ],
+    tbl: { h: ['Scratch「重複直到」', 'Python「while」（條件要反過來！）'], r: [["重複直到 &lt; 答案 = bye &gt;", "<code>while ans != 'bye':</code>"], ['重複直到 &lt; n &gt; 5 &gt;', '<code>while n &lt;= 5:</code>'], ['重複直到 &lt; 錢 = 0 &gt;', '<code>while money != 0:</code>']] },
+    sc: [['重複直到 < >', 'while 相反的條件:', 'lk'], ['重複無限次', 'while True:', 'lk']],
+    warn: ['⚠️ Scratch 是「<b>直到</b>成立就停」，Python 是「成立就<b>繼續</b>」，條件剛好相反。', '程式跑超過 3 秒，這個網站會自動把它停下來，通常就是無窮迴圈。'] },
+
+  { id: 'count', cat: 'loop', lv: ['P9', 'P10'], t: '➕ 計數器與累加', syn: "count = count + 1     # 也可以寫 count += 1\ntotal = total + 數字   # 也可以寫 total += 數字",
+    d: '迴圈常常要「數次數」或「加總」：<ul><li><b>計數器</b>：迴圈前先設 <code>count = 0</code>，每發生一次就 +1。</li><li><b>累加</b>：迴圈前先設 <code>total = 0</code>，每一圈把新的數字加進去。</li></ul><code>+=</code> 是簡寫：<code>a += 3</code> 就是 <code>a = a + 3</code>；同樣也有 <code>-=</code>、<code>*=</code>。',
+    ex: [
+      { t: '累加：1 + 2 + … + 10', code: "total = 0\nfor i in range(1, 11):\n    total = total + i\nprint('總和', total)", out: ["總和 55"] },
+      { t: '計數器：數數看輸入了幾次', code: "count = 0\nword = input('輸入一個詞（空白直接按 Enter 結束）：')\nwhile word != '':\n    count += 1\n    word = input('輸入一個詞（空白直接按 Enter 結束）：')\nprint('你輸入了', count, '個詞')", out: ["輸入一個詞（空白直接按 Enter 結束）：⟦貓⟧\n輸入一個詞（空白直接按 Enter 結束）：⟦狗⟧\n輸入一個詞（空白直接按 Enter 結束）：⟦⟧\n你輸入了 2 個詞"], runs: [['貓', '狗', '']] }
+    ],
+    sc: [['變數 count 設為 (0)', 'count = 0', 'vr'], ['變數 count 改變 (1)', 'count += 1', 'vr']],
+    warn: ['計數器、總和的「歸零」要寫在<b>迴圈外面、前面</b>；寫在裡面，每一圈都會被歸零。'] },
+
+  { id: 'mix', cat: 'loop', lv: ['P10'], t: '🧩 while ＋ if 組合技', syn: "while 還沒完成:\n    做一次\n    if 條件:\n        …\n    else:\n        …\n完成後要做的事",
+    d: '很多程式都是這個樣子：<b>一直重複，直到完成為止</b>；每一圈裡面，再用 if 判斷情況給不同的回應。<ul><li>while 決定「要不要繼續」。</li><li>if 決定「這一圈要說什麼」。</li><li>能離開迴圈，就代表已經完成了，所以「完成」的訊息寫在迴圈<b>外面</b>。</li></ul>',
+    ex: [{ t: '存錢筒：存滿 100 元才停', code: "goal = 100\nsaved = 0\nwhile saved < goal:\n    coin = int(input('投入幾元？'))\n    saved = saved + coin\n    if saved < goal:\n        print('還差', goal - saved, '元')\n    else:\n        print('叮！剛好存滿或超過了')\nprint('存錢筒裡一共', saved, '元')", out: ["投入幾元？⟦50⟧\n還差 50 元\n投入幾元？⟦30⟧\n還差 20 元\n投入幾元？⟦50⟧\n叮！剛好存滿或超過了\n存錢筒裡一共 130 元"], runs: [['50', '30', '50']] }],
+    sc: [['重複直到 < > { 如果 < > 那麼 … 否則 … }', 'while …:\n    if …:\n        …\n    else:\n        …', 'lk']],
+    warn: ['寫之前先想好三件事：① 什麼時候要繼續？② 每一圈要做什麼？③ 離開後要做什麼？'] },
+
+  { id: 'time', cat: 'ext', lv: ['P8'], t: '⏱️ import time 與 time.sleep( )', syn: "import time\ntime.sleep(秒數)",
+    d: '<code>import</code> 是「把工具箱拿進來」。time 工具箱裡的 <code>sleep( )</code> 會讓程式<b>停一下</b>再繼續。<ul><li><code>import time</code> 寫在程式最上面，只要寫一次。</li><li>用的時候要寫 <code>time.sleep( )</code>，前面的 time. 不能省略。</li></ul>',
+    ex: [{ t: '泡麵計時', code: "import time\nprint('泡麵泡好了嗎？')\ntime.sleep(2)     # 停 2 秒\nprint('還沒…')\ntime.sleep(1)\nprint('好了，開動！')", out: ["泡麵泡好了嗎？\n還沒…\n好了，開動！"] }],
+    sc: [['等待 (1) 秒', 'time.sleep(1)', 'lk']],
+    warn: ['在這個網站上 sleep 會用動畫表現（每停一次約 0.4 秒），不會真的等那麼久。'] },
+
+  { id: 'random', cat: 'ext', lv: ['P10'], t: '🎲 import random 與 random.randint( )', syn: "import random\nrandom.randint(最小, 最大)",
+    d: 'random 工具箱可以產生<b>隨機</b>的數字。<code>random.randint(1, 6)</code> 會從 1～6 裡隨便挑一個整數，<b>1 和 6 都有可能</b>（和 range 不一樣，這裡包含最大值）。',
+    ex: [{ t: '擲骰子（每次結果不一樣）', code: "import random\ndice = random.randint(1, 6)\nprint('擲出', dice, '點')", out: ["擲出 6 點"], rand: true }],
+    sc: [['在 (1) 到 (6) 間隨機選一個數', 'random.randint(1, 6)', 'op']],
+    warn: ['寫程式、測試的時候，可以先把隨機的數字暫時換成固定的數字，比較容易檢查對不對。'] }
+];
+window.PYREF_QUICK = [
+  ['顯示文字或數字', 'print( )', "print('哈囉')", 'print'],
+  ['讓使用者打字', 'input( )', "name = input('姓名：')", 'input'],
+  ['把資料存起來', '=', 'score = 80', 'var'],
+  ['輸入的數字要拿來算', 'int( )／float( )', "n = int(input('人數：'))", 'convert'],
+  ['數字和文字接在一起', 'str( )／逗號', "print('共', n, '人')", 'str'],
+  ['只留商／取餘數', '//　%', '17 // 5 → 3　17 % 5 → 2', 'math'],
+  ['次方', '**', '3 ** 2 → 9', 'math'],
+  ['四捨五入', 'round( )', 'round(3.14159, 2) → 3.14', 'round'],
+  ['比大小', '== != > >= < <=', 'age >= 13', 'compare'],
+  ['兩個條件都要／其中一個就好', 'and／or', "a > 0 and b > 0", 'logic'],
+  ['如果…就…', 'if', 'if temp >= 30:', 'if'],
+  ['如果…否則…', 'if／else', 'else:', 'ifelse'],
+  ['三種以上的情況', 'if／elif／else', 'elif score >= 80:', 'elif'],
+  ['重複固定的次數', 'for … in range( )', 'for i in range(5):', 'for'],
+  ['條件成立就一直重複', 'while', "while ans != 'bye':", 'while'],
+  ['數次數、加總', '+=', 'count += 1', 'count'],
+  ['停一下', 'time.sleep( )', 'time.sleep(1)', 'time'],
+  ['隨機整數', 'random.randint( )', 'random.randint(1, 6)', 'random']
+];
+window.PYREF_ERRORS = [
+  { t: '🔤 全形符號', type: 'SyntaxError', why: '括號、引號、逗號、冒號、等號用了全形。只有引號<b>裡面</b>的文字可以用全形。', bad: "print（'你好'）\nif age ＞＝ 13：", good: "print('你好')\nif age >= 13:" },
+  { t: '❗ 少了冒號 :', type: 'SyntaxError', why: 'if、elif、else、for、while 那一行的最後都要有冒號。', bad: "if age >= 65\n    print('歡迎')", good: "if age >= 65:\n    print('歡迎')" },
+  { t: '❗ 引號沒有成對', type: 'SyntaxError', why: '文字的開頭和結尾都要有引號，而且要同一種。', bad: "print('哈囉)\nprint(\"哈囉')", good: "print('哈囉')\nprint(\"哈囉\")" },
+  { t: '❗ 括號沒有關起來', type: 'SyntaxError', why: '每一個 ( 都要有一個 )。函式裡面又有函式時最容易少一個；錯誤常常顯示在<b>下一行</b>。', bad: "age = int(input('幾歲？')\nprint(age)", good: "age = int(input('幾歲？'))\nprint(age)" },
+  { t: '❗ 比較要用 ==', type: 'SyntaxError', why: '一個等號是「存放」，兩個等號才是「是否相等」。', bad: "if ans = 'bye':", good: "if ans == 'bye':" },
+  { t: '❗ 要寫 elif', type: 'SyntaxError', why: 'Python 把「否則如果」合成一個字。', bad: "else if score >= 80:", good: "elif score >= 80:" },
+  { t: '↹ 應該縮排卻沒縮', type: 'IndentationError', why: '冒號下一行，屬於它的程式要往右縮 4 格。', bad: "for i in range(3):\nprint(i)", good: "for i in range(3):\n    print(i)" },
+  { t: '↹ 不應該縮排', type: 'IndentationError', why: '只有冒號下面的程式才要縮排，其他從最左邊開始。', bad: "name = input('姓名：')\n    print(name)", good: "name = input('姓名：')\nprint(name)" },
+  { t: '🔍 電腦不認識這個名字', type: 'NameError', why: '① 名字拼錯或大小寫不同；② 變數還沒存值就拿來用；③ 要印的文字忘了加引號。', bad: "Print('你好')\nprint(你好)", good: "print('你好')" },
+  { t: '🧩 文字和數字用 + 接', type: 'TypeError', why: '用逗號分開，或用 str( ) 把數字先變成文字。', bad: "age = 15\nprint('今年' + age + '歲')", good: "print('今年', age, '歲')\nprint('今年' + str(age) + '歲')" },
+  { t: '🧩 拿文字去比大小或計算', type: 'TypeError', why: 'input( ) 拿到的一律是文字，先用 int( ) 或 float( ) 轉成數字。', bad: "age = input('幾歲？')\nif age >= 13:", good: "age = int(input('幾歲？'))\nif age >= 13:" },
+  { t: '🔢 int( ) 遇到小數', type: 'ValueError', why: '有小數點的要用 float( )；輸入「十五」「15歲」這種不是純數字的也會出錯。', bad: "h = int(input('身高：'))   # 輸入 158.5", good: "h = float(input('身高：'))" },
+  { t: '➗ 除以 0', type: 'ZeroDivisionError', why: '任何數都不能除以 0，檢查除數會不會是 0。', bad: "n = 0\nprint(100 // n)", good: "if n > 0:\n    print(100 // n)" },
+  { t: '⏳ 跑超過 3 秒被停下來', type: '無窮迴圈', why: 'while 的條件一直成立：迴圈裡要改變條件用到的變數（再問一次、加 1…）。', bad: "n = 1\nwhile n <= 5:\n    print(n)", good: "n = 1\nwhile n <= 5:\n    print(n)\n    n = n + 1" }
+];
+</script>
+
+<script>
+(function () {
+  var esc = UI.esc, CATS = window.PYREF_CATS, REF = window.PYREF;
+  var LV = { P1: '哈囉，旅伴！', P2: '畢旅報名表', P3: '旅費分攤', P4: '健康檢查 BMI', P5: '雲霄飛車身高檢查', P6: '自動購票機', P7: '極速飛車雙重關卡', P8: '遊覽車發車倒數', P9: '置物櫃密碼鎖', P10: '營火晚會猜數字' };
+  UI.topbar('#topbar', { title: '📚 Python 語法小抄', kicker: '單元二 · 進入 Python 的世界', unit: 'u2' });
+  UI.pager('#pager', { lbl: '← 回到', title: '🐍 畢旅籌備處（Python 闖關）', href: 'python.html' }, { lbl: '回到', title: '🗺️ 闖關地圖', href: 'hub.html' });
+
+  /* ── 簡單的 Python 上色（只為了好讀，不求完美）── */
+  var KW = /^(if|elif|else|for|in|while|and|or|not|import|True|False|break|continue)$/, FN = /^(print|input|int|float|str|round|range|type|time|random|sleep|randint)$/;
+  function hl(code) {
+    var out = '', i = 0, m;
+    var re = /(#.*)|('(?:[^'\\\n]|\\.)*'?|"(?:[^"\\\n]|\\.)*"?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|(==|!=|>=|<=|\/\/|\*\*|\+=|-=|[+\-*\/%<>=])/g;
+    while ((m = re.exec(code))) {
+      out += esc(code.slice(i, m.index)); i = re.lastIndex;
+      var s = esc(m[0]);
+      out += m[1] ? '<span class="cm">' + s + '</span>' : m[2] ? '<span class="st">' + s + '</span>' : m[3] ? '<span class="nm">' + s + '</span>' :
+        m[4] ? (KW.test(m[4]) ? '<span class="kw">' + s + '</span>' : FN.test(m[4]) ? '<span class="fn">' + s + '</span>' : s) : '<span class="op">' + s + '</span>';
+    }
+    return out + esc(code.slice(i));
+  }
+  function outHTML(s) { return esc(s).replace(/⟦([^⟧]*)⟧/g, function (_, v) { return '<span class="io-in">' + (v || '（直接按 Enter）') + '</span>'; }); }
+  function exHTML(e, k, j) {
+    var runs = e.runs || [[]], out = e.out || [];
+    var res = runs.map(function (r, n) {
+      var when = runs.length > 1 || r.length ? '<span class="rf-when">▸ 輸入 ' + r.map(function (x) { return x === '' ? '（Enter）' : x; }).join('、') + ' 的時候</span>' : '';
+      return when + (out[n] != null ? outHTML(out[n]) : '');
+    }).join('');
+    return '<div class="rf-ex"><div class="row between"><span class="rf-ex-t">📝 ' + esc(e.t) + '</span><span class="rf-tools">' +
+      '<button class="btn sm" data-copy="' + k + ':' + j + '">📋 複製</button><button class="btn sm" data-try="' + k + ':' + j + '">🧪 試試看</button></span></div>' +
+      '<pre class="rf-code">' + hl(e.code) + '</pre>' +
+      '<div class="rf-out">' + (e.rand ? '<span class="rf-when">▸ 每次執行結果都不一樣，例如：</span>' : '') + res + '</div></div>';
+  }
+  function tblHTML(t) { return '<div class="rf-tbl scroll-x"><table class="t"><tr>' + t.h.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr>' + t.r.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table></div>'; }
+  function scHTML(sc) {
+    return '<div class="rf-scratch"><p class="tiny bold soft">🐱 Scratch 積木對照</p>' + sc.map(function (s) {
+      return '<div class="rf-sc"><span class="rf-blk ' + (s[2] || '') + '">' + esc(s[0]) + '</span><span class="ar soft">→</span><code>' + esc(s[1]) + '</code></div>';
+    }).join('') + '</div>';
+  }
+  function cardHTML(r, k) {
+    return '<article class="card rf-card" id="' + r.id + '" data-k="' + k + '"><div class="rf-head"><h3>' + esc(r.t) + '</h3><span class="rf-lv">' +
+      r.lv.map(function (l) { return '<a href="#' + l + '" title="' + esc(LV[l]) + '">' + l + '</a>'; }).join('') + '</span></div>' +
+      '<div class="rf-syn">' + hl(r.syn) + '</div>' +
+      '<div class="rf-body"><div><div class="rf-desc">' + r.d + '</div>' + (r.tbl ? tblHTML(r.tbl) : '') + (r.sc ? scHTML(r.sc) : '') +
+      (r.warn ? '<div class="note warn rf-warn"><b>⚠️ 小叮嚀</b><ul style="margin:.3rem 0 0;padding-left:1.1rem">' + r.warn.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul></div>' : '') + '</div>' +
+      '<div>' + r.ex.map(function (e, j) { return exHTML(e, k, j); }).join('') + '</div></div></article>';
+  }
+
+  /* ── 篩選：分類、關卡、搜尋 ── */
+  var state = { cat: '', lv: '', q: '' };
+  document.getElementById('cats').innerHTML = '<button class="rf-chip on" data-cat="">全部</button>' + CATS.map(function (c) { return '<button class="rf-chip" data-cat="' + c.id + '">' + c.icon + ' ' + esc(c.t) + '</button>'; }).join('') +
+    '<a class="rf-chip" href="#errors" style="text-decoration:none">🩺 常見錯誤</a>';
+  document.getElementById('lvs').innerHTML = '<span class="tiny bold soft" style="align-self:center">卡在哪一關？</span>' + Object.keys(LV).map(function (l) { return '<button class="rf-chip" data-lv="' + l + '" title="' + esc(LV[l]) + '">' + l + '</button>'; }).join('');
+  function textOf(r) { return (r.t + r.syn + r.d + JSON.stringify(r.tbl || '') + r.ex.map(function (e) { return e.t + e.code; }).join('') + (r.warn || []).join('') + JSON.stringify(r.sc || '')).toLowerCase(); }
+  function render() {
+    var q = state.q.trim().toLowerCase(), n = 0;
+    var html = CATS.map(function (c) {
+      var items = REF.map(function (r, k) { return [r, k]; }).filter(function (x) {
+        var r = x[0];
+        return r.cat === c.id && (!state.cat || state.cat === r.cat) && (!state.lv || r.lv.indexOf(state.lv) >= 0) && (!q || textOf(r).indexOf(q) >= 0);
+      });
+      n += items.length;
+      if (!items.length) return '';
+      return '<h2 class="rf-cat">' + c.icon + ' ' + esc(c.t) + ' <small>' + items.length + ' 種</small></h2><div class="rf-list">' + items.map(function (x) { return cardHTML(x[0], x[1]); }).join('') + '</div>';
+    }).join('');
+    document.getElementById('list').innerHTML = html || '<div class="card rf-empty">找不到「' + esc(state.q) + '」。換個關鍵字試試，例如：除法、比較、重複、輸入。</div>';
+    document.getElementById('count').textContent = '共 ' + n + ' 種語法' + (state.lv ? '（' + state.lv + ' ' + LV[state.lv] + ' 用到的）' : '');
+    document.querySelectorAll('[data-cat]').forEach(function (b) { b.classList.toggle('on', b.dataset.cat === state.cat); });
+    document.querySelectorAll('[data-lv]').forEach(function (b) { b.classList.toggle('on', b.dataset.lv === state.lv); });
+  }
+  document.getElementById('cats').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; state.cat = b.dataset.cat; render(); });
+  document.getElementById('lvs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-lv]'); if (!b) return;
+    state.lv = state.lv === b.dataset.lv ? '' : b.dataset.lv;
+    history.replaceState(null, '', state.lv ? '#' + state.lv : location.pathname + location.search);
+    render();
+  });
+  var qT; document.getElementById('q').addEventListener('input', function () { var v = this.value; clearTimeout(qT); qT = setTimeout(function () { state.q = v; render(); }, 150); });
+
+  /* ── 速查表、錯誤、Scratch 總表 ── */
+  document.getElementById('quick-t').innerHTML = '<tr><th>我想要…</th><th>用這個</th><th>例子</th></tr>' + window.PYREF_QUICK.map(function (r) {
+    return '<tr><td><a href="#' + r[3] + '">' + esc(r[0]) + '</a></td><td><code>' + esc(r[1]) + '</code></td><td><code>' + esc(r[2]) + '</code></td></tr>';
+  }).join('');
+  document.getElementById('err-list').innerHTML = window.PYREF_ERRORS.map(function (e) {
+    return '<article class="card"><div class="row between"><b>' + esc(e.t) + '</b><span class="chip">' + esc(e.type) + '</span></div><p class="small mt1">' + e.why + '</p>' +
+      '<div class="grid g2 mt1 errex"><div><div class="lbl tiny bold soft">❌ 錯誤寫法</div><pre class="ecode ebad">' + esc(e.bad) + '</pre></div><div><div class="lbl tiny bold soft">✅ 正確寫法</div><pre class="ecode egood">' + esc(e.good) + '</pre></div></div></article>';
+  }).join('');
+  var seen = {};
+  document.getElementById('sc-t').innerHTML = '<tr><th>Scratch 積木</th><th>Python</th><th>看說明</th></tr>' + REF.filter(function (r) { return r.sc; }).map(function (r) {
+    return r.sc.filter(function (s) { if (seen[s[0]]) return false; seen[s[0]] = 1; return true; }).map(function (s) {
+      return '<tr><td><span class="rf-blk ' + (s[2] || '') + '" style="display:inline-block">' + esc(s[0]) + '</span></td><td><code style="white-space:pre-wrap">' + esc(s[1]) + '</code></td><td><a href="#' + r.id + '">' + esc(r.t.replace(/^\S+\s/, '')) + '</a></td></tr>';
+    }).join('');
+  }).join('');
+
+  /* ── 網址 #P5 → 只看第 5 關用到的；#for → 跳到那一種語法 ── */
+  function fromHash() {
+    var h = decodeURIComponent(location.hash.slice(1));
+    if (LV[h] || h === 'all') { state.lv = LV[h] ? h : ''; state.cat = ''; render(); window.scrollTo(0, 0); return; }
+    render();
+    var el = h && document.getElementById(h);
+    if (el && el.classList.contains('rf-card')) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+    else if (h && REF.some(function (r) { return r.id === h; })) { state = { cat: '', lv: '', q: '' }; document.getElementById('q').value = ''; fromHash(); }
+  }
+  window.addEventListener('hashchange', fromHash);
+  if (document.documentElement.classList.contains('embed')) document.getElementById('quick').open = false;   // 浮動視窗裡先收起速查表，直接看語法
+  fromHash();
+
+  /* ── 📋 複製、🧪 試試看 ── */
+  var lab = document.getElementById('lab'), ta = document.getElementById('lab-code'), engState = 'idle', cur = null, inputs = [], busy = false, booted = false;
+  document.getElementById('list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copy],[data-try]'); if (!b) return;
+    var key = (b.dataset.copy || b.dataset.try).split(':'), ex = REF[+key[0]].ex[+key[1]];
+    if (b.dataset.copy) {
+      var done = function () { b.textContent = '✅ 已複製'; setTimeout(function () { b.textContent = '📋 複製'; }, 1200); };
+      if (navigator.clipboard) navigator.clipboard.writeText(ex.code).then(done, function () {}); else { ta.value = ex.code; ta.select(); document.execCommand('copy'); done(); }
+      return;
+    }
+    openLab(REF[+key[0]], ex);
+  });
+  function openLab(r, ex) {
+    cur = ex; lab.classList.remove('hidden');
+    document.getElementById('lab-t').textContent = r.t.replace(/^\S+\s/, '') + ' · ' + ex.t;
+    ta.value = ex.code; onEdit(); inputs = [];
+    document.getElementById('lab-out').textContent = '按「▶ 執行」看看結果。'; document.getElementById('lab-err').innerHTML = '';
+    lab.classList.remove('min'); document.getElementById('lab-min').textContent = '－';
+    if (!booted) {   // 第一次打開才載入 Python（約 10 秒）；狀態直接顯示在「執行」按鈕上
+      booted = true;
+      PYRUN.onStatus(function (s) { engState = s; setBusy(busy); });
+      PYRUN.init(CONFIG.PYODIDE_URL).catch(function () {});
+    }
+    ta.focus();
+  }
+  document.getElementById('lab-x').onclick = function () { lab.classList.add('hidden'); };
+  document.getElementById('lab-min').onclick = function () { var m = lab.classList.toggle('min'); this.textContent = m ? '＋' : '－'; };
+
+  /* 拖曳標題列移動視窗（位置記在這台電腦，下次打開還在同一個地方） */
+  (function () {
+    var hd = document.getElementById('lab-hd'), sx, sy, ox, oy, drag = false;
+    try { var pos = JSON.parse(localStorage.getItem('pyref-lab-pos') || 'null'); if (pos) place(pos.x, pos.y); } catch (e) {}
+    function place(x, y) {
+      var w = lab.offsetWidth || 320, h = lab.offsetHeight || 60;
+      x = Math.max(0, Math.min(x, innerWidth - Math.min(w, innerWidth))); y = Math.max(0, Math.min(y, innerHeight - 48));
+      lab.style.left = x + 'px'; lab.style.top = y + 'px'; lab.style.right = 'auto'; lab.style.bottom = 'auto';
+    }
+    hd.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('button') || innerWidth <= 760) return;
+      var r = lab.getBoundingClientRect(); drag = true; sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+      hd.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    hd.addEventListener('pointermove', function (e) { if (drag) place(ox + e.clientX - sx, oy + e.clientY - sy); });
+    hd.addEventListener('pointerup', function () {
+      if (!drag) return; drag = false;
+      try { localStorage.setItem('pyref-lab-pos', JSON.stringify({ x: parseFloat(lab.style.left), y: parseFloat(lab.style.top) })); } catch (e) {}
+    });
+    window.addEventListener('resize', function () { if (lab.style.left) place(parseFloat(lab.style.left), parseFloat(lab.style.top)); });
+  })();
+  document.getElementById('lab-reset').onclick = function () { if (cur) { ta.value = cur.code; onEdit(); } };
+  function setBusy(b) {
+    busy = b; var btn = document.getElementById('lab-run');
+    btn.disabled = b || engState !== 'ready';
+    btn.textContent = engState === 'fail' ? '❌ Python 載入失敗，請重新整理' : engState !== 'ready' ? '⏳ 準備 Python 中…（第一次約 10 秒）' : b ? '⏳ 執行中…' : '▶ 執行';
+  }
+  function onEdit() { var fw = PYRUN.fullwidthOutsideStrings(ta.value); document.getElementById('lab-fw').textContent = fw.length ? '⚠️ 第 ' + fw[0].line + ' 行有全形符號「' + fw[0].ch + '」—— 程式符號要用半形' : ''; }
+  ta.addEventListener('input', onEdit);
+  ta.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab') { e.preventDefault(); var s = ta.selectionStart; ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(ta.selectionEnd); ta.selectionStart = ta.selectionEnd = s + 4; onEdit(); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); run(true); }
+  });
+  document.getElementById('lab-run').onclick = function () { run(true); };
+  function run(fresh) {
+    if (busy) return;
+    if (fresh) inputs = [];
+    setBusy(true);
+    var code = ta.value;
+    PYRUN.run(code, inputs, { seed: Date.now() % 100000 }).then(function (r) {
+      setBusy(false);
+      var box = document.getElementById('lab-out');
+      box.innerHTML = (r.events || []).map(function (ev) {
+        return ev[0] === 'out' ? esc(ev[1]) : ev[0] === 'prompt' ? '<span class="io-prompt">' + esc(ev[1]) + '</span>' : ev[0] === 'in' ? '<span class="io-in">' + esc(ev[1]) + '</span>\n' : '';
+      }).join('');
+      if (r.need) {
+        box.insertAdjacentHTML('beforeend', '<input id="lab-in" aria-label="輸入" placeholder="在這裡輸入，按 Enter">');
+        var inp = document.getElementById('lab-in'); inp.focus();
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { inputs.push(inp.value); run(false); } });
+      } else if (!(r.events || []).length && !r.error) box.innerHTML = '<span style="color:#94a3b8">（程式執行完了，但沒有顯示任何東西）</span>';
+      var ex = PYRUN.explain(r.error, code);
+      document.getElementById('lab-err').innerHTML = ex ? '<div class="note bad pop"><b>' + esc(ex.title) + '</b><p class="small mt1">💡 ' + esc(ex.tip) + '</p>' +
+        (ex.bad && ex.good ? '<div class="grid g2 mt1 errex"><div><div class="lbl tiny bold">❌ 常見的錯誤寫法</div><pre class="ecode ebad">' + esc(ex.bad) + '</pre></div><div><div class="lbl tiny bold">✅ 正確的寫法</div><pre class="ecode egood">' + esc(ex.good) + '</pre></div></div>' : '') + '</div>' : '';
+    });
+  }
+})();
+</script>
+</body>
+</html>

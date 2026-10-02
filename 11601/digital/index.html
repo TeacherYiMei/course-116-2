@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="國中資訊科技互動課程：從二進位、文字、聲音到影像，探索 0 與 1 的藝術。">
+<title>單元一 數位時代 · 116-1</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/theme.css">
+<script src="../config.js"></script>
+<script src="../../shared/store.js"></script>
+<script src="../../shared/ui.js"></script>
+<script src="../../shared/api.js"></script>
+<script src="../../shared/unit.js"></script>
+<style>
+  .bits{display:flex;gap:.35rem;flex-wrap:wrap}
+  .bits span{width:2.2rem;height:2.6rem;border-radius:.6rem;display:flex;align-items:center;justify-content:center;font-weight:900;font-family:ui-monospace,Consolas,monospace;font-size:1.2rem;border:2px solid var(--unit-line);background:#fff;color:var(--ink-faint)}
+  .bits span.on{background:var(--unit);border-color:var(--unit);color:#fff}
+  .goal .n{width:2.2rem;height:2.2rem;border-radius:.7rem;background:var(--unit-bg);color:var(--unit);font-weight:900;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <section class="card pop">
+    <div class="tape"></div>
+    <div class="row between" style="align-items:flex-start">
+      <div style="flex:1 1 20rem">
+        <p class="kicker">0 與 1 的藝術 · 四課互動實驗</p>
+        <h2 class="black mt1" style="font-size:1.5rem">看見資料背後的 0 與 1</h2>
+        <p class="soft mt1">從一個數字、一段文字、一首歌到一張照片，探索電腦如何把豐富的世界，轉換成可以儲存、處理與傳遞的數位資訊。</p>
+        <p class="small mt2">每一課兩種星星，最多 6⭐：<b>🧪 實驗任務</b>三項（動手玩頁面裡的實驗，完成一項 1⭐）＋<b>✅ 快速檢核</b>三題（一次都沒錯 ⭐⭐⭐、錯 1 次 ⭐⭐、錯 2 次以上 ⭐）。可以重玩刷新紀錄。</p>
+      </div>
+      <div class="center" style="flex:0 0 auto">
+        <div class="bits" aria-label="二進位 01000001 是字母 A"><span>0</span><span class="on">1</span><span>0</span><span>0</span><span>0</span><span>0</span><span>0</span><span class="on">1</span></div>
+        <p class="tiny soft bold mt1">01000001 ＝ 65 ＝ 「A」</p>
+        <div class="black mt2" style="font-size:1.8rem;color:var(--star-ink)" id="total">0 / 24</div>
+        <div class="tiny soft bold">⭐ 單元一總星數</div>
+      </div>
+    </div>
+  </section>
+  <nav id="ucards"></nav>
+  <section class="grid g3" aria-label="課程目標">
+    <div class="card goal"><div class="n">01</div><h3 class="bold mt1">理解數位表示</h3><p class="small soft mt1">發現 0 與 1 如何組成數字、文字、聲音與影像。</p></div>
+    <div class="card goal"><div class="n">02</div><h3 class="bold mt1">動手互動探索</h3><p class="small soft mt1">透過模擬器、遊戲與挑戰，把抽象概念變得看得見。</p></div>
+    <div class="card goal"><div class="n">03</div><h3 class="bold mt1">建立資料思維</h3><p class="small soft mt1">從生活中的媒體，理解資料處理的選擇與限制。</p></div>
+  </section>
+  <p class="tiny faint center mt3">內容改編自「0 與 1 的藝術」（unforte_114）</p>
+</main>
+<script src="progress-hook.js"></script>
+<script>
+(function () {
+  function total() {
+    var u = UNIT.find('digital'); if (!u) return;
+    var got = u.parts.reduce(function (a, p) { return a + STORE.partStars(p); }, 0);
+    document.getElementById('total').textContent = got + ' / ' + u.maxStars;
+  }
+  total(); window.addEventListener('store:change', total);
+})();
+</script>
+</body>
+</html>

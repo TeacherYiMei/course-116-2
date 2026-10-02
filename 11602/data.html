@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料偵探 · 116-2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="config.js"></script>
+<script src="../shared/k12.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/unit.js"></script>
+<script src="../shared/api.js"></script>
+<script src="../shared/cardgame.js"></script>
+<script src="../shared/data-labs.js"></script>
+<script src="content/data.js"></script>
+<link rel="stylesheet" href="../shared/cardgame.css">
+<link rel="stylesheet" href="../shared/labs2.css">
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <nav id="ucards"></nav>
+  <div id="app"></div>
+  <nav id="pager" aria-label="上一課／下一課"></nav>
+</main>
+<script>
+UI.topbar('#topbar', { title: '🕵️ 資料偵探', kicker: '單元六 · 3下 第 3 章', hub: 'unit6.html', backLabel: '← 單元六' });
+UNIT.cards('#ucards', 'unit6', 'data');   // 單元六的三張課程小卡（登入後自動更新進度）
+UNIT.pager('#pager', 'unit6', 'data', 'unit6.html');   // 結尾：← 上一課／下一課 →
+CARDGAME.mount({ app: '#app', levels: DATA_LEVELS, mod: 'data', headline: '看懂資料、清理資料、保護資料' });
+</script>
+</body>
+</html>

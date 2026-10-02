@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5016B 專題 · AIoT 智慧教室守護站</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/api.js"></script>
+<link rel="stylesheet" href="../shared/labkit.css">
+<script src="../shared/labkit.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <section class="card pop"><div class="tape"></div>
+    <p class="kicker">跨章專題 · 每節 3⭐（預測錯越少星越多）· 算進平均完成度</p>
+    <h2 class="black" style="font-size:1.35rem">💡 AIoT 智慧教室守護站</h2>
+    <p class="small mt1">把九年級學到的三件事接起來：<b>感測器讀值就是「取樣＋量化」</b>（第 1 章）、<b>用 if／while 寫判斷和主迴圈</b>（第 2 章）、<b>做出一個嵌入式系統，再把資料送上雲端</b>（第 3 章）。</p>
+    <p class="tiny soft mt1">每一節的檢核都是「先預測 → 再執行 → 說對了才算」。元件用語：超音波距離感測器（超音波）、可變電阻（旋鈕）、RGB 全彩燈條（燈條）、直流馬達（馬達、風扇）。</p>
+  </section>
+  <nav id="tabs" aria-label="五節課：課程小卡"></nav>
+  <div id="sec" class="stack mt2"></div>
+</main>
+
+<script>
+(function () {
+  var esc = UI.esc, MOD = 'arduino';
+  UI.topbar('#topbar', { title: '💡 5016B 專題：智慧教室守護站', kicker: '延伸挑戰 · 跨章專題 · 五節' });
+
+  /* ================================================================
+     五節課的內容（和 course_115 的「單元一架構」同一組欄位）
+       title badge icon desc  ← 卡片長相
+       apps                   ← 生活應用
+       objectives materials   ← 學習目標、材料表
+       link                   ← 和課本哪一章接起來
+       sim(el, api)           ← 模擬器；api.set(條件) 讓檢核「動手驗證」
+       blocks python          ← 積木 ↔ Python 對照
+       checks                 ← 先預測再驗證：{ q, options, setup }（正解與解說在 private/，只放在驗證伺服器）
+     ================================================================ */
+  var SECTIONS = [
+    {
+      id: 'S1', icon: '📈', badge: '第 1 節', title: '感測器就是取樣器',
+      desc: '旋鈕轉動是連續的，但控制板只能「每隔一段時間讀一次」，讀到的還是 0～1023 的整數。這不就是聲音數位化的取樣和量化嗎？',
+      link: '第 1 章 1-3 聲音的取樣與量化',
+      apps: ['手機計步器每秒讀好幾次加速度', '冷氣每隔幾秒讀一次室溫', '心跳手環的取樣頻率'],
+      objectives: ['說明「取樣間隔」對紀錄結果的影響', '知道 A7 讀到的原始值範圍是 0～1023', '把感測器讀值和聲音數位化連結起來'],
+      materials: ['控制板', '可變電阻（旋鈕）× 1', '杜邦線'],
+      blocks: [['b-ev', '當綠旗被點擊'], ['b-ctl', '重複無限次'], ['b-var indent', '變數 讀值 設為 ( 讀取 A7 )'], ['b-ctl indent', '等待 ( 取樣間隔 ) 秒']],
+      python: 'while True:\n    value = read_a7()        # 0～1023\n    record(value)\n    time.sleep(interval)     # 取樣間隔',
+      sim: simSample,
+      checks: [
+        { q: '取樣間隔從 0.1 秒改成 1 秒，畫出來的紅色折線會變成怎樣？',
+          options: ['更貼近灰色的真實曲線', '變得粗糙，漏掉很多變化', '完全一樣，沒有差別'],
+          setup: { interval: 1 } },
+        { q: '如果旋鈕轉到最右邊，A7 讀到的原始值最大是多少？',
+          options: ['255', '359', '1023'],
+          setup: { knob: 1 } }
+      ]
+    },
+    {
+      id: 'S2', icon: '🚦', badge: '第 2 節', title: '距離警示燈：if／elif',
+      desc: '教室門口放一個超音波，太靠近門的人會擋住動線。距離越近，燈條從綠變黃再變紅 —— 用上 Python 學過的多向選擇。',
+      link: '第 2 章 2-2 選擇結構（任務3 自動購票機）',
+      apps: ['倒車雷達越近嗶越快', '停車場車位燈（紅＝有車、綠＝空位）', '捷運月台的安全警示'],
+      objectives: ['用 if／elif／else 把距離分成三段', '找出「邊界值」時會亮什麼顏色', '體會條件順序寫錯的後果'],
+      materials: ['超音波距離感測器（超音波）× 1', 'RGB 全彩燈條（燈條）× 1'],
+      blocks: [['b-ctl', '如果 < 距離 < 20 > 那麼'], ['b-hw indent', '燈條全部設為 紅'], ['b-ctl', '否則 如果 < 距離 < 50 > 那麼'], ['b-hw indent', '燈條全部設為 黃'], ['b-ctl', '否則'], ['b-hw indent', '燈條全部設為 綠']],
+      python: null,   // 由模擬器即時畫出（要標出正在執行的那一行）
+      sim: simAlarm,
+      checks: [
+        { q: '距離「剛好 20 公分」時，燈條會亮什麼顏色？', options: ['紅', '黃', '綠'],
+          setup: { dist: 20, swap: false } },
+        { q: '如果有人把順序寫反（先判斷 < 50，再判斷 < 20），距離 10 公分時會亮？', options: ['紅', '黃', '綠'],
+          setup: { dist: 10, swap: true } }
+      ]
+    },
+    {
+      id: 'S3', icon: '🌀', badge: '第 3 節', title: '節能風扇：嵌入式的主迴圈',
+      desc: '嵌入式系統開機後就一直重複「讀取 → 判斷 → 輸出」。有人坐在位子上風扇才轉，轉速由旋鈕決定；人走了就自動關掉。',
+      link: '第 3 章 3-2 嵌入式系統平臺、第 2 章 條件迴圈',
+      apps: ['有人才亮的樓梯燈', '冷氣的自動模式', '感應式水龍頭'],
+      objectives: ['說出嵌入式系統的「讀取 → 判斷 → 輸出」循環', '用「對應」把 0～1023 換成馬達轉速 0～250', '用 and 同時考慮兩個條件'],
+      materials: ['超音波 × 1', '旋鈕 × 1', '直流馬達（風扇）× 1'],
+      blocks: [['b-ctl', '重複無限次'], ['b-var indent', '速度 設為 對應 ( 讀取 A7 ) 從 0～1023 到 0～250'], ['b-ctl indent', '如果 < 距離 < 80 > 那麼'], ['b-hw indent', '　馬達轉速設為 ( 速度 )'], ['b-ctl indent', '否則'], ['b-hw indent', '　馬達轉速設為 0']],
+      python: 'while True:\n    speed = map(read_a7(), 0, 1023, 0, 250)\n    if distance() < 80:\n        motor(speed)\n    else:\n        motor(0)',
+      sim: simFan,
+      checks: [
+        { q: '有人坐著、旋鈕讀到 512，馬達轉速大約是多少？', options: ['0', '約 125', '250', '512'],
+          setup: { dist: 40, knob: 512 } },
+        { q: '人離開座位（距離 150 公分），旋鈕還轉在最大，風扇會？', options: ['全速轉', '轉一半', '停下來'],
+          setup: { dist: 150, knob: 1023 } }
+      ]
+    },
+    {
+      id: 'S4', icon: '☁️', badge: '第 4 節', title: '資料上雲端',
+      desc: '守護站每 5 分鐘記一次門口的距離，整節課的紀錄上傳到雲端試算表。有了資料，就能算出平均、數出「有幾次有人經過」。',
+      link: '第 3 章 3-2 雲端系統平臺（SaaS）、第 2 章 計次迴圈',
+      apps: ['智慧電表把用電量上傳給台電', '空氣盒子把 PM2.5 上傳到地圖', '運動手環同步到手機 App'],
+      objectives: ['說明資料從感測器到雲端的流程', '用 for 迴圈計數與累加', '從資料讀出有意義的結論'],
+      materials: ['超音波 × 1', '可連網的控制板或電腦', '雲端試算表（SaaS）'],
+      blocks: [['b-var', '變數 次數 設為 0'], ['b-ctl', '重複 ( 紀錄 的長度 ) 次'], ['b-ctl indent', '如果 < 紀錄 第 i 項 < 80 > 那麼'], ['b-var indent', '　變數 次數 改變 1']],
+      python: 'records = [120, 45, 130, 60, 150]\ncount = 0\ntotal = 0\nfor d in records:\n    total = total + d\n    if d < 80:\n        count = count + 1\nprint(\'平均距離\', total / len(records))\nprint(\'有人經過\', count, \'次\')',
+      sim: simCloud,
+      checks: [
+        { q: '紀錄是 [120, 45, 130, 60, 150]，「有人經過（距離 < 80）」幾次？', options: ['1 次', '2 次', '3 次'],
+          setup: { data: [120, 45, 130, 60, 150] } },
+        { q: '同一份紀錄，平均距離是多少？', options: ['101', '105', '120'],
+          setup: { data: [120, 45, 130, 60, 150] } }
+      ]
+    },
+    {
+      id: 'S5', icon: '🏆', badge: '第 5 節', title: '我的教室小幫手（專題）',
+      desc: '輪到你當工程師：選 1 個輸入、決定燈條和馬達要做什麼、要不要把資料上雲端，最後用三句話介紹你的作品，產生一張成果卡。',
+      link: '跨章總整理',
+      apps: ['自己的教室、自己的問題'],
+      objectives: ['把輸入 → 判斷 → 輸出的流程設計出來', '用一句 if 寫出自己的規則', '用三句話清楚說明作品'],
+      materials: ['超音波或旋鈕（擇一）', '燈條 × 1', '馬達 × 1'],
+      sim: simProject,
+      checks: []
+    }
+  ];
+
+  /* ================================================================
+     模擬器
+     ================================================================ */
+  function simSample(el) {
+    el.innerHTML = '<div class="grid g2"><div><label>取樣間隔 <span class="val" id="iv-v"></span></label>' +
+      '<input type="range" id="iv" min="0" max="3" step="1" value="0" aria-label="取樣間隔"></div>' +
+      '<div><label>旋鈕位置（最後一刻） <span class="val" id="kn-v"></span></label><input type="range" id="kn" min="0" max="1" step="0.01" value="0.6" aria-label="旋鈕"></div></div>' +
+      '<canvas id="cv" width="720" height="260" class="mt1"></canvas>' +
+      '<p class="tiny mt1" style="color:#94a3b8">灰色：旋鈕真實的轉動　紅色：控制板讀到並記下來的值（0～1023）　共 <span id="np" class="val"></span> 個取樣點</p>';
+    var IV = [0.1, 0.25, 0.5, 1], cv = el.querySelector('#cv'), ctx = cv.getContext('2d');
+    function knobAt(t, end) { return Math.max(0, Math.min(1, 0.5 + 0.35 * Math.sin(t * 1.9) + 0.12 * Math.sin(t * 5.3) + (end - 0.6) * t / 6)); }
+    function draw() {
+      var iv = IV[+el.querySelector('#iv').value], end = +el.querySelector('#kn').value;
+      el.querySelector('#iv-v').textContent = iv + ' 秒';
+      el.querySelector('#kn-v').textContent = Math.round(knobAt(6, end) * 1023);
+      var W = cv.width, H = cv.height, P = 30;
+      ctx.clearRect(0, 0, W, H);
+      ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 1;
+      for (var g = 0; g <= 4; g++) { var y = P + (H - 2 * P) * g / 4; ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - 10, y); ctx.stroke(); }
+      ctx.fillStyle = '#64748b'; ctx.font = '12px monospace'; ctx.fillText('1023', 0, P + 4); ctx.fillText('0', 14, H - P + 4);
+      function X(t) { return P + (W - P - 10) * t / 6; } function Y(v) { return H - P - (H - 2 * P) * v; }
+      ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2; ctx.beginPath();
+      for (var t = 0; t <= 6.001; t += 0.02) { var v = knobAt(t, end); t === 0 ? ctx.moveTo(X(t), Y(v)) : ctx.lineTo(X(t), Y(v)); }
+      ctx.stroke();
+      ctx.strokeStyle = '#f87171'; ctx.fillStyle = '#f87171'; ctx.lineWidth = 2.5; ctx.beginPath();
+      var n = 0;
+      for (var s = 0; s <= 6.0001; s += iv) { var q = Math.round(knobAt(s, end) * 1023) / 1023; n++; s === 0 ? ctx.moveTo(X(s), Y(q)) : ctx.lineTo(X(s), Y(q)); }
+      ctx.stroke();
+      for (s = 0; s <= 6.0001; s += iv) { ctx.beginPath(); ctx.arc(X(s), Y(Math.round(knobAt(s, end) * 1023) / 1023), 3.5, 0, 7); ctx.fill(); }
+      el.querySelector('#np').textContent = n;
+    }
+    el.querySelectorAll('input').forEach(function (i) { i.oninput = draw; });
+    draw();
+    return { set: function (o) {
+      if (o.interval != null) el.querySelector('#iv').value = IV.indexOf(o.interval);
+      if (o.knob != null) el.querySelector('#kn').value = o.knob;
+      draw();
+      return o.knob != null ? '旋鈕轉到最右：讀值 ＝ ' + el.querySelector('#kn-v').textContent : '取樣間隔 1 秒：只剩 ' + el.querySelector('#np').textContent + ' 個取樣點';
+    } };
+  }
+
+  function simAlarm(el) {
+    el.innerHTML = '<label>超音波量到的距離 <span class="val" id="d-v"></span></label><input type="range" id="d" min="2" max="150" value="80" aria-label="距離">' +
+      '<label style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem"><input type="checkbox" id="sw"> 把條件順序寫反（先判斷 &lt; 50）</label>' +
+      '<div class="leds" id="leds"></div><div class="code" id="code"></div>';
+    var leds = el.querySelector('#leds'); for (var i = 0; i < 8; i++) leds.insertAdjacentHTML('beforeend', '<span class="led"></span>');
+    var COL = { 紅: '#ef4444', 黃: '#facc15', 綠: '#22c55e' };
+    function draw() {
+      var d = +el.querySelector('#d').value, sw = el.querySelector('#sw').checked;
+      el.querySelector('#d-v').textContent = d + ' 公分';
+      var conds = sw ? [[50, '黃'], [20, '紅']] : [[20, '紅'], [50, '黃']];
+      var color = '綠', hitLine = 4;
+      if (d < conds[0][0]) { color = conds[0][1]; hitLine = 0; } else if (d < conds[1][0]) { color = conds[1][1]; hitLine = 2; }
+      var lines = ['if distance < ' + conds[0][0] + ':', "    strip('" + conds[0][1] + "')", 'elif distance < ' + conds[1][0] + ':', "    strip('" + conds[1][1] + "')", 'else:', "    strip('綠')"];
+      el.querySelector('#code').innerHTML = lines.map(function (l, k) { return (k === hitLine || k === hitLine + 1) ? '<span class="on">' + esc(l) + '</span>' : esc(l); }).join('\n');
+      leds.querySelectorAll('.led').forEach(function (x) { x.style.background = COL[color]; x.style.boxShadow = '0 0 14px ' + COL[color]; });
+      leds.setAttribute('aria-label', '燈條：' + color);
+      return color;
+    }
+    el.querySelectorAll('input').forEach(function (i) { i.oninput = draw; });
+    draw();
+    return { set: function (o) { el.querySelector('#d').value = o.dist; el.querySelector('#sw').checked = !!o.swap; return '距離 ' + o.dist + ' 公分 → 燈條亮「' + draw() + '」'; } };
+  }
+
+  function simFan(el) {
+    el.innerHTML = '<div class="grid g2"><div><label>超音波距離 <span class="val" id="d-v"></span></label><input type="range" id="d" min="10" max="200" value="40" aria-label="距離">' +
+      '<label class="mt1" style="display:block">旋鈕讀值（0～1023） <span class="val" id="k-v"></span></label><input type="range" id="k" min="0" max="1023" value="700" aria-label="旋鈕"></div>' +
+      '<div class="center"><svg class="fan" viewBox="-50 -50 100 100" aria-hidden="true"><g id="blades" fill="#a5b4fc">' +
+      '<ellipse rx="10" ry="36" cy="-20"/><ellipse rx="10" ry="36" cy="-20" transform="rotate(120)"/><ellipse rx="10" ry="36" cy="-20" transform="rotate(240)"/></g><circle r="8" fill="#e0e7ff"/></svg>' +
+      '<div>馬達轉速 <span class="val" id="s-v"></span> <span class="tiny" style="color:#94a3b8">（範圍 −250～250）</span></div><div class="tiny" style="color:#94a3b8">主迴圈已執行 <span id="tick" class="val">0</span> 次</div></div></div>' +
+      '<div class="stack mt2" id="steps"></div>';
+    var ang = 0, speed = 0, tick = 0, blades = el.querySelector('#blades');
+    function compute() {
+      var d = +el.querySelector('#d').value, k = +el.querySelector('#k').value;
+      var mapped = Math.round(k / 1023 * 250), on = d < 80;
+      speed = on ? mapped : 0;
+      el.querySelector('#d-v').textContent = d + ' 公分' + (on ? '（有人）' : '（沒人）');
+      el.querySelector('#k-v').textContent = k;
+      el.querySelector('#s-v').textContent = speed;
+      el.querySelector('#steps').innerHTML =
+        '<div class="step"><span class="no">1</span><div><b>讀取</b>：旋鈕 ' + k + '、距離 ' + d + ' 公分</div></div>' +
+        '<div class="step"><span class="no">2</span><div><b>判斷</b>：對應 ' + k + ' → ' + mapped + '；距離 &lt; 80？<b>' + (on ? '成立' : '不成立') + '</b></div></div>' +
+        '<div class="step"><span class="no">3</span><div><b>輸出</b>：馬達轉速 ' + speed + '</div></div>';
+      return speed;
+    }
+    el.querySelectorAll('input').forEach(function (i) { i.oninput = compute; });
+    compute();
+    var last = performance.now();
+    (function spin(now) {
+      if (!document.body.contains(el)) return;
+      ang += speed / 250 * 900 * (now - last) / 1000; last = now;
+      blades.setAttribute('transform', 'rotate(' + (ang % 360) + ')');
+      if ((tick++ % 15) === 0) el.querySelector('#tick').textContent = Math.floor(tick / 15);
+      requestAnimationFrame(spin);
+    })(last);
+    return { set: function (o) { el.querySelector('#d').value = o.dist; el.querySelector('#k').value = o.knob; var s = compute(); return '馬達轉速 ＝ ' + s; } };
+  }
+
+  function simCloud(el) {
+    el.innerHTML = '<div class="row"><button class="btn sm" id="rec">▶ 記錄一節課（10 筆）</button><button class="btn sm" id="up" disabled>☁️ 上傳到雲端試算表</button></div>' +
+      '<div class="grid g2 mt2"><div><p class="tiny" style="color:#94a3b8">📟 守護站的記憶體</p><table class="log" id="log"></table></div>' +
+      '<div><p class="tiny" style="color:#94a3b8">☁️ 雲端試算表（SaaS）</p><div id="sheet" class="tiny" style="color:#94a3b8">尚未上傳</div></div></div>';
+    var data = [];
+    function table(rows) {
+      return '<tr><th>第幾筆</th><th>距離</th><th>有人？</th></tr>' + rows.map(function (d, i) { return '<tr><td>' + (i + 1) + '</td><td>' + d + '</td><td>' + (d < 80 ? '🚶' : '') + '</td></tr>'; }).join('');
+    }
+    function summary(rows) {
+      var tot = rows.reduce(function (a, b) { return a + b; }, 0), c = rows.filter(function (d) { return d < 80; }).length;
+      return { avg: Math.round(tot / rows.length * 10) / 10, count: c };
+    }
+    el.querySelector('#rec').onclick = function () {
+      data = []; for (var i = 0; i < 10; i++) data.push(Math.random() < 0.35 ? 20 + Math.floor(Math.random() * 55) : 90 + Math.floor(Math.random() * 90));
+      el.querySelector('#log').innerHTML = table(data); el.querySelector('#up').disabled = false; el.querySelector('#sheet').textContent = '尚未上傳';
+    };
+    el.querySelector('#up').onclick = function () {
+      var s = summary(data), sh = el.querySelector('#sheet');
+      sh.innerHTML = '⏳ 傳送中…';
+      setTimeout(function () {
+        sh.innerHTML = '<table class="log" style="color:#e2e8f0">' + table(data) + '</table><p class="mt1">平均距離 <span class="val">' + s.avg + '</span> 公分 · 有人經過 <span class="val">' + s.count + '</span> 次</p>';
+      }, 600);
+    };
+    return { set: function (o) {
+      data = o.data.slice(); el.querySelector('#log').innerHTML = table(data); el.querySelector('#up').disabled = false;
+      var s = summary(data);
+      el.querySelector('#sheet').innerHTML = '<table class="log" style="color:#e2e8f0">' + table(data) + '</table><p class="mt1">平均距離 <span class="val">' + s.avg + '</span> 公分 · 有人經過 <span class="val">' + s.count + '</span> 次</p>';
+      return '程式算出：平均 ' + s.avg + ' 公分、有人經過 ' + s.count + ' 次';
+    } };
+  }
+
+  /* 第 5 節：專題設計單 → 成果卡 */
+  function simProject(el, api) {
+    var me = STORE.me() || { cls: '', seat: '', name: '' };
+    var saved = (STORE.level(MOD, 'S5') || {}).extra || {};
+    el.classList.add('light');
+    el.innerHTML =
+      '<div class="grid g2">' +
+      '<label class="field">① 作品名稱<input id="p-name" maxlength="14" placeholder="例：專注守護燈"></label>' +
+      '<label class="field">② 輸入（擇一）<select id="p-in"><option value="超音波">超音波距離感測器（超音波）</option><option value="旋鈕">可變電阻（旋鈕）</option></select></label>' +
+      '<label class="field">③ 模式<select id="p-mode"><option>自動模式（依感測器自己判斷）</option><option>手動模式（使用者轉旋鈕控制）</option></select></label>' +
+      '<label class="field">④ 資料要上雲端嗎？<select id="p-cloud"><option>要，記錄到雲端試算表</option><option>不用</option></select></label></div>' +
+      '<p class="bold small mt2">⑤ 用一句 if 寫出你的規則</p>' +
+      '<div class="row small" style="font-family:ui-monospace,Consolas,monospace">if <span id="p-in-v" class="chip"></span>' +
+      '<select id="p-op" class="input" style="width:auto;margin:0"><option>&lt;</option><option>&gt;</option></select>' +
+      '<input id="p-num" class="input" type="number" style="width:6rem;margin:0" value="50"> :</div>' +
+      '<div class="grid g2 mt1"><label class="field">那麼 燈條<select id="p-led"><option>亮紅燈</option><option>亮黃燈</option><option>亮綠燈</option><option>跑馬燈</option><option>熄滅</option></select></label>' +
+      '<label class="field">那麼 馬達<select id="p-motor"><option>轉動</option><option>停止</option><option>反轉</option></select></label></div>' +
+      '<p class="bold small mt2">⑥ 三句話介紹</p>' +
+      '<label class="field">我的小幫手解決了什麼問題？<input id="p-s1" maxlength="30" placeholder="例：上課時有人一直靠近門口，會分心"></label>' +
+      '<label class="field mt1">它是怎麼做到的？<input id="p-s2" maxlength="30" placeholder="例：超音波偵測到有人靠近就亮黃燈提醒"></label>' +
+      '<label class="field mt1">我還想怎麼改良？<input id="p-s3" maxlength="30" placeholder="例：把次數上傳雲端，看哪一節最常被打擾"></label>' +
+      '<div class="row mt2"><button class="btn go" id="p-make">🎨 產生成果卡</button><span class="small soft">研發人員：' + esc(me.cls + ' 班 ' + me.seat + ' 號 ' + me.name) + '（自動帶入）</span></div>' +
+      '<p id="p-err" class="small bold mt1" style="color:var(--bad)"></p>' +
+      '<div id="p-out" class="mt2 center"></div>';
+    var $ = function (id) { return el.querySelector('#' + id); };
+    ['p-name', 'p-in', 'p-mode', 'p-cloud', 'p-op', 'p-num', 'p-led', 'p-motor', 'p-s1', 'p-s2', 'p-s3'].forEach(function (id) { if (saved[id] != null) $(id).value = saved[id]; });
+    function syncIn() { $('p-in-v').textContent = $('p-in').value === '超音波' ? 'distance()' : 'read_a7()'; }
+    $('p-in').onchange = syncIn; syncIn();
+    $('p-make').onclick = function () {
+      var v = {}; ['p-name', 'p-in', 'p-mode', 'p-cloud', 'p-op', 'p-num', 'p-led', 'p-motor', 'p-s1', 'p-s2', 'p-s3'].forEach(function (id) { v[id] = $(id).value.trim(); });
+      var miss = [];
+      if (!v['p-name']) miss.push('作品名稱');
+      if (v['p-s1'].length < 6) miss.push('第一句（至少 6 個字）');
+      if (v['p-s2'].length < 6) miss.push('第二句（至少 6 個字）');
+      if (v['p-s3'].length < 6) miss.push('第三句（至少 6 個字）');
+      var max = v['p-in'] === '超音波' ? 400 : 1023;
+      if (v['p-num'] === '' || +v['p-num'] < 0 || +v['p-num'] > max) miss.push('規則的數字（' + (v['p-in'] === '超音波' ? '距離 0～400 公分' : '旋鈕 0～1023') + '）');
+      $('p-err').textContent = miss.length ? '還差：' + miss.join('、') : '';
+      if (miss.length) return;
+      var rule = 'if ' + (v['p-in'] === '超音波' ? 'distance()' : 'read_a7()') + ' ' + v['p-op'] + ' ' + v['p-num'] + ':  燈條' + v['p-led'] + '、馬達' + v['p-motor'];
+      LABKIT.showCard($('p-out'), LABKIT.drawCard({
+        title: v['p-name'], banner: '5016B AIoT 智慧教室守護站 · 成果發表', me: me, rule: rule,
+        boxes: [['輸入', v['p-in']], ['輸出', '燈條＋馬達'], ['模式', v['p-mode']], ['雲端', v['p-cloud']]],
+        lines: [v['p-s1'], v['p-s2'], v['p-s3']] }), me);
+      api.done({ extra: v });
+    };
+  }
+
+  LABKIT.mount({ sections: SECTIONS, mod: MOD });
+})();
+</script>
+</body>
+</html>

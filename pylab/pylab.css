@@ -1,0 +1,19 @@
+/* 🐍 Python 教師試用版（pylab）自己的樣式：單元色綠色（和學生版單元二一樣）、提示框、回報區 */
+:root{--unit:var(--u2);--unit-bg:var(--u2-bg);--unit-soft:var(--u2-soft);--unit-line:var(--u2-line)}
+.topbar{justify-content:space-between}
+.toast{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%);background:#1e293b;color:#fff;font-weight:800;padding:.7rem 1.2rem;border-radius:999px;box-shadow:0 10px 25px rgba(0,0,0,.25);z-index:2000;max-width:90vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.fb-card{border:2px dashed var(--unit-line)}
+.fb-card[open]{border-style:solid;border-color:var(--unit)}
+.fb-kinds{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+.fb-k{cursor:pointer;font-weight:700}
+.fb-k input{accent-color:var(--unit)}
+.fb-card .input{width:100%;margin:.25rem 0 0}
+.login-card{max-width:40rem;margin:2rem auto}
+.login-card .input{width:100%;margin:.25rem 0 0}
+
+/* 🔑 進度碼 */
+.pc-box{padding:.4rem .2rem 0;border-top:1px dashed var(--line,#cbd5e1)}.pc-code{font-family:Consolas,'Courier New',monospace;font-weight:800;font-size:.95rem;letter-spacing:.04em;background:#0f172a;color:#fde68a;padding:.2rem .45rem;border-radius:.4rem;word-break:break-all}
+.mono{font-family:Consolas,'Courier New',monospace;letter-spacing:.04em}
+.verify summary{cursor:pointer}
+.prog-t td,.prog-t th{padding:.3rem .45rem;white-space:nowrap}.prog-t td.center{color:#b45309;letter-spacing:-.1em}

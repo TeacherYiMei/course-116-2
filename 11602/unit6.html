@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>單元六 進階資料處理 · 116-2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/unit.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <section class="card pop" id="intro"></section>
+  <nav id="ucards"></nav>
+  <section class="card" id="tips"></section>
+</main>
+<script>
+UI.topbar('#topbar', { title: '🗂️ 單元六：進階資料處理', kicker: '單元六 · 3下 第 3 章 · 三個部分' });
+UI.requireLogin(function () {
+  var u = UNIT.find('unit6'), esc = UI.esc;
+  var got = u.parts.reduce(function (a, p) { return a + STORE.moduleStars(p.id); }, 0);
+  document.getElementById('intro').innerHTML = '<div class="tape"></div><div class="row between"><div>' +
+    '<p class="kicker">看懂 → 動手 → 挑戰</p><h2 class="black" style="font-size:1.35rem">資料會說話，也需要被保護</h2>' +
+    '<p class="small soft mt1">' + esc(u.desc) + '</p></div>' +
+    '<div class="center"><div class="black" style="font-size:1.8rem;color:var(--star-ink)">' + got + ' / ' + u.maxStars + '</div><div class="tiny soft bold">⭐ 單元六總星數</div></div></div>';
+  UNIT.cards('#ucards', 'unit6', null);
+  document.getElementById('tips').innerHTML = '<h3 class="bold">🧭 建議順序</h3><ol class="small mt1">' +
+    '<li><b>資料偵探</b>：先懂大數據、資料清理、檔案轉換，最後用轉盤玩一下凱薩密碼（對應課本 3-1、3-2）。</li>' +
+    '<li><b>試算表實作</b>：把清理資料和統計，真的在試算表裡做一次（對應課本 3-1 實作）。</li>' +
+    '<li><b>密碼特務</b>：不寫程式，一步一步把加密、解密、暴力破解弄懂，最後統計全班作答。題目每次隨機，依序開放。</li></ol>';
+});
+</script>
+</body>
+</html>

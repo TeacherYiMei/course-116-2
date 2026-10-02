@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課堂挑戰 · 116-2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="../shared/cardgame.css">
+<link rel="stylesheet" href="../shared/challenge.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/api.js"></script>
+<script src="../shared/cardgame.js"></script>
+<script src="../shared/challenge.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <div id="app"></div>
+</main>
+<script>
+/* 🏁 課堂挑戰模式：題目範圍＝哪些 🎲 出題器（在驗證伺服器：伺服器端的 60_gen_net、61_gen_cipher）
+   只用「打字」和「選擇」題型（排順序、下拉選單的題目不適合搶答）。 */
+UI.topbar('#topbar', { title: '🏁 課堂挑戰', kicker: '老師投影 · 小組搶答 · 🎲 題目每次隨機' });
+CHALLENGE.mount('#app', { topics: [
+  { id: 'net1', icon: '🌐', name: '網路世界：設備、封包、無線', gens: [{ gen: 'portsCalc' }, { gen: 'packetLost' }, { gen: 'wirelessPick' }, { gen: 'httpsJudge' }, { gen: 'download' }, { gen: 'bottleneck' }] },
+  { id: 'net2', icon: '🔢', name: '網路世界：IP、IPv6、網址、條碼', gens: [{ gen: 'ipValid' }, { gen: 'ipPrivate' }, { gen: 'bitsToDec' }, { gen: 'hexBits' }, { gen: 'v6short' }, { gen: 'v6expand' }, { gen: 'urlRead' }, { gen: 'checkout' }] },
+  { id: 'cipher', icon: '🔐', name: '密碼特務：編號、凱薩、維吉尼亞', gens: [{ gen: 'letterNum' }, { gen: 'wrap' }, { gen: 'caesarEnc', rd: { tool: 'caesar' } }, { gen: 'caesarDec', rd: { tool: 'caesar' } }, { gen: 'bruteForce', rd: { tool: 'caesar' } }, { gen: 'vigEnc', rd: { tool: 'vigenere' } }] },
+  { id: 'tally', icon: '📊', name: '答題統計（計數與比率）', gens: [{ gen: 'tally' }] }
+] });
+</script>
+</body>
+</html>

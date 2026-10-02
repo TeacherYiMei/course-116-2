@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>試算表實作 · 116-2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="../shared/cardgame.css">
+<link rel="stylesheet" href="../shared/sheet.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/unit.js"></script>
+<script src="../shared/api.js"></script>
+<script src="../shared/refpanel.js"></script>
+<script src="../shared/sheet.js"></script>
+<script src="content/sheet.js"></script>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <nav id="ucards"></nav>
+  <div id="app"></div>
+  <nav id="pager" aria-label="上一課／下一課"></nav>
+</main>
+<script>
+UI.topbar('#topbar', { title: '📊 試算表實作', kicker: '單元六 · 3下 第 3 章', hub: 'unit6.html', backLabel: '← 單元六' });
+UNIT.cards('#ucards', 'unit6', 'sheet');   // 單元六的三張課程小卡（登入後自動更新進度）
+UNIT.pager('#pager', 'unit6', 'sheet', 'unit6.html');   // 結尾：← 上一課／下一課 →
+SHEET.mount({ app: '#app', levels: SHEET_LEVELS, mod: 'sheet', ref: 'sheetref.html' });
+</script>
+</body>
+</html>

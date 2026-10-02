@@ -1,0 +1,54 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 指令小百科</title>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f4f6fa;color:#24324a}
+header,main{max-width:900px;margin:auto;padding:20px}header{position:sticky;top:0;z-index:2;background:#fffffff5;border-bottom:1px solid #e3e6ec}
+nav{display:flex;gap:6px;flex-wrap:wrap}nav a{background:#ece9ff;color:#5148aa;padding:7px 10px;border-radius:999px;text-decoration:none;font-weight:800}
+section{background:white;padding:22px;border-radius:18px;margin:14px 0;scroll-margin-top:160px}.sc{background:#fff2d0;padding:10px;border-radius:10px}
+pre{background:#172236;color:white;padding:16px;border-radius:14px;overflow:auto}code{font-family:ui-monospace,Consolas,monospace}.note{color:#687386}
+</style></head><body>
+<header><h1>📘 Python 指令小百科</h1><p>只有忘記語法或真的卡住時再來查。這裡使用不同例題，不直接提供闖關答案。</p><nav><a href="#print">print()</a><a href="#variable">變數</a><a href="#input">input()</a><a href="#int">int()</a><a href="#operator">運算</a><a href="#round">float()、**、round()</a><a href="#if">if / else</a><a href="#elif">elif</a><a href="#logic">and / or</a><a href="#for">for / range()</a><a href="#while">while</a><a href="#random">random</a></nav></header>
+<main><section id="print"><h2>print()｜讓電腦說話</h2><div class="sc">🐱 Scratch：說 ___</div><p><code>print()</code> 把括號裡的內容顯示出來。文字要放在引號中。</p>
+<pre>print("歡迎來到高雄")
+print("今天要去散步")</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="variable"><h2>變數｜讓電腦記住資料</h2><div class="sc">🐱 Scratch：變數積木</div><p>變數像有名字的盒子。等號右邊的資料會被放到左邊的變數。</p>
+<pre>city = "台南"
+days = 2
+print(city, days)</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="input"><h2>input()｜詢問並取得回答</h2><div class="sc">🐱 Scratch：詢問 ___ 並等待</div><p><code>input()</code> 會顯示問題並等待輸入。通常把回答存進變數。</p>
+<pre>drink = input("你想喝什麼？")
+print(drink)</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="int"><h2>int()｜把輸入轉成整數</h2><div class="sc">🐱 Scratch：輸入後拿去做整數計算</div><p><code>input()</code> 得到的是文字；需要整數運算時，可用 <code>int()</code>。</p>
+<pre>age = int(input("年齡："))
+print(age + 1)</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="operator"><h2>運算｜+ - * / // %</h2><div class="sc">🐱 Scratch：運算積木</div><p><code>//</code> 是整除，<code>%</code> 是餘數。</p>
+<pre>print(19 // 4)   # 4
+print(19 % 4)    # 3
+print(6 * 7)     # 42</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="round"><h2>float()、**、round()｜小數與次方</h2><div class="sc">🐱 Scratch：數學運算</div><p><code>float()</code> 處理小數；<code>**</code> 算次方；<code>round()</code> 整理小數位數。</p>
+<pre>x = float(input("輸入小數："))
+answer = x ** 2
+print(round(answer, 2))</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="if"><h2>if / else｜如果…否則</h2><div class="sc">🐱 Scratch：如果／否則</div><p>條件後面要有冒號，分支內的程式要縮排。</p>
+<pre>temperature = 30
+if temperature >= 28:
+    print("很熱")
+else:
+    print("還好")</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="elif"><h2>elif｜處理三種以上情況</h2><div class="sc">🐱 Scratch：多層如果／否則</div><p><code>elif</code> 是「否則如果」。</p>
+<pre>score = 75
+if score >= 90:
+    print("A")
+elif score >= 60:
+    print("B")
+else:
+    print("C")</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="logic"><h2>and / or｜組合兩個條件</h2><div class="sc">🐱 Scratch：且／或</div><p><code>and</code>：兩邊都成立。<code>or</code>：至少一邊成立。</p>
+<pre>sunny = True
+free = True
+if sunny and free:
+    print("去公園")</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="for"><h2>for / range()｜按照規律重複</h2><div class="sc">🐱 Scratch：重複指定次數</div><p><code>range(start, stop, step)</code> 可設定開始、停止前的位置和步進。</p>
+<pre>for n in range(1, 6):
+    print(n)
+
+for n in range(6, 0, -1):
+    print(n)</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="while"><h2>while｜條件成立就繼續</h2><div class="sc">🐱 Scratch：重複直到</div><p><code>while</code> 會在條件為 True 時持續執行。記得讓條件有機會改變。</p>
+<pre>count = 1
+while count <= 4:
+    print(count)
+    count = count + 1</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section><section id="random"><h2>random｜產生隨機整數</h2><div class="sc">🐱 Scratch：在兩數間隨機取數</div><p>先匯入 <code>random</code>，再用 <code>randint(a, b)</code>。</p>
+<pre>import random
+card = random.randint(1, 13)
+print(card)</pre><p class="note">這是不同情境的語法示範。理解後回闖關頁完成自己的任務。</p></section></main></body></html>

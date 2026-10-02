@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>試算表函式小抄 · 單元六</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="../shared/sheet.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/api.js"></script>
+<script src="../shared/sheet.js"></script>
+<script>/* ?embed=1：放在試算表關卡頁的浮動視窗裡（只留查詢需要的部分） */ if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<style>
+  /* 📊 試算表函式小抄（這一頁專用；版面和 Python 語法小抄 pyref.html 一致） */
+  .rf-intro{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center}
+  .rf-bar{position:sticky;top:0;z-index:30;background:rgba(250,250,249,.96);backdrop-filter:blur(6px);padding:.6rem 0 .5rem;margin:0 0 1rem;border-bottom:1px solid var(--line)}
+  .rf-bar .input{margin:0;max-width:22rem}
+  .rf-chips{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.45rem}
+  .rf-chip{appearance:none;font:inherit;font-size:.8rem;font-weight:800;border:2px solid var(--line);background:#fff;border-radius:999px;padding:.25rem .65rem;cursor:pointer;color:var(--ink)}
+  .rf-chip:hover{border-color:#94a3b8}
+  .rf-chip.on{border-color:var(--unit);background:var(--unit-bg)}
+  .rf-cat{scroll-margin-top:9.5rem;margin:2rem 0 .8rem;display:flex;align-items:center;gap:.5rem;font-size:1.3rem;font-weight:900}
+  .rf-cat small{font-size:.8rem;font-weight:700;color:var(--ink-soft)}
+  .rf-list{display:grid;gap:1rem}
+  .rf-card{scroll-margin-top:9.5rem}
+  .rf-card.flash{animation:rfFlash 1.6s ease-out}
+  @keyframes rfFlash{0%,40%{box-shadow:0 0 0 4px var(--unit-line)}100%{box-shadow:none}}
+  .rf-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;flex-wrap:wrap}
+  .rf-head h3{font-size:1.2rem;font-weight:900}
+  .rf-lv{display:flex;gap:.25rem;flex-wrap:wrap}
+  .rf-lv a{font-size:.72rem;font-weight:900;text-decoration:none;color:var(--ink);background:var(--unit-bg);border-radius:999px;padding:.12rem .5rem}
+  .rf-syn{font:700 1.05rem/1.5 ui-monospace,Consolas,monospace;background:var(--unit-soft);border:2px dashed var(--unit-line);border-radius:.7rem;padding:.45rem .7rem;margin:.6rem 0;white-space:pre-wrap;word-break:break-word}
+  .rf-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1rem;margin-top:.4rem}
+  .rf-desc{font-size:.95rem;line-height:1.75}
+  .rf-desc ul{margin:.3rem 0;padding-left:1.2rem}
+  .rf-desc code,.rf-tbl code,.rf-quick code,.rf-f code{font-family:ui-monospace,Consolas,monospace;background:#f1f5f9;border-radius:.3rem;padding:0 .3rem;font-size:.92em}
+  .rf-tbl{margin:.5rem 0}.rf-tbl table.t{font-size:.88rem}
+  .rf-warn{margin-top:.6rem;font-size:.88rem}.rf-warn li{margin:.15rem 0}
+  .rf-ex{display:grid;gap:.45rem;margin-bottom:1rem}
+  .rf-ex-t{font-size:.8rem;font-weight:900;color:var(--ink-soft)}
+  table.sheet.mini{font-size:.85rem;min-width:0}
+  table.sheet.mini td{min-width:3.5rem;height:1.8rem;padding:.2rem .5rem}
+  table.sheet.mini td.on{background:var(--unit-bg);outline:2px solid var(--unit);outline-offset:-2px}
+  table.sheet.mini td.fx{background:#fef9c3;font-weight:900;color:#1d4ed8}
+  .rf-f{display:grid;gap:.3rem}
+  .rf-f button{appearance:none;font:inherit;text-align:left;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.5rem;align-items:center;border:1px solid var(--line);background:#fff;border-radius:.6rem;padding:.35rem .6rem;cursor:pointer;color:var(--ink)}
+  .rf-f button:hover,.rf-f button:focus-visible{border-color:var(--unit);background:var(--unit-soft)}
+  .rf-f .cell{font:800 .75rem ui-monospace,Consolas,monospace;color:var(--ink-soft)}
+  .rf-f .res{font:900 .95rem ui-monospace,Consolas,monospace;color:#1d4ed8;white-space:nowrap}
+  .rf-f .note2{grid-column:2/4;font-size:.78rem;color:var(--ink-soft)}
+  .rf-try{border:2px dashed var(--unit-line);border-radius:.8rem;padding:.5rem .6rem;background:#fff}
+  .rf-try .fbar{padding:.2rem .5rem}
+  .rf-try .out{margin-top:.35rem;font-size:.88rem;min-height:1.4em}
+  .rf-try .out .ok{font:900 1rem ui-monospace,Consolas,monospace;color:#15803d}
+  .rf-quick a{color:inherit}
+  .rf-err{display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:.8rem}
+  .rf-err .card{padding:1rem}
+  .rf-empty{padding:2rem;text-align:center;color:var(--ink-soft)}
+  @media (max-width:760px){
+    .rf-body,.rf-intro{grid-template-columns:1fr}
+    .rf-bar{position:static}.rf-bar .input{max-width:none}
+    .rf-card,.rf-cat{scroll-margin-top:1rem}
+    .rf-quick tr:first-child{display:none}.rf-quick tr{display:block;padding:.45rem 0;border-bottom:1px solid var(--line)}
+    .rf-quick td{display:inline;border:0!important;padding:0 .4rem 0 0!important}.rf-quick td:first-child{display:block;font-weight:800;margin-bottom:.2rem}
+  }
+  /* 嵌在試算表關卡頁的浮動視窗裡 */
+  .embed .topbar,.embed .rf-intro,.embed #pager,.embed #cats,.embed .rf-lv{display:none!important}
+  .embed body{background:#fafaf9}
+  .embed .wrap-wide{padding:.5rem .7rem 2rem}
+  .embed .rf-bar{position:sticky!important;padding:.45rem 0 .4rem;margin-bottom:.6rem}
+  .embed .rf-chip{padding:.18rem .5rem;font-size:.75rem}
+  .embed .rf-card{scroll-margin-top:6.5rem;padding:1rem}
+  .embed .rf-cat{scroll-margin-top:6.5rem;font-size:1.1rem;margin:1.2rem 0 .6rem}
+  .embed .rf-head h3{font-size:1.05rem}
+  @media print{.rf-bar,.rf-try,.topbar .back{display:none!important}.rf-card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<main class="wrap-wide">
+  <header id="topbar"></header>
+
+  <section class="card rf-intro">
+    <div>
+      <p class="kicker">單元六 · 3下 第 3 章 · 隨時查、隨時試</p>
+      <h2 class="black" style="font-size:1.4rem">📊 試算表實作會用到的公式和函式，都在這裡</h2>
+      <p class="small mt1">每一種都有：<b>寫法</b>、<b>白話說明</b>、<b>小表格範例和計算結果</b>、<b>常見錯誤</b>。點範例的公式，表格會標出它用到哪些格子；下面的「✏️ 換你試試」可以自己改公式、馬上算。卡在哪一關，就點上面的關卡按鈕。</p>
+    </div>
+    <div class="row"><a class="btn primary" href="sheet.html">📊 回到試算表實作</a></div>
+  </section>
+
+  <nav class="rf-bar" aria-label="篩選">
+    <div class="row">
+      <input id="q" class="input" type="search" placeholder="🔍 搜尋：例如 平均、COUNTIF、引號、範圍…" aria-label="搜尋函式">
+      <span id="count" class="tiny soft"></span>
+    </div>
+    <div class="rf-chips" id="cats"></div>
+    <div class="rf-chips" id="lvs"></div>
+  </nav>
+
+  <details class="card" id="quick" open>
+    <summary class="bold" style="cursor:pointer">⚡ 一頁速查表（我想要… → 怎麼寫）</summary>
+    <div class="scroll-x mt1"><table class="t rf-quick" id="quick-t"></table></div>
+  </details>
+
+  <div id="list"></div>
+
+  <h2 class="rf-cat" id="errors">🩺 常見錯誤 <small>格子出現 #NAME?、#DIV/0!…或檢查沒過時，先找找看是哪一種</small></h2>
+  <div class="rf-err" id="err-list"></div>
+
+  <nav id="pager" class="pager"></nav>
+</main>
+
+<script id="sheetref-data">
+/* =====================================================================
+   函式小抄的內容。每一筆：
+     id  網址錨點（sheetref.html#countif）   cat 分類   lv 用到的關卡   t 標題   syn 寫法
+     d   白話說明（HTML）   tbl 表格 { h, r }   warn 常見錯誤／小叮嚀
+     ex  範例 [{ t, data: 小表格（A1 開始，第一列是標題）, f: [[放在哪一格, 公式, 說明]], tryf: 換你試試的起始公式 }]
+         計算結果不寫死：頁面用 shared/sheet.js 的同一個試算引擎當場算
+   ⚠️ 範例刻意避開各關的資料和答案：這裡教「寫法」，關卡要自己想。
+   ===================================================================== */
+window.SREF_CATS = [
+  { id: 'base', icon: '🧱', t: '公式基礎' },
+  { id: 'stat', icon: '📈', t: '統計函式' },
+  { id: 'cond', icon: '🎯', t: '條件計數 COUNTIF' },
+  { id: 'data', icon: '🧹', t: '資料前處理' },
+  { id: 'gs', icon: '🖱️', t: '到 Google 試算表' }
+];
+(function () {
+  var STUFF = [['品項', '單價', '數量'], ['鉛筆', 10, 12], ['橡皮擦', 15, 6], ['筆記本', 35, 4]];
+  var CLUB = [['姓名', '分數'], ['阿明', 72], ['小美', 88], ['大雄', 45], ['靜香', 93], ['胖虎', 60]];
+  var STEPS = [['星期', '天氣', '步數'], ['一', '晴', 6200], ['二', '雨', 3100], ['三', '晴', 8400], ['四', '陰', 5400], ['五', '晴', 9000]];
+  var QUIZ = [['座號', '姓名', '小考'], [1, '阿明', 80], [2, '小美', null], [3, '大雄', '請假'], [4, '靜香', 95], [5, '胖虎', 70]];
+  var BALL = [['姓名', '年級', '進球'], ['阿明', 8, 5], ['小美', 9, 7], ['大雄', 8, 2], ['靜香', 9, 7], ['胖虎', 7, 4], ['小夫', 9, 7]];
+  var DRINK = [['座號', '飲料', '甜度'], [1, '紅茶', '微糖'], [2, '奶茶', '全糖'], [3, '紅茶', '無糖'], [4, '綠茶', '微糖'], [5, '紅茶', '微糖'], [6, '奶茶', '半糖']];
+  var VOTE = [['座號', '姓名', '投給', '', '候選人', '票數'], [1, '阿明', '小美', null, '小美', '=COUNTIF(C2:C7,E2)'], [2, '小美', '大雄', null, '大雄', '=COUNTIF(C2:C7,E3)'],
+    [3, '大雄', '小美'], [4, '靜香', '小美'], [5, '胖虎', '大雄'], [6, '小夫', '小美']];
+  var TRIP = [['座號', '姓名', '通勤（分鐘）'], [1, '阿明', 15], [2, '小美', 20], [3, '大雄', 0.5], [4, '靜香', null], [2, '小美', 20], [5, '胖虎', 300]];
+  var TRIP_OK = [['座號', '姓名', '通勤（分鐘）'], [1, '阿明', 15], [2, '小美', 20], [3, '大雄', 30], [4, '靜香', null]];
+  window.SREF = [
+    { id: 'formula', cat: 'base', lv: ['T1', 'T2', 'T3', 'T4', 'T5'], t: '✏️ 公式：= 開頭、加減乘除', syn: '=算式',
+      d: '在格子裡打 <b>= 開頭</b>的內容，試算表就會<b>計算</b>，格子裡顯示算出來的結果。<ul><li>加減乘除是 <code>+ - * /</code>，乘號是 <b>*</b>、除號是 <b>/</b>。</li><li>先乘除、後加減；想先算的用<b>小括號</b>包起來。</li><li>算式裡寫<b>儲存格位址</b>（例如 B2），資料改了，結果會自動跟著變。</li></ul>',
+      ex: [{ t: '文具採購：用儲存格來算', data: STUFF, f: [['D2', '=B2*C2', '鉛筆的小計：單價 × 數量'], ['D3', '=B2*C2+B3*C3', '鉛筆＋橡皮擦一共多少錢'], ['D4', '=(B2+B3+B4)/3', '三種文具的平均單價（括號先加）']], tryf: '=B4*C4' }],
+      warn: ['沒有 = 開頭，試算表會把它當成一般文字。', '符號都要用<b>半形</b>：全形的 ＝（）＊ 在 Google 試算表會出錯。'] },
+
+    { id: 'range', cat: 'base', lv: ['T1', 'T2', 'T3', 'T5'], t: '📍 儲存格位址與範圍', syn: '儲存格：B2\n範圍：起點:終點（例如 B2:B6）',
+      d: '每一格都有自己的「地址」：<b>欄的英文字母＋列的數字</b>，例如第 B 欄第 2 列就是 <code>B2</code>。<ul><li><b>範圍</b>用冒號連接起點和終點：<code>B2:B6</code> 就是 B2、B3、B4、B5、B6 這 5 格。</li><li>第 1 列通常是<b>標題</b>（例如「分數」），計算時範圍要<b>從第 2 列開始</b>。</li><li>範圍要選到<b>最後一筆資料</b>，少選一格就少算一個人。</li></ul>',
+      tbl: { h: ['寫法', '意思'], r: [['<code>B2</code>', 'B 欄第 2 列那一格'], ['<code>B2:B6</code>', 'B2 到 B6，同一欄的 5 格'], ['<code>A2:C2</code>', 'A2 到 C2，同一列的 3 格'], ['<code>A2:B3</code>', 'A2 到 B3 圍起來的方塊（4 格）']] },
+      ex: [{ t: '範圍選多、選少會怎樣？', data: CLUB, f: [['C2', '=COUNTA(B2:B6)', '正確：5 個人的分數'], ['C3', '=COUNTA(B1:B6)', '多選了第 1 列的標題，變成 6'], ['C4', '=SUM(B2:B4)', '只選到前 3 個人']], tryf: '=SUM(B3:B5)' }],
+      warn: ['在 Google 試算表裡，可以直接用滑鼠<b>拖曳選取</b>範圍，比自己打字不容易選錯。'] },
+
+    { id: 'sum', cat: 'stat', lv: ['T1'], t: '➕ SUM 加總', syn: '=SUM(範圍)',
+      d: '把範圍裡的<b>數字全部加起來</b>。範圍裡如果有文字或空白，SUM 會自動跳過。',
+      ex: [{ t: '一週走了幾步', data: STEPS, f: [['D2', '=SUM(C2:C6)', '星期一到五全部加起來'], ['D3', '=SUM(C2:C3)', '只加星期一、二']], tryf: '=SUM(C4:C6)' }],
+      warn: ['<code>=C2+C3+C4+C5+C6</code> 也算得出來，但資料一多就很長；用 SUM(範圍) 又短又不容易漏。'] },
+
+    { id: 'average', cat: 'stat', lv: ['T1', 'T4'], t: '➗ AVERAGE 平均', syn: '=AVERAGE(範圍)',
+      d: '算範圍裡數字的<b>平均</b>（全部加起來 ÷ 有幾個數字）。<b>空白格不算在裡面</b>，所以不會把缺考的人當成 0 分。',
+      ex: [{ t: '平均每天走幾步', data: STEPS, f: [['D2', '=AVERAGE(C2:C6)', '五天的平均'], ['D3', '=SUM(C2:C6)/5', '自己算：總和 ÷ 天數，結果一樣']], tryf: '=AVERAGE(C2:C4)' }],
+      warn: ['資料裡如果有一筆打錯的超大數字，平均就會被拉得很高 —— 所以要先做「資料前處理」。'] },
+
+    { id: 'maxmin', cat: 'stat', lv: ['T1'], t: '🔝 MAX 最大、MIN 最小', syn: '=MAX(範圍)\n=MIN(範圍)',
+      d: '找出範圍裡<b>最大</b>或<b>最小</b>的數字。兩個相減，就是「差距」。',
+      ex: [{ t: '哪一天走最多、最少', data: STEPS, f: [['D2', '=MAX(C2:C6)', '走最多的那天'], ['D3', '=MIN(C2:C6)', '走最少的那天'], ['D4', '=MAX(C2:C6)-MIN(C2:C6)', '最多和最少差多少']], tryf: '=MIN(C2:C4)' }] },
+
+    { id: 'count', cat: 'stat', lv: ['T5'], t: '🔢 COUNT、COUNTA 數格子', syn: '=COUNT(範圍)   ← 數「數字」的格子\n=COUNTA(範圍)  ← 數「有東西」的格子',
+      d: '兩個都是「數有幾格」，差在數什麼：<ul><li><b>COUNT</b>：只數<b>數字</b>。</li><li><b>COUNTA</b>：只要<b>不是空白</b>都算（數字、文字都算）。</li></ul>要算「有幾個人」時，通常用 COUNTA 數姓名或作答欄。',
+      ex: [{ t: '小考：有人缺考、有人請假', data: QUIZ, f: [['D2', '=COUNT(C2:C6)', '有分數的：80、95、70'], ['D3', '=COUNTA(C2:C6)', '有填東西的：多了「請假」'], ['D4', '=COUNTA(B2:B6)', '全班幾個人（數姓名）']], tryf: '=COUNT(A2:A6)' }] },
+
+    { id: 'round', cat: 'stat', lv: ['T5'], t: '🎯 ROUND 四捨五入', syn: '=ROUND(數字, 小數位數)',
+      d: '把數字<b>四捨五入</b>到指定的小數位數。第二個數字是「留幾位小數」，寫 0 就是四捨五入到整數。常常把別的公式包在裡面。',
+      ex: [{ t: '平均步數四捨五入', data: STEPS, f: [['D2', '=AVERAGE(C3:C5)', '沒有四捨五入'], ['D3', '=ROUND(AVERAGE(C3:C5),0)', '到整數'], ['D4', '=ROUND(10/3,2)', '留 2 位小數']], tryf: '=ROUND(AVERAGE(C3:C5),1)' }],
+      warn: ['括號要成對：<code>ROUND(AVERAGE(…),0)</code> 有兩層括號。'] },
+
+    { id: 'countif', cat: 'cond', lv: ['T2', 'T3', 'T5'], t: '🎯 COUNTIF 數符合條件的格子', syn: '=COUNTIF(範圍, 條件)',
+      d: '在範圍裡<b>數出符合條件的有幾格</b>。要寫兩樣東西，中間用<b>半形逗號</b>隔開：<ul><li><b>範圍</b>：在哪裡數（例如 B2:B7）。</li><li><b>條件</b>：數什麼。條件是<b>剛好等於某個數字</b>時，直接寫數字就好。</li></ul>條件還可以是比大小、文字、或另一格儲存格，看下面三張。',
+      ex: [{ t: '投籃社：剛好等於某個數字', data: BALL, f: [['D2', '=COUNTIF(B2:B7,9)', '九年級有幾人'], ['D3', '=COUNTIF(C2:C7,7)', '剛好進 7 球的有幾人']], tryf: '=COUNTIF(B2:B7,8)' }],
+      warn: ['順序不能反：先寫「在哪裡數」，再寫「數什麼」。', '範圍和條件中間是<b>逗號</b>，範圍自己中間是<b>冒號</b>。'] },
+
+    { id: 'countif-cmp', cat: 'cond', lv: ['T2'], t: '⚖️ COUNTIF 比大小的條件', syn: '=COUNTIF(範圍, ">=數字")',
+      d: '條件要<b>比大小</b>時，把比較符號和數字<b>一起用雙引號包起來</b>。',
+      tbl: { h: ['中文說法', '條件寫法'], r: [['5 球以上（含 5）', '<code>">=5"</code>'], ['超過 5 球', '<code>">5"</code>'], ['未滿 5 球', '<code>"<5"</code>'], ['5 球以下（含 5）', '<code>"<=5"</code>'], ['不是 9 年級', '<code>"<>9"</code>'], ['剛好 7 球', '<code>7</code>（不用引號）']] },
+      ex: [{ t: '投籃社：比大小', data: BALL, f: [['D2', '=COUNTIF(C2:C7,">=5")', '進 5 球以上（含 5）'], ['D3', '=COUNTIF(C2:C7,"<5")', '未滿 5 球'], ['D4', '=COUNTIF(B2:B7,"<>9")', '不是九年級的']], tryf: '=COUNTIF(C2:C7,">6")' }],
+      warn: ['<b>「以上、以下」包含那個數字</b>，要用 >=、<=；「超過、未滿」才用 >、<。', '沒加引號（<code>=COUNTIF(C2:C7,>=5)</code>）會出錯。', '<code>=></code> 是錯的，等號要放在後面：<code>>=</code>。'] },
+
+    { id: 'countif-text', cat: 'cond', lv: ['T3', 'T4', 'T5'], t: '🔤 COUNTIF 文字條件', syn: '=COUNTIF(範圍, "文字")',
+      d: '要數「某個文字」出現幾次，條件的文字要用<b>半形雙引號</b>包起來。文字要和表格裡的<b>一模一樣</b>（多一個空白、字不一樣都數不到）。',
+      ex: [{ t: '班級飲料訂單', data: DRINK, f: [['D2', '=COUNTIF(B2:B7,"紅茶")', '點紅茶的有幾人'], ['D3', '=COUNTIF(C2:C7,"微糖")', '微糖的有幾杯'], ['D4', '=COUNTIF(B2:B7,"<>紅茶")', '不是紅茶的有幾杯']], tryf: '=COUNTIF(B2:B7,"奶茶")' }],
+      warn: ['沒加引號（<code>=COUNTIF(B2:B7,紅茶)</code>）試算表會出錯。', '要用雙引號 " "，單引號 \' \' 不行；全形的「＂」也不行。'] },
+
+    { id: 'countif-cell', cat: 'cond', lv: ['T3', 'T5'], t: '📌 COUNTIF 條件寫儲存格', syn: '=COUNTIF(範圍, 儲存格)',
+      d: '條件也可以直接寫<b>另一個儲存格</b>（<b>不加引號</b>），意思是「和那一格內容一樣的有幾格」。<ul><li>好處：條件改了（例如換一個候選人），<b>公式不用改</b>。</li><li>好幾格要用差不多的公式時，只要把條件那格換一下就好。</li></ul>',
+      ex: [{ t: '班長選舉開票', data: VOTE, f: [['F2', '=COUNTIF(C2:C7,E2)', '和 E2（小美）一樣的有幾票'], ['F3', '=COUNTIF(C2:C7,E3)', '和 E3（大雄）一樣的有幾票：只換了條件那格']], tryf: '=COUNTIF(C2:C7,C3)' }],
+      warn: ['儲存格<b>不能</b>加引號：<code>"E2"</code> 會被當成文字「E2」，一票都數不到。'] },
+
+    { id: 'ratio', cat: 'cond', lv: ['T5'], t: '📊 比例、百分比', syn: '=部分 ÷ 全部\n=部分 ÷ 全部 * 100   ← 百分比',
+      d: '「比例」就是<b>部分 ÷ 全部</b>。部分常常是 COUNTIF 算出來的格子，全部可以用 COUNTA 數。<ul><li>結果是 0.6 這種小數；乘 100 就是 60（%）。</li><li>可以用 ROUND 包起來，只留一兩位小數。</li></ul>',
+      ex: [{ t: '小美的得票率', data: VOTE, f: [['G2', '=F2/COUNTA(C2:C7)', '得票 ÷ 投票人數'], ['G3', '=ROUND(F2/COUNTA(C2:C7)*100,1)', '換成百分比，留 1 位小數']], tryf: '=F3/COUNTA(C2:C7)' }],
+      warn: ['除數是 0 或空白會出現 #DIV/0!。'] },
+
+    { id: 'clean', cat: 'data', lv: ['T4'], t: '🧹 資料前處理：先清理再計算', syn: '找問題 → 清理 → 再用函式計算',
+      d: '合併好幾份資料時，常常藏著錯誤。直接拿來算，結果會完全失真，所以要先清理。',
+      tbl: { h: ['問題', '長什麼樣子', '怎麼處理'], r: [['🔁 重複', '兩列一模一樣', '刪掉多的那一列'], ['🕳️ 缺值', '有格子是空白', '標記出來；看情況保留或不計算'], ['⚡ 不合理', '不可能的數字（通勤 300 分鐘？）', '無法確定原本是多少，就刪除'], ['📏 單位不一致', '其他人是分鐘，有人寫 0.5（小時）', '換成同一種單位（0.5 小時 → 30 分鐘）']] },
+      ex: [
+        { t: '清理前：平均被一筆錯誤拉高', data: TRIP, f: [['D2', '=AVERAGE(C2:C7)', '有重複、0.5 小時、300 分鐘都算進去了']] },
+        { t: '清理後：才是真正的平均', data: TRIP_OK, f: [['D2', '=AVERAGE(C2:C5)', '刪掉重複和不合理、單位換好（空白不算）']], tryf: '=COUNT(C2:C5)' }
+      ] },
+
+    { id: 'google', cat: 'gs', lv: ['T1', 'T5'], t: '🖱️ 在 Google 試算表實作的小技巧', syn: '輸入公式 → Enter → 拖曳填滿',
+      d: '網站上練熟之後，用 Google 試算表開課本的資料檔實作。幾個好用的操作：',
+      tbl: { h: ['想做什麼', '怎麼做'], r: [['輸入公式', '點一格 → 打 <code>=</code> 開頭的公式 → 按 Enter'], ['選範圍', '打到 <code>=SUM(</code> 時，直接用滑鼠拖曳選取資料，範圍會自動填好'], ['想不起函式', '打 <code>=C</code> 會跳出以 C 開頭的函式清單和說明'], ['同樣的公式用在旁邊', '選好那一格 → 拖右下角的小方塊（<b>填滿控點</b>）往右或往下拉，位址會自動跟著換（B 欄的公式拉到 C 欄，B2:B9 會變 C2:C9）'], ['看公式', '點格子，上面的公式列會顯示公式；格子裡顯示結果'], ['全形半形', '輸入公式前確認是英文半形輸入法，全形符號會出錯']] },
+      ex: [] }
+  ];
+  window.SREF_QUICK = [
+    ['用格子裡的數字計算', '= + - * /', '=B2*C2', 'formula'],
+    ['全部加起來', 'SUM', '=SUM(C2:C7)', 'sum'],
+    ['平均', 'AVERAGE', '=AVERAGE(C2:C7)', 'average'],
+    ['最大／最小', 'MAX／MIN', '=MAX(C2:C7)', 'maxmin'],
+    ['數有幾個數字', 'COUNT', '=COUNT(C2:C7)', 'count'],
+    ['數有幾格有填', 'COUNTA', '=COUNTA(B2:B7)', 'count'],
+    ['四捨五入', 'ROUND', '=ROUND(C8,1)', 'round'],
+    ['數剛好等於某數', 'COUNTIF', '=COUNTIF(C2:C7,7)', 'countif'],
+    ['數比某數大／小', 'COUNTIF + 引號', '=COUNTIF(C2:C7,">=60")', 'countif-cmp'],
+    ['數某個文字', 'COUNTIF + 引號', '=COUNTIF(B2:B7,"紅茶")', 'countif-text'],
+    ['和某一格一樣的有幾個', 'COUNTIF + 儲存格', '=COUNTIF(C2:C7,E2)', 'countif-cell'],
+    ['比例／百分比', '部分 ÷ 全部', '=F2/COUNTA(C2:C7)', 'ratio']
+  ];
+  /* 常見錯誤：用和關卡頁同一個說明器（SHEET.explain）產生，說法一致 */
+  window.SREF_ERRS = ['NOEQ', 'FULL', '=SUMM(C2:C7)', '=SUM(C2:C7', '=COUNTIF(C2:C9,>=60)', '=COUNTIF(C2:C9,優)', "=COUNTIF(C2:C9,'優')", '=COUNTIF(C2:C9;">=60")', '=COUNTIF(C2:C9)', '=C2:C7/2', '=C1*2', '=AVERAGE(A2:A7)', '=C8/D8', 'NUMBER', 'HEAD'];
+})();
+</script>
+
+<script>
+(function () {
+  var esc = UI.esc, CATS = window.SREF_CATS, REF = window.SREF, COLS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var LV = { T1: '畢旅零用錢', T2: 'COUNTIF 數字條件', T3: 'COUNTIF 文字與儲存格', T4: '資料清潔隊', T5: '模擬考答題統計' };
+  var EMBED = document.documentElement.classList.contains('embed');
+  UI.topbar('#topbar', { title: '📊 試算表函式小抄', kicker: '單元六 · 3下 第 3 章 · 試算表實作', hub: 'unit6.html', backLabel: '← 單元六', unit: 'u3' });
+  UI.pager('#pager', { lbl: '← 回到', title: '📊 試算表實作', href: 'sheet.html' }, { lbl: '回到', title: '🗂️ 單元六', href: 'unit6.html' });
+
+  /* ── 小表格：資料 + 公式放進去一起算（結果由 sheet.js 的試算引擎算，和關卡一樣） ── */
+  function gridOf(ex) {
+    var g = SHEET.makeGrid(ex.data);
+    ex.f.forEach(function (f) { g.set(f[0], f[1]); });
+    return g;
+  }
+  function val(f, g) { try { return { v: SHEET.fmt(SHEET.evaluate(f, g)) }; } catch (e) { return { e: e }; } }
+  function refsOf(f) {   // 公式用到哪些格子（標在表格上）
+    var out = {}, m, re = /([A-Z])(\d+)(?::([A-Z])(\d+))?/g, s = String(f).toUpperCase().replace(/"[^"]*"/g, '');
+    while ((m = re.exec(s))) {
+      var c1 = COLS.indexOf(m[1]), r1 = +m[2], c2 = m[3] ? COLS.indexOf(m[3]) : c1, r2 = m[4] ? +m[4] : r1;
+      for (var r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) for (var c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) out[COLS[c] + r] = 1;
+    }
+    return out;
+  }
+  function sheetHTML(ex, k, j) {
+    var g = gridOf(ex), nR = ex.data.length, nC = ex.data[0].length, fx = {};
+    ex.f.forEach(function (f) { var p = /([A-Z])(\d+)/.exec(f[0]); fx[f[0]] = 1; nR = Math.max(nR, +p[2]); nC = Math.max(nC, COLS.indexOf(p[1]) + 1); });
+    var h = '<table class="sheet mini" data-k="' + k + ':' + j + '"><tr><td class="corner" aria-hidden="true"></td>' + COLS.slice(0, nC).split('').map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
+    for (var r = 1; r <= nR; r++) {
+      h += '<tr><th>' + r + '</th>';
+      for (var c = 0; c < nC; c++) {
+        var ref = COLS[c] + r, raw = g.get(ref), shown = raw == null ? '' : raw;
+        if (fx[ref] || (typeof raw === 'string' && raw[0] === '=')) { var x = val(raw, g); shown = x.e ? x.e.code : x.v; }
+        h += '<td data-c="' + ref + '" class="' + (r === 1 ? 'hd' : '') + (fx[ref] ? ' fx' : '') + '">' + esc(String(shown)) + '</td>';
+      }
+      h += '</tr>';
+    }
+    return h + '</table>';
+  }
+  function exHTML(ex, k, j) {
+    var g = gridOf(ex);
+    return '<div class="rf-ex"><span class="rf-ex-t">📝 ' + esc(ex.t) + '</span><div class="scroll-x">' + sheetHTML(ex, k, j) + '</div>' +
+      '<div class="rf-f">' + ex.f.map(function (f) {
+        var x = val(f[1], g);
+        return '<button type="button" data-hl="' + esc(f[1]) + '" data-t="' + k + ':' + j + '"><span class="cell">' + f[0] + '</span><code>' + esc(f[1]) + '</code><span class="res">→ ' + esc(x.e ? x.e.code : x.v) + '</span><span class="note2">' + esc(f[2]) + '</span></button>';
+      }).join('') + '</div>' +
+      (ex.tryf ? '<div class="rf-try"><div class="tiny bold soft">✏️ 換你試試：改改看公式，按 Enter 或直接看結果</div><div class="fbar mt1"><span class="mono bold">fx</span>' +
+        '<input class="input mono" data-try="' + k + ':' + j + '" value="' + esc(ex.tryf) + '" autocomplete="off" spellcheck="false" aria-label="自己試試看的公式"></div><div class="out"></div></div>' : '') + '</div>';
+  }
+  function tblHTML(t) { return '<div class="rf-tbl scroll-x"><table class="t"><tr>' + t.h.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr>' + t.r.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table></div>'; }
+  function cardHTML(r, k) {
+    return '<article class="card rf-card" id="' + r.id + '"><div class="rf-head"><h3>' + esc(r.t) + '</h3><span class="rf-lv">' +
+      r.lv.map(function (l) { return '<a href="#' + l + '" title="' + esc(LV[l]) + '">' + l + '</a>'; }).join('') + '</span></div>' +
+      '<div class="rf-syn">' + esc(r.syn) + '</div>' +
+      '<div class="rf-body"' + (r.ex.length ? '' : ' style="grid-template-columns:1fr"') + '><div><div class="rf-desc">' + r.d + '</div>' + (r.tbl ? tblHTML(r.tbl) : '') +
+      (r.warn ? '<div class="note warn rf-warn"><b>⚠️ 小叮嚀</b><ul style="margin:.3rem 0 0;padding-left:1.1rem">' + r.warn.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul></div>' : '') + '</div>' +
+      '<div>' + r.ex.map(function (e, j) { return exHTML(e, k, j); }).join('') + '</div></div></article>';
+  }
+  function xHTML(x) {
+    return '<b>' + esc(x.title) + '</b>' + (x.tip ? '<div class="small">💡 ' + esc(x.tip) + '</div>' : '') +
+      (x.bad || x.good ? '<div class="sx-ex">' + (x.bad ? '<span>❌ <code>' + esc(x.bad) + '</code></span>' : '') + (x.good ? '<span>✅ <code>' + esc(x.good) + '</code></span>' : '') + '</div>' : '');
+  }
+
+  /* ── 篩選：分類、關卡、搜尋 ── */
+  var state = { cat: '', lv: '', q: '' };
+  document.getElementById('cats').innerHTML = '<button class="rf-chip on" data-cat="">全部</button>' + CATS.map(function (c) { return '<button class="rf-chip" data-cat="' + c.id + '">' + c.icon + ' ' + esc(c.t) + '</button>'; }).join('') +
+    '<a class="rf-chip" href="#errors" style="text-decoration:none">🩺 常見錯誤</a>';
+  document.getElementById('lvs').innerHTML = '<span class="tiny bold soft" style="align-self:center">卡在哪一關？</span>' + Object.keys(LV).map(function (l) { return '<button class="rf-chip" data-lv="' + l + '" title="' + esc(LV[l]) + '">' + l + '</button>'; }).join('');
+  function textOf(r) { return (r.t + r.syn + r.d + JSON.stringify(r.tbl || '') + r.ex.map(function (e) { return e.t + e.f.map(function (f) { return f[1] + f[2]; }).join(''); }).join('') + (r.warn || []).join('')).toLowerCase(); }
+  function render() {
+    var q = state.q.trim().toLowerCase(), n = 0;
+    var html = CATS.map(function (c) {
+      var items = REF.map(function (r, k) { return [r, k]; }).filter(function (x) {
+        var r = x[0];
+        return r.cat === c.id && (!state.cat || state.cat === r.cat) && (!state.lv || r.lv.indexOf(state.lv) >= 0) && (!q || textOf(r).indexOf(q) >= 0);
+      });
+      n += items.length;
+      if (!items.length) return '';
+      return '<h2 class="rf-cat">' + c.icon + ' ' + esc(c.t) + ' <small>' + items.length + ' 種</small></h2><div class="rf-list">' + items.map(function (x) { return cardHTML(x[0], x[1]); }).join('') + '</div>';
+    }).join('');
+    document.getElementById('list').innerHTML = html || '<div class="card rf-empty">找不到「' + esc(state.q) + '」。換個關鍵字試試，例如：加總、平均、條件、引號。</div>';
+    document.getElementById('count').textContent = '共 ' + n + ' 種' + (state.lv ? '（' + state.lv + ' ' + LV[state.lv] + ' 用到的）' : '');
+    document.querySelectorAll('[data-cat]').forEach(function (b) { b.classList.toggle('on', b.dataset.cat === state.cat); });
+    document.querySelectorAll('[data-lv]').forEach(function (b) { b.classList.toggle('on', b.dataset.lv === state.lv); });
+    document.querySelectorAll('input[data-try]').forEach(tryIt);
+  }
+  document.getElementById('cats').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; state.cat = b.dataset.cat; render(); });
+  document.getElementById('lvs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-lv]'); if (!b) return;
+    state.lv = state.lv === b.dataset.lv ? '' : b.dataset.lv;
+    history.replaceState(null, '', state.lv ? '#' + state.lv : location.pathname + location.search);
+    render();
+  });
+  var qT; document.getElementById('q').addEventListener('input', function () { var v = this.value; clearTimeout(qT); qT = setTimeout(function () { state.q = v; render(); }, 150); });
+
+  /* ── 點公式：表格標出用到的格子；換你試試：當場計算 ── */
+  function mark(key, f) {
+    var t = document.querySelector('table.mini[data-k="' + key + '"]'); if (!t) return;
+    var on = refsOf(f);
+    t.querySelectorAll('td[data-c]').forEach(function (td) { td.classList.toggle('on', !!on[td.dataset.c]); });
+  }
+  var list = document.getElementById('list');
+  list.addEventListener('click', function (e) { var b = e.target.closest('button[data-hl]'); if (b) mark(b.dataset.t, b.dataset.hl); });
+  list.addEventListener('mouseover', function (e) { var b = e.target.closest('button[data-hl]'); if (b) mark(b.dataset.t, b.dataset.hl); });
+  function tryIt(inp) {
+    var key = inp.dataset.try.split(':'), ex = REF[+key[0]].ex[+key[1]], f = inp.value.trim(), out = inp.closest('.rf-try').querySelector('.out');
+    mark(inp.dataset.try, f);
+    if (!f) { out.innerHTML = ''; return; }
+    var fw = /[！-～“”]/.test(f) ? '<div class="tiny bold" style="color:var(--warn)">⚠️ 有全形符號 —— 這裡會幫你轉成半形，但 Google 試算表會出錯</div>' : '';
+    if (f.replace(/^＝/, '=')[0] !== '=') { out.innerHTML = '<div class="note warn small">' + xHTML(SHEET.explain(f, { code: 'noeq' })) + '</div>'; return; }
+    var x = val(f, gridOf(ex));
+    out.innerHTML = fw + (x.e ? '<div class="note warn small">' + xHTML(SHEET.explain(f, x.e)) + '</div>' : '結果：<span class="ok">' + esc(x.v) + '</span>');
+  }
+  list.addEventListener('input', function (e) { if (e.target.matches('input[data-try]')) tryIt(e.target); });
+  list.addEventListener('focusin', function (e) { if (e.target.matches('input[data-try]')) mark(e.target.dataset.try, e.target.value); });
+
+  /* ── 速查表、常見錯誤 ── */
+  document.getElementById('quick-t').innerHTML = '<tr><th>我想要…</th><th>用這個</th><th>例子</th></tr>' + window.SREF_QUICK.map(function (r) {
+    return '<tr><td><a href="#' + r[3] + '">' + esc(r[0]) + '</a></td><td><code>' + esc(r[1]) + '</code></td><td><code>' + esc(r[2]) + '</code></td></tr>';
+  }).join('');
+  var G = SHEET.makeGrid([['姓名', '科目', '分數', ''], ['阿明', '國', 80], ['小美', '英', 90]]);
+  document.getElementById('err-list').innerHTML = window.SREF_ERRS.map(function (s) {
+    var x, code;
+    if (s === 'NOEQ') { x = SHEET.explain('SUM(C2:C7)', { code: 'noeq' }); code = '只顯示文字'; }
+    else if (s === 'NUMBER') { x = SHEET.explain('=4200', { code: 'number' }); code = '檢查不過'; }
+    else if (s === 'HEAD') { x = SHEET.explain('=AVERAGE(C1:C7)', { code: 'value', v: '…' }); x.title = '範圍包含了標題列'; code = '結果不對'; }
+    else if (s === 'FULL') { x = { title: '全形符號', tip: '＝（）＂，這些全形符號在 Google 試算表會出錯（這個網站會幫你轉成半形，但會提醒你）。輸入公式前先切換成英文半形。', bad: '＝ＳＵＭ（C2:C7）', good: '=SUM(C2:C7)' }; code = '#ERROR!'; }
+    else { try { SHEET.evaluate(s, G); } catch (e) { x = SHEET.explain(s, e); code = e.code; } }
+    return '<article class="card"><div class="row between"><span class="chip">' + esc(code) + '</span></div><div class="mt1">' + xHTML(x) + '</div></article>';
+  }).join('');
+
+  /* ── 網址 #T3 → 只看第 3 關用到的；#countif → 跳到那一張；#all → 全部 ── */
+  function fromHash() {
+    var h = decodeURIComponent(location.hash.slice(1));
+    if (LV[h] || h === 'all') { state.lv = LV[h] ? h : ''; state.cat = ''; render(); window.scrollTo(0, 0); return; }
+    if (h && REF.some(function (r) { return r.id === h; }) && !document.getElementById(h)) { state = { cat: '', lv: '', q: '' }; document.getElementById('q').value = ''; }
+    render();
+    var el = h && document.getElementById(h);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (el.classList.contains('rf-card')) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
+  }
+  window.addEventListener('hashchange', fromHash);
+  if (EMBED) document.getElementById('quick').open = false;   // 浮動視窗裡先收起速查表，直接看函式
+  fromHash();
+})();
+</script>
+</body>
+</html>

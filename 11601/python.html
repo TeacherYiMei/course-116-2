@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>單元二｜Python 畢旅冒險｜116-1 資訊科技</title>
+<link rel="stylesheet" href="python-journey.css">
+</head>
+<body>
+<header class="top">
+  <a href="hub.html">← 116-1 闖關地圖</a>
+  <b>🐍 Python 畢旅冒險</b>
+  <span>⭐ <strong id="stars">0</strong>/26</span>
+</header>
+<main>
+  <section class="tools">
+    <div id="place"></div>
+    <div class="topTools">
+      <button id="persistentVarBtn" class="translate">🌐 變數英文小幫手</button>
+      <a href="python-guide.html" target="_blank">📘 Python 指令小百科</a>
+    </div>
+  </section>
+  <section class="studentStrip">
+    <div>
+      <span class="studentLabel">👤 學生資料</span>
+      <span id="studentProfileText">尚未設定</span>
+      <button id="cloudStatus" class="cloudStatus cloudButton" type="button">☁️ 檢查資料庫中</button>
+    </div>
+    <div class="studentStripActions">
+      <button id="accountBtn" class="profileBtn accountBtn" type="button">🔐 學習帳號</button>
+      <button id="editProfileBtn" class="profileBtn" type="button">修改</button>
+    </div>
+  </section>
+  <div id="map"></div>
+  <section id="mission"></section>
+</main>
+
+<dialog id="reward"><div id="rewardBody"></div></dialog>
+
+
+
+
+<dialog id="firebaseDiagDialog" class="firebaseDiagDialog">
+  <button id="closeFirebaseDiag" class="close">×</button>
+  <h2>☁️ Firebase 連線診斷</h2>
+  <div id="firebaseDiagBody"></div>
+  <button id="retryFirebaseBtn" class="startAdventureBtn">重新連線</button>
+</dialog>
+
+<dialog id="profileDialog" class="profileDialog">
+  <div class="profileHero">🎒</div>
+  <h2>開始 Python 冒險前，先建立你的學習資料</h2>
+  <p>班級、座號與姓名會先保存在這台瀏覽器，之後接上教師資料庫時，可用來辨識每位學生的闖關紀錄與證書。</p>
+
+  <label class="fieldLabel">班級 <span>*</span></label>
+  <input id="profileClass" class="profileInput" placeholder="例如：901" maxlength="3" inputmode="numeric">
+  <div id="profileClassError" class="fieldError"></div>
+
+  <label class="fieldLabel">座號 <span>*</span></label>
+  <input id="profileSeatNo" class="profileInput" placeholder="例如：15" maxlength="2" inputmode="numeric">
+  <div id="profileSeatError" class="fieldError"></div>
+
+  <label class="fieldLabel">姓名 <span>*</span></label>
+  <input id="profileName" class="profileInput" placeholder="例如：王小明" maxlength="20">
+  <div id="profileNameError" class="fieldError"></div>
+
+  <div id="profileError" class="profileError"></div>
+
+  <div class="profilePrivacy">
+    🔒 連接資料庫後，闖關進度會同步到教師端；未連接時仍會保存在這台瀏覽器。
+  </div>
+
+  <button id="saveProfileBtn" class="startAdventureBtn">🚀 儲存並開始挑戰</button>
+</dialog>
+
+
+<dialog id="accountDialog" class="profileDialog accountDialog">
+  <div class="profileHero">🔐</div>
+  <h2>建立你的學習帳號</h2>
+  <p id="accountIntro">設定一次學習密碼後，以後換版本或重新進入，都可以回到同一筆學習紀錄。</p>
+
+  <div class="accountIdentity" id="accountIdentity"></div>
+
+  <label class="fieldLabel">學習密碼 <span>*</span></label>
+  <input id="accountPassword" class="profileInput" type="password" minlength="6" maxlength="40"
+         placeholder="至少 6 個字元" autocomplete="current-password">
+  <div class="fieldHelp">請記住自己的學習密碼。不要使用其他網站的重要密碼。</div>
+
+  <div id="accountError" class="profileError"></div>
+  <div class="accountButtons">
+    <button id="linkAccountBtn" class="startAdventureBtn" type="button">建立／綁定帳號</button>
+    <button id="loginAccountBtn" class="secondaryAdventureBtn" type="button">已有帳號，登入並取回進度</button>
+  </div>
+</dialog>
+
+<dialog id="varDialog" class="varDialog">
+  <button id="closeVar" class="close">×</button>
+  <h2>🌐 變數英文小幫手</h2>
+  <p>想替哪一筆資料取英文變數名稱？輸入中文關鍵字即可。</p>
+  <div class="varSearch">
+    <input id="varQuery" placeholder="例如：班級、體重、剩餘預算">
+    <button id="varSearchBtn">找英文名稱</button>
+  </div>
+  <div id="varResult"></div>
+</dialog>
+
+<dialog id="cert">
+  <button id="closeCert" class="close no-print">×</button>
+  <div class="certificate">
+    <div class="big">⭐ 🐍 ⭐</div>
+    <small>PYTHON JOURNEY</small>
+    <h1>Python 畢旅冒險完成證書</h1>
+    <p>恭喜</p>
+    <div id="certName" class="name">Python 冒險家</div>
+    <p>完成 10 個冒險站、26 個 Python 挑戰，展現從 Scratch 概念轉換到 Python、查找指令、除錯與解決問題的能力。</p>
+    <div class="badges">print・變數・input・運算・條件判斷・and/or・for・while・random・綜合應用</div>
+    <h3>⭐ 26 顆星</h3>
+    <footer><span id="date"></span><b>🏅 Python 冒險家</b></footer>
+  </div>
+  <div class="certActions no-print">
+    <input id="studentName" placeholder="輸入證書姓名">
+    <button id="applyName">套用姓名</button>
+    <button id="printCert">🖨️ 列印／存成 PDF</button>
+  </div>
+</dialog>
+
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/pyrunner.js"></script>
+<script src="../shared/firebase-config.js"></script>
+<script src="../shared/firebase-sync.js"></script>
+<script src="content/python-journey.js"></script>
+<script>
+document.getElementById("closeVar").onclick=()=>document.getElementById("varDialog").close();
+document.getElementById("varSearchBtn").onclick=searchVar;
+document.getElementById("varQuery").addEventListener("keydown",e=>{if(e.key==="Enter")searchVar()});
+document.getElementById("persistentVarBtn").onclick=openVarHelper;
+document.getElementById("editProfileBtn").onclick=()=>openProfileDialog(false);
+document.getElementById("accountBtn").onclick=()=>openAccountDialog(false);
+document.getElementById("linkAccountBtn").onclick=linkLearningAccount;
+document.getElementById("loginAccountBtn").onclick=loginLearningAccount;
+document.getElementById("saveProfileBtn").onclick=saveStudentProfile;
+document.getElementById("cloudStatus").onclick=openFirebaseDiagnostic;
+document.getElementById("closeFirebaseDiag").onclick=()=>document.getElementById("firebaseDiagDialog").close();
+document.getElementById("retryFirebaseBtn").onclick=retryFirebaseConnection;
+</script></body></html>

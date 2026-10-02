@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5016B 專題 · 守護站 2.0 連上網路</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/api.js"></script>
+<link rel="stylesheet" href="../shared/labkit.css">
+<script src="../shared/labkit.js"></script>
+<style>
+  .net{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center;text-align:center}
+  .node{background:#1e293b;border:1px solid #334155;border-radius:.8rem;padding:.5rem .7rem;min-width:7rem}
+  .node .ip{font-family:ui-monospace,Consolas,monospace;color:#fde68a;font-size:.85rem}
+  .arrow{color:#64748b;font-weight:900}
+  .pk{display:inline-flex;align-items:center;gap:.3rem;background:#312e81;border-radius:.5rem;padding:.25rem .5rem;margin:.15rem;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+  .pk.lost{background:#7f1d1d;text-decoration:line-through}
+  .pk.re{background:#065f46}
+  .lane{min-height:2.4rem;border:1px dashed #475569;border-radius:.6rem;padding:.3rem;margin-top:.3rem}
+  .tech{display:grid;grid-template-columns:6rem 1fr;gap:.4rem;align-items:center;margin:.3rem 0;font-size:.85rem}
+  .tech .rbar{height:.8rem;background:#1f2937;border-radius:999px;position:relative;overflow:hidden}
+  .tech .rbar i{position:absolute;top:0;bottom:0;background:#6366f1;border-radius:999px}
+  .best{outline:2px solid #fde68a;border-radius:.5rem}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <section class="card pop"><div class="tape"></div>
+    <p class="kicker">跨章專題 · 每節 3⭐（預測錯越少星越多）· 算進平均完成度</p>
+    <h2 class="black" style="font-size:1.35rem">💡 守護站 2.0：連上網路</h2>
+    <p class="small mt1">上學期的<b>智慧教室守護站</b>只會在教室裡量距離、亮燈、轉風扇。這學期讓它<b>連上網路</b>：選對無線技術（2-2）、拿到自己的 IP 位址、用 TCP/IP 把資料送出去（2-1），還要<b>加密</b>才不會被偷看（3-2）。</p>
+    <p class="tiny soft mt1">每一節的檢核都是「先預測 → 再執行 → 說對了才算」。元件沿用上學期：超音波、旋鈕、燈條、馬達，外加一塊可以連 Wi-Fi／藍牙的控制板。</p>
+  </section>
+  <nav id="tabs" aria-label="五節課：課程小卡"></nav>
+  <div id="sec" class="stack mt2"></div>
+</main>
+
+<script>
+(function () {
+  var esc = UI.esc, MOD = 'arduino';
+  UI.topbar('#topbar', { title: '💡 5016B 專題：守護站 2.0', kicker: '延伸挑戰 · 跨章專題 · 五節' });
+  var A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  function caesar(t, k) { return String(t).toUpperCase().split('').map(function (c) { var i = A.indexOf(c); return i < 0 ? c : A[(i + k + 26) % 26]; }).join(''); }
+
+  var SECTIONS = [
+    {
+      id: 'S1', icon: '📶', badge: '第 1 節', title: '選對無線技術',
+      desc: '守護站要和誰連、連多遠、要不要上網際網路，決定了該用藍牙、Wi-Fi 還是行動網路。',
+      link: '2-2 無線網路技術',
+      apps: ['藍牙耳機只和手機連', '教室平板連學校 Wi-Fi', '公車上的即時到站系統用行動網路'],
+      objectives: ['比較藍牙、Wi-Fi、行動網路的距離與用途', '依情境替守護站選出合適的連線方式'],
+      materials: ['上學期的守護站', '可連 Wi-Fi／藍牙的控制板', '手機'],
+      blocks: [['b-ev', '當綠旗被點擊'], ['b-hw', '連上 Wi-Fi（名稱 Classroom_901）'], ['b-ctl', '等待直到 < Wi-Fi 已連線 >'], ['b-hw', '燈條全部設為 綠（連線成功）']],
+      python: "wifi.connect('Classroom_901', password)\nwhile not wifi.isconnected():\n    time.sleep(0.5)\nstrip('綠')   # 連上了",
+      sim: simWireless,
+      checks: [
+        { q: '守護站在教室裡，要把資料傳到學校伺服器，教室有 Wi-Fi 基地臺。該用哪一種？', options: ['藍牙', 'Wi-Fi', '行動網路'],
+          setup: { dist: 15, internet: true, ap: true, lowPower: false } },
+        { q: '老師用手機站在旁邊（5 公尺內）直接調整守護站的設定，不需要上網，而且要省電。該用哪一種？', options: ['藍牙', 'Wi-Fi', '行動網路'],
+          setup: { dist: 5, internet: false, ap: false, lowPower: true } }
+      ]
+    },
+    {
+      id: 'S2', icon: '🏠', badge: '第 2 節', title: '守護站的地址',
+      desc: '連上教室的 Wi-Fi 之後，路由器會分給守護站一個私有 IP 位址。要上網時，路由器再幫它換成學校的公有位址。',
+      link: '2-1 網路位址（公有／私有）',
+      apps: ['家裡每台手機都是 192.168.x.x', '全校共用幾個對外的公有位址'],
+      objectives: ['說出私有與公有網路位址的差別', '解釋為什麼不同教室可以有相同的私有位址'],
+      materials: ['教室的無線路由器', '守護站'],
+      blocks: [['b-var', '變數 我的 IP 設為 ( Wi-Fi 位址 )'], ['b-hw', '說出 ( 我的 IP )']],
+      python: "ip = wifi.ifconfig()[0]\nprint('守護站的位址：', ip)   # 例如 192.168.1.10",
+      sim: simAddress,
+      checks: [
+        { q: '隔壁 902 教室也有一台守護站，位址同樣是 192.168.1.10，會和我們的衝突嗎？', options: ['會衝突，兩台都連不上', '不會，它們在不同的區域網路裡', '只有同時上網才會衝突'],
+          setup: { neighbor: true, upload: false } },
+        { q: '守護站把資料上傳到雲端時，雲端伺服器看到的「來源位址」是哪一個？', options: ['192.168.1.10（守護站）', '163.21.236.8（學校的公有位址）', '192.168.1.1（路由器的內部位址）'],
+          setup: { neighbor: false, upload: true } }
+      ]
+    },
+    {
+      id: 'S3', icon: '📦', badge: '第 3 節', title: '封包上路',
+      desc: '守護站把一筆紀錄送上網時，TCP 會先切成封包、編號；IP 加上地址。路上掉了、亂了都不怕。',
+      link: '2-1 TCP/IP 通訊協定',
+      apps: ['視訊斷斷續續但檔案下載不會壞', '網路遊戲的「封包遺失」'],
+      objectives: ['描述 TCP 如何處理遺失的封包', '描述接收端如何處理亂序抵達的封包'],
+      materials: ['守護站', '模擬器'],
+      blocks: [['b-hw', '傳送 ( 距離=45,時間=09:05 ) 到 雲端伺服器']],
+      python: "sock = socket.socket()          # 預設就是 TCP\nsock.connect((server, 80))\nsock.send(b'DIST=45,TIME=0905')   # 切封包、編號、重送都由 TCP 處理",
+      sim: simPackets,
+      checks: [
+        { q: '4 個封包中，第 2 個在路上遺失了。接下來會發生什麼事？', options: ['資料就少一段，沒辦法', 'TCP 發現沒收到確認，只重送第 2 個', '整份資料全部重新傳送'],
+          setup: { lose: true, shuffle: false } },
+        { q: '封包抵達的順序是 3、1、4、2，接收端會怎麼做？', options: ['照抵達順序拼起來，內容會亂掉', '依 TCP 的編號重新排好再組合', '全部丟掉請對方重傳'],
+          setup: { lose: false, shuffle: true } }
+      ]
+    },
+    {
+      id: 'S4', icon: '🔐', badge: '第 4 節', title: '加密再上傳',
+      desc: '資料在網路上一站一站轉送，路上的人有機會偷看。上傳前先用凱薩密碼加密，或改用 https。',
+      link: '3-2 加密（凱薩密碼）、2-1 http／https',
+      apps: ['網路銀行一定是 https', 'LINE 的訊息加密'],
+      objectives: ['用凱薩密碼把讀值加密', '比較 http 與 https 在傳輸途中的差別'],
+      materials: ['守護站', '上學期的 Python 密碼程式'],
+      blocks: [['b-var', '變數 密文 設為 ( 凱薩加密 ( 讀值 ) 金鑰 3 )'], ['b-hw', '傳送 ( 密文 )']],
+      python: "msg = 'DIST 45'\nsecret = caesar(msg, 3)     # 密碼特務學過的凱薩加密\nsend(secret)                # 路上的人只看到 GLVW 45",
+      sim: simCrypto,
+      checks: [
+        { q: '用 http、金鑰 0（不加密）傳送「DIST 45」，路上偷看的人會看到什麼？', options: ['DIST 45', '一串看不懂的亂碼', '什麼都看不到'],
+          setup: { key: 0, https: false } },
+        { q: '改用金鑰 3 加密「DIST」，傳出去的密文是什麼？', options: ['GLVW', 'ABFQ', 'DIST'],
+          setup: { key: 3, https: false } }
+      ]
+    },
+    {
+      id: 'S5', icon: '🏆', badge: '第 5 節', title: '連網小幫手（專題）',
+      desc: '把守護站升級成你的連網小幫手：選輸入、選連線方式、設定位址、決定怎麼保護資料，最後產生成果卡。',
+      link: '跨章總整理',
+      apps: ['自己的教室、自己的問題'],
+      objectives: ['把輸入 → 判斷 → 連網上傳的流程設計出來', '替資料選擇合適的保護方式', '用三句話清楚說明作品'],
+      materials: ['超音波或旋鈕（擇一）', '燈條、馬達', '可連網的控制板'],
+      sim: simProject,
+      checks: []
+    }
+  ];
+
+  /* ── 模擬器 ─────────────────────────────── */
+  function simWireless(el) {
+    el.innerHTML = '<div class="grid g2"><div><label>距離 <span class="val" id="d-v"></span></label><input type="range" id="d" min="1" max="500" value="15" aria-label="距離">' +
+      '<label style="display:flex;gap:.4rem;align-items:center;margin-top:.5rem"><input type="checkbox" id="net" checked> 要連上網際網路</label>' +
+      '<label style="display:flex;gap:.4rem;align-items:center"><input type="checkbox" id="ap" checked> 附近有 Wi-Fi 基地臺</label>' +
+      '<label style="display:flex;gap:.4rem;align-items:center"><input type="checkbox" id="lp"> 要很省電</label></div>' +
+      '<div><p class="tiny" style="color:#94a3b8">傳輸距離（課本數據）</p><div id="bars"></div><p class="mt1">建議：<span class="val" id="rec"></span></p><p class="tiny" id="why" style="color:#cbd5e1"></p></div></div>';
+    var T = [['藍牙', 10, 300], ['Wi-Fi', 50, 300], ['行動網路', 0, 500]];
+    function draw() {
+      var d = +q('d').value, net = q('net').checked, ap = q('ap').checked, lp = q('lp').checked, r, why;
+      q('d-v').textContent = d + ' 公尺';
+      if (!net) { r = '藍牙'; why = '不用上網、點對點直接連，藍牙成本低又省電。'; }
+      else if (ap && d <= 300) { r = 'Wi-Fi'; why = '要上網、附近有基地臺，用 Wi-Fi 速度快又不必付月租。'; }
+      else { r = '行動網路'; why = '附近沒有 Wi-Fi 基地臺（或太遠），只能靠電信業者的基地臺。'; }
+      if (lp && net && r === 'Wi-Fi') why += '（Wi-Fi 比藍牙耗電，可以設定每隔一段時間才連線上傳）';
+      q('bars').innerHTML = T.map(function (t) {
+        return '<div class="tech' + (t[0] === r ? ' best' : '') + '"><span>' + t[0] + '</span><div class="rbar"><i style="left:' + (t[1] / 5) + '%;width:' + ((t[2] - t[1]) / 5) + '%"></i></div></div>';
+      }).join('') + '<div class="tiny" style="color:#94a3b8">藍牙 10～300 公尺 · Wi-Fi 50～300 公尺 · 行動網路靠基地臺，走到哪用到哪</div>';
+      q('rec').textContent = r; q('why').textContent = why;
+      return r;
+    }
+    function q(id) { return el.querySelector('#' + id); }
+    el.querySelectorAll('input').forEach(function (i) { i.oninput = draw; i.onchange = draw; });
+    draw();
+    return { set: function (o) { q('d').value = o.dist; q('net').checked = o.internet; q('ap').checked = o.ap; q('lp').checked = o.lowPower; return '模擬器建議：' + draw(); } };
+  }
+
+  function simAddress(el) {
+    var devs = [['📟 守護站', 10], ['💻 老師電腦', 11], ['📱 學生平板', 12]], st = { neighbor: false, upload: false };
+    function room(name, list) {
+      return '<div class="card" style="background:#111827;border-color:#334155;padding:.7rem"><p class="bold small">' + name + '（區域網路）</p><div class="net mt1">' +
+        list.map(function (d) { return '<div class="node"><div>' + d[0] + '</div><div class="ip">192.168.1.' + d[1] + '</div></div>'; }).join('') + '</div></div>';
+    }
+    function draw() {
+      var nat = st.upload ? '<div class="note small mt2" style="background:#1e293b;color:#e2e8f0;border-color:#fde68a">🔁 轉址：來源 <span class="val">192.168.1.10</span> → 換成 <span class="val">163.21.236.8</span> 才送上網際網路</div>' : '';
+      el.innerHTML = '<div class="net"><div class="node"><div>☁️ 雲端伺服器</div><div class="ip">網際網路</div></div><span class="arrow">⇄</span>' +
+        '<div class="node"><div>🧭 學校路由器</div><div class="ip">WAN 163.21.236.8</div><div class="ip">LAN 192.168.1.1</div></div></div>' +
+        '<div class="grid g2 mt2">' + room('🏫 901 教室', devs) + (st.neighbor ? room('🏫 902 教室', [['📟 守護站', 10], ['💻 老師電腦', 11]]) : '<div></div>') + '</div>' + nat +
+        '<div class="row mt2"><button class="btn sm" id="add">＋ 新裝置連上 901 的 Wi-Fi</button>' +
+        '<button class="btn sm" id="nb">' + (st.neighbor ? '隱藏' : '顯示') + '隔壁教室</button><button class="btn sm" id="up">' + (st.upload ? '停止上傳' : '守護站上傳到雲端') + '</button></div>';
+      el.querySelector('#add').onclick = function () { if (devs.length < 8) devs.push(['📱 新裝置', 10 + devs.length]); draw(); };
+      el.querySelector('#nb').onclick = function () { st.neighbor = !st.neighbor; draw(); };
+      el.querySelector('#up').onclick = function () { st.upload = !st.upload; draw(); };
+    }
+    draw();
+    return { set: function (o) { st.neighbor = o.neighbor; st.upload = o.upload; draw(); return o.upload ? '雲端看到的來源位址：163.21.236.8' : '兩間教室都有 192.168.1.10，各自運作正常'; } };
+  }
+
+  function simPackets(el) {
+    var MSG = ['DIST=', '45,TI', 'ME=09', ':05'], st = { lose: false, shuffle: false };
+    el.innerHTML = '<p class="small">要傳的資料：<span class="val">DIST=45,TIME=09:05</span></p>' +
+      '<label style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem"><input type="checkbox" id="lose"> 第 2 個封包在路上遺失</label>' +
+      '<label style="display:flex;gap:.4rem;align-items:center"><input type="checkbox" id="shuf"> 封包亂序抵達（3、1、4、2）</label>' +
+      '<div class="row mt1"><button class="btn sm" id="go">▶ 送出</button></div>' +
+      '<p class="tiny mt2" style="color:#94a3b8">📤 守護站送出的封包</p><div class="lane" id="out"></div>' +
+      '<p class="tiny mt1" style="color:#94a3b8">📥 雲端收到的順序</p><div class="lane" id="in"></div>' +
+      '<p class="mt1">組回來：<span class="val" id="res"></span></p><p class="tiny" id="log" style="color:#cbd5e1"></p>';
+    function q(id) { return el.querySelector('#' + id); }
+    q('lose').onchange = function () { st.lose = this.checked; };
+    q('shuf').onchange = function () { st.shuffle = this.checked; };
+    function pk(i, cls) { return '<span class="pk ' + (cls || '') + '">#' + (i + 1) + ' ' + esc(MSG[i]) + '</span>'; }
+    function run() {
+      var order = st.shuffle ? [2, 0, 3, 1] : [0, 1, 2, 3], arrived = [], log = [];
+      q('out').innerHTML = [0, 1, 2, 3].map(function (i) { return pk(i, st.lose && i === 1 ? 'lost' : ''); }).join('');
+      order.forEach(function (i) { if (!(st.lose && i === 1)) arrived.push(i); });
+      if (st.lose) { log.push('雲端沒收到 #2，不回傳確認 → 守護站逾時，重送 #2'); arrived.push(1); }
+      q('in').innerHTML = arrived.map(function (i, k) { return pk(i, st.lose && i === 1 && k === arrived.length - 1 ? 're' : ''); }).join('');
+      if (st.shuffle) log.push('抵達順序和編號不同 → 依 TCP 編號重新排好');
+      q('res').textContent = arrived.slice().sort().map(function (i) { return MSG[i]; }).join('');
+      q('log').textContent = log.join('；') || '四個封包依序抵達，直接組合。';
+      return log.join('；') || '依序抵達';
+    }
+    q('go').onclick = run; run();
+    return { set: function (o) { st.lose = o.lose; st.shuffle = o.shuffle; q('lose').checked = o.lose; q('shuf').checked = o.shuffle; return run(); } };
+  }
+
+  function simCrypto(el) {
+    el.innerHTML = '<div class="grid g2"><div><label>要傳的讀值（大寫英文與數字）</label><input class="input" id="msg" value="DIST 45" maxlength="20" style="background:#1e293b;color:#fde68a;border-color:#475569">' +
+      '<label class="mt1" style="display:block">凱薩金鑰 <span class="val" id="k-v"></span></label><input type="range" id="k" min="0" max="25" value="0" aria-label="金鑰">' +
+      '<label style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem"><input type="checkbox" id="https"> 使用 https（傳輸途中加密）</label></div>' +
+      '<div class="stack"><div class="node" style="text-align:left">📟 守護站送出：<div class="ip" id="a"></div></div>' +
+      '<div class="node" style="text-align:left;border-color:#b91c1c">🕵️ 路上偷看的人看到：<div class="ip" id="b"></div></div>' +
+      '<div class="node" style="text-align:left">☁️ 雲端用金鑰解密：<div class="ip" id="c"></div></div></div></div>';
+    function q(id) { return el.querySelector('#' + id); }
+    function draw() {
+      var m = q('msg').value.toUpperCase(), k = +q('k').value, hs = q('https').checked, s = caesar(m, k);
+      q('k-v').textContent = k; q('a').textContent = s;
+      q('b').textContent = hs ? '🔒 （https 加密過的一堆亂碼，看不懂）' : s;
+      q('c').textContent = caesar(s, -k);
+      return hs ? '偷看的人只看到 https 加密後的亂碼' : '偷看的人看到：' + s;
+    }
+    el.querySelectorAll('input').forEach(function (i) { i.oninput = draw; i.onchange = draw; });
+    draw();
+    return { set: function (o) { q('msg').value = o.key === 3 && !o.https ? 'DIST' : 'DIST 45'; q('k').value = o.key; q('https').checked = o.https; return draw(); } };
+  }
+
+  function isPrivate(ip) {
+    var m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(ip);
+    if (!m) return false;
+    var p = m.slice(1).map(Number);
+    if (p.some(function (x) { return x > 255; })) return false;
+    return p[0] === 10 || (p[0] === 172 && p[1] >= 16 && p[1] <= 31) || (p[0] === 192 && p[1] === 168);
+  }
+
+  function simProject(el, api) {
+    var me = STORE.me() || {}, saved = (STORE.level(MOD, 'S5') || {}).extra || {};
+    el.classList.add('light');
+    el.innerHTML = '<div class="grid g2">' +
+      '<label class="field">① 作品名稱<input id="p-name" maxlength="14" placeholder="例：安靜守護燈"></label>' +
+      '<label class="field">② 輸入（擇一）<select id="p-in"><option>超音波</option><option>旋鈕</option></select></label>' +
+      '<label class="field">③ 連線方式<select id="p-net"><option>Wi-Fi</option><option>藍牙</option><option>行動網路</option></select></label>' +
+      '<label class="field">④ 守護站的 IP 位址（私有位址）<input id="p-ip" placeholder="例：192.168.1.10"></label>' +
+      '<label class="field">⑤ 資料怎麼保護？<select id="p-sec"><option>https 傳輸加密</option><option>凱薩密碼（金鑰自訂）</option><option>不加密</option></select></label>' +
+      '<label class="field">⑥ 上傳到哪裡？<select id="p-cloud"><option>雲端試算表（SaaS）</option><option>只存在守護站</option></select></label></div>' +
+      '<p class="bold small mt2">⑦ 用一句 if 寫出你的規則</p><div class="row small" style="font-family:ui-monospace,Consolas,monospace">if <span id="p-fn" class="chip"></span>' +
+      '<select id="p-op" class="input" style="width:auto;margin:0"><option>&lt;</option><option>&gt;</option></select><input id="p-num" class="input" type="number" style="width:6rem;margin:0" value="50"> :</div>' +
+      '<div class="grid g2 mt1"><label class="field">那麼 燈條<select id="p-led"><option>亮紅燈</option><option>亮黃燈</option><option>亮綠燈</option><option>跑馬燈</option></select></label>' +
+      '<label class="field">那麼 上傳<select id="p-up"><option>立刻上傳一筆紀錄</option><option>傳訊息通知老師</option><option>不上傳</option></select></label></div>' +
+      '<p class="bold small mt2">⑧ 三句話介紹</p>' +
+      '<label class="field">它解決了什麼問題？<input id="p-s1" maxlength="30"></label>' +
+      '<label class="field mt1">它怎麼連網、資料怎麼保護？<input id="p-s2" maxlength="30"></label>' +
+      '<label class="field mt1">我還想怎麼改良？<input id="p-s3" maxlength="30"></label>' +
+      '<div class="row mt2"><button class="btn go" id="p-make">🎨 產生成果卡</button><span class="small soft">研發人員：' + esc(me.cls + ' 班 ' + me.seat + ' 號 ' + me.name) + '（自動帶入）</span></div>' +
+      '<p id="p-err" class="small bold mt1" style="color:var(--bad)"></p><div id="p-out" class="mt2 center"></div>';
+    var $ = function (id) { return el.querySelector('#' + id); };
+    var IDS = ['p-name', 'p-in', 'p-net', 'p-ip', 'p-sec', 'p-cloud', 'p-op', 'p-num', 'p-led', 'p-up', 'p-s1', 'p-s2', 'p-s3'];
+    IDS.forEach(function (id) { if (saved[id] != null) $(id).value = saved[id]; });
+    function sync() { $('p-fn').textContent = $('p-in').value === '超音波' ? 'distance()' : 'read_a7()'; $('p-ip').disabled = $('p-net').value !== 'Wi-Fi'; }
+    $('p-in').onchange = sync; $('p-net').onchange = sync; sync();
+    $('p-make').onclick = function () {
+      var v = {}; IDS.forEach(function (id) { v[id] = $(id).value.trim(); });
+      var miss = [];
+      if (!v['p-name']) miss.push('作品名稱');
+      if (v['p-net'] === 'Wi-Fi' && !isPrivate(v['p-ip'])) miss.push('IP 位址要是合法的「私有」位址（10.x.x.x、172.16～31.x.x、192.168.x.x）');
+      if (v['p-sec'] === '不加密' && v['p-cloud'] !== '只存在守護站') miss.push('資料要上傳就不能不加密（第 4 節學過：路上會被偷看）');
+      if (v['p-net'] === '藍牙' && v['p-cloud'] !== '只存在守護站') miss.push('藍牙沒辦法直接上雲端 —— 改用 Wi-Fi 或行動網路');
+      ['p-s1', 'p-s2', 'p-s3'].forEach(function (k, i) { if (v[k].length < 6) miss.push('第 ' + (i + 1) + ' 句（至少 6 個字）'); });
+      $('p-err').textContent = miss.length ? '還差：' + miss.join('；') : '';
+      if (miss.length) return;
+      var rule = 'if ' + $('p-fn').textContent + ' ' + v['p-op'] + ' ' + v['p-num'] + ':  燈條' + v['p-led'] + '、' + v['p-up'];
+      LABKIT.showCard($('p-out'), LABKIT.drawCard({
+        title: v['p-name'], banner: '5016B 守護站 2.0 · 連網小幫手', me: me, rule: rule,
+        boxes: [['輸入', v['p-in']], ['連線', v['p-net']], ['位址', v['p-net'] === 'Wi-Fi' ? v['p-ip'] : '—'], ['保護', v['p-sec'].replace('（金鑰自訂）', '')]],
+        lines: [v['p-s1'], v['p-s2'], v['p-s3']] }), me);
+      api.done({ extra: v });
+    };
+  }
+
+  LABKIT.mount({ sections: SECTIONS, mod: MOD });
+})();
+</script>
+</body>
+</html>

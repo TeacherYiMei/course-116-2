@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-2 · 數位時代 · 116-1</title>
+    <link rel="stylesheet" href="../../shared/theme.css">
+    <link rel="stylesheet" href="course-components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); min-height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .galaxy-card { background-color: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--line); }   /* 116：改成全站卡片樣式 */
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.2s ease-in-out; border-radius: 999px; border: 2px solid transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .nav-active { background-color: #2563eb; color: #ffffff; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .nav-inactive { background-color: #ffffff; color: #64748b; border-color: #e2e8f0; }
+        .nav-inactive:hover { background-color: #f8fafc; color: #3b82f6; border-color: #bae6fd; }
+        .course-nav { scrollbar-width: none; }
+        .course-nav::-webkit-scrollbar { display: none; }
+        .theme-indigo .nav-active { background-color: #4f46e5; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); }
+        .morse-key { background: linear-gradient(to bottom, #60a5fa, #3b82f6); box-shadow: 0 6px 0 #2563eb, 0 15px 20px rgba(59, 130, 246, 0.3); transition: all 0.05s ease; }
+        .morse-key:active { transform: translateY(4px); box-shadow: 0 2px 0 #2563eb, 0 5px 10px rgba(59, 130, 246, 0.3); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    </style>
+    <!-- 116：Tailwind 改成固定的 CSS（tools/build-tailwind.sh 產生；不再連 cdn.tailwindcss.com） -->
+    <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="theme-indigo" data-unit="2">
+
+    <div class="wrap wrap-wide relative">
+        <!-- 標題與選單 -->
+        <!-- 116 全站頁首與課程小卡（progress-hook.js 產生） -->
+        <header id="topbar"></header>
+        <nav id="ucards"></nav>
+
+        <!-- 單元二內容 -->
+        <main class="w-full">
+            <section class="galaxy-card p-6 md:p-10 animate-fade-up">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg></div>
+                    <div><h2 class="text-2xl md:text-3xl font-bold text-slate-800">1-2 文字數位化</h2><p class="text-slate-500 mt-1 text-sm">從手動發報的摩斯密碼，到電腦世界的 ASCII、Big-5 與 Unicode。</p></div>
+                </div>
+
+                <section class="mb-8 rounded-3xl border border-indigo-100 bg-indigo-50/70 p-5 md:p-6" aria-labelledby="unit-two-goals" data-course-goals><div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><p class="text-xs font-black tracking-[0.18em] text-indigo-600">LEARNING GOALS</p><h3 id="unit-two-goals" class="mt-1 text-xl font-black text-slate-800">完成這一單元，你可以……</h3></div><span class="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-indigo-600 shadow-sm">建議順序：訊號 → 編碼 → 轉換</span></div><ul class="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-600"><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-indigo-600">01</span> 用摩斯電碼理解共同規則的重要。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-indigo-600">02</span> 說明文字如何對應成數字與位元。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-indigo-600">03</span> 分辨 ASCII、Big-5 與 Unicode 的用途。</li></ul></section>
+
+                <div class="bg-indigo-50 border border-indigo-100 p-6 md:p-8 rounded-3xl mb-8 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 text-[150px] opacity-10 select-none pointer-events-none">🏝️</div>
+                    <h3 class="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2 relative z-10"><span class="text-2xl">🔦</span> 前導：孤島的夜間求救</h3>
+                    <div class="space-y-4 text-slate-700 text-sm md:text-base leading-relaxed relative z-10">
+                        <p>想像一下，你們小組在一座荒島上探險，結果錯過了回程的最後一班船。現在天已經黑了，你們發現遠方的海面上有一艘巡邏船經過。</p>
+                        <p>你們手上沒有通訊設備，但幸好手邊有一支強光手電筒。你們知道，如果只是隨便亂閃光，遠方的船員可能會以為那只是海邊的螢光生物或星星的倒影。</p>
+                        <div class="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm my-4"><p class="font-bold text-indigo-700 mb-2 flex items-center gap-2"><span>🤔</span> 生死交關的問題：</p><p class="text-slate-600">你們唯一的溝通工具只有<strong>『亮』跟『不亮』兩種狀態</strong>。在完全沒有聲音、不能寫字的情況下，你要怎麼利用這支手電筒，讓遠方的船員一眼就看出這是在『求救』？你們會如何設計這道光的『節奏』？</p></div>
+                        <p class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-600 shadow-inner">💡 <strong>思考：</strong>如果你們自己發明了一套規律（例如閃兩長一短），但遠方的船員腦袋裡的規律跟你們不一樣，他會知道你在求救嗎？<br>👉 <strong class="text-indigo-600">所以我們需要一套全世界通用的暗號本（編碼協議）。</strong></p>
+                        <div class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-5 rounded-2xl shadow-md mt-4"><p class="font-bold text-lg mb-1">摩斯密碼 (Morse Code)</p><p class="text-indigo-100 text-sm leading-relaxed">在這種只有『兩種狀態』的極端環境下，人類發明了一種偉大的通訊方式。為了求救，全世界約定好了一個最強而有力的暗號，叫做 <strong class="text-white text-lg tracking-widest bg-white/20 px-2 py-0.5 rounded shadow-sm mx-1">SOS</strong>。<br>它不需要文字，只需要透過『滴滴滴 (短)』、『答答答 (長)』、『滴滴滴 (短)』的組合，就能傳達求救資訊！</p></div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-3xl shadow-sm mb-8 flex flex-col md:flex-row items-stretch gap-6">
+                    <div class="w-full md:w-1/2 flex flex-col justify-between space-y-3 relative">
+                        <div class="flex justify-between items-center mb-1 border-b border-indigo-200 pb-2"><h3 class="text-lg font-bold text-indigo-800 flex items-center gap-2"><span class="text-xl">🎧</span> 摩斯密碼雙向挑戰 (自訂題庫)</h3></div>
+                        <div class="bg-indigo-100/50 p-1 rounded-xl flex gap-1 shadow-inner overflow-x-auto w-full max-w-sm"><button id="morse-tab-timed" onclick="setMorseMode('timed')" class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap border border-indigo-600">聽音解碼挑戰</button><button id="morse-tab-send" onclick="setMorseMode('send')" class="px-3 py-1.5 bg-transparent text-indigo-600 hover:bg-indigo-200 rounded-lg text-xs font-bold transition-all whitespace-nowrap border border-transparent">發報驗證挑戰</button></div>
+                        
+                        <div id="morse-timed-desc" class="flex-grow flex flex-col">
+                            <div class="bg-white p-3 rounded-xl border border-indigo-200 shadow-sm mb-3">
+                                <label class="block text-[11px] font-bold text-indigo-500 mb-1">1. 請一人先輸入神祕單字 (限英文)：</label>
+                                <div class="flex gap-2">
+                                    <input type="password" id="listen-target-word" class="flex-grow bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-mono-code focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="輸入後保密">
+                                    <button onclick="setListenWord()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap transition-colors">鎖定出題</button>
+                                    <button onclick="randomListenWord()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap transition-colors">電腦出題</button>
+                                </div>
+                                <p id="listen-word-feedback" class="text-[10px] text-emerald-600 mt-1.5 hidden font-bold">✅ 題目已鎖定！請點擊下方播放讓其他人猜。</p>
+                            </div>
+                            <div class="flex items-center gap-4 mt-auto"><button id="play-mystery-btn" onclick="playMysterySignal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-md transition-all text-sm flex items-center justify-center gap-2 whitespace-nowrap"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> 播放神祕訊號 (15s)</button><span id="morse-timer-display" class="hidden text-xl font-black text-rose-500 tracking-widest font-mono-code">⏳ 15s</span></div>
+                        </div>
+
+                        <div id="morse-send-settings" class="hidden flex-grow flex flex-col">
+                            <div class="bg-white p-3 rounded-xl border border-indigo-200 shadow-sm mb-3"><label class="block text-[11px] font-bold text-indigo-500 mb-1">1. 輸入你想挑戰打出的單字：</label><div class="flex gap-2"><input type="text" id="send-target-input" class="flex-grow uppercase bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-mono-code focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="例如: SOS"><button onclick="setSendWord()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm whitespace-nowrap transition-colors">設定單字</button></div></div>
+                            <div class="bg-white p-3 rounded-xl border border-indigo-200 shadow-sm flex items-center justify-between gap-3 mb-3"><label class="text-xs font-bold text-indigo-500 whitespace-nowrap">2. 自訂挑戰時間:</label><input type="range" id="send-time-slider" min="10" max="30" value="15" step="1" oninput="updateSendTime()" class="w-full accent-indigo-500"><span id="send-time-display" class="text-xs font-bold text-indigo-700 w-8 text-right">15s</span></div>
+                            <div class="flex items-center gap-4 mt-auto"><button onclick="startSendChallenge()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-md transition-all text-sm flex items-center justify-center gap-2 whitespace-nowrap">⚡ 開始挑戰</button><span id="send-timer-display" class="hidden text-xl font-black text-rose-500 tracking-widest font-mono-code">⏳ 15s</span></div>
+                        </div>
+                    </div>
+                    
+                    <div id="decrypt-panel" class="w-full md:w-1/2 bg-white p-5 rounded-2xl shadow-inner border border-slate-200 flex flex-col justify-center">
+                        <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Input Answer / 另一人輸入解密結果</label>
+                        <div class="flex gap-2"><input type="text" id="decrypt-input" placeholder="聽完訊號後輸入英文" class="flex-grow bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-800 font-mono-code font-bold text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 uppercase transition-all"><button onclick="checkDecryption(false)" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm whitespace-nowrap">送出</button></div><p id="decrypt-feedback" class="text-sm font-medium mt-3 h-5" aria-live="polite"></p>
+                    </div>
+
+                    <div id="send-panel" class="hidden w-full md:w-1/2 bg-white p-5 rounded-2xl shadow-inner border border-slate-200 flex flex-col justify-center">
+                        <div class="text-center mb-3 border-b border-slate-100 pb-2"><span class="text-xs font-bold text-slate-400 uppercase">Target Word / 目標單字</span><div id="send-target-word-display" class="text-3xl font-black text-indigo-600 tracking-widest mt-1">???</div></div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">輸入摩斯密碼 (字母間請加空格)</label>
+                        <div class="flex gap-2"><input type="text" id="send-input" placeholder="例: .- .--. .--. .-.. ." class="flex-grow bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-mono-code font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"><button onclick="checkSendChallenge(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl shadow-md transition-colors text-sm whitespace-nowrap">送出</button></div><p class="text-[10px] text-slate-400 mt-2">提示：用「.」代表短音，「-」代表長音</p><p id="send-feedback" class="text-xs font-bold mt-1 h-5" aria-live="polite"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                    <div class="lg:col-span-6 bg-white border border-slate-200 p-6 rounded-3xl flex flex-col justify-between shadow-sm">
+                        <div>
+                            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-3"><div><h3 class="text-slate-800 font-bold text-lg">電報特務發報機</h3><p class="text-xs text-indigo-600 font-bold mt-1">自由發報練習區</p></div><button onclick="clearMorseHistory()" class="text-indigo-500 text-xs font-bold hover:underline">清除歷史</button></div>
+                            <div class="grid grid-cols-2 gap-4 mb-6"><div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl"><div class="text-slate-400 text-xs mb-1">當前敲擊訊號</div><div id="morse-raw-signal" class="text-xl font-bold text-slate-700 h-8 flex items-center tracking-widest">—— ——</div></div><div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl"><div class="text-slate-400 text-xs mb-1">解碼結果</div><div id="morse-decoded-char" class="text-xl font-bold text-indigo-600 h-8 flex items-center">等待發報...</div></div></div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-6 bg-slate-50 border border-slate-100 p-4 rounded-3xl mt-auto">
+                            <button id="morse-pad-btn" aria-describedby="morse-keyboard-help" class="morse-key w-24 h-24 rounded-full flex flex-col items-center justify-center text-white font-bold select-none cursor-pointer focus:outline-none flex-shrink-0"><span>按住發報</span></button>
+                            <div class="text-xs text-slate-500 space-y-1.5"><p>• 輕點一下為 <strong class="text-slate-700">短音 ( . )</strong></p><p>• 按住約0.25秒為 <strong class="text-slate-700">長音 ( - )</strong></p><p>• 停頓 1 秒後，系統會自動解碼！</p><button type="button" id="morse-demo-sos-btn" onclick="demoSosTelegraph()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white shadow-sm hover:bg-indigo-500">▶ 示範 SOS</button><p id="morse-keyboard-help" class="rounded-lg bg-indigo-50 px-2 py-1.5 font-bold text-indigo-700">鍵盤：Tab 聚焦發報鍵，按住空白鍵發報；短按是點、長按是劃。</p><p id="morse-restart-hint" class="font-bold text-indigo-600" aria-live="polite">重新操作提示：先按 Tab 聚焦發報鍵，再用空白鍵試打一個點。</p></div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-6 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col">
+                        <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-2"><h4 class="text-slate-800 font-bold">摩斯密碼全表 (36 個符號)</h4></div>
+                        <div id="morse-full-table" tabindex="0" aria-label="摩斯電碼對照表（可捲動）" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 text-[11px] md:text-xs font-mono-code max-h-64 overflow-y-auto pr-2 custom-scrollbar flex-grow content-start"></div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><span class="text-xl">📚</span> 電腦世界的密碼本演進</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md transition-shadow"><h4 class="text-indigo-700 font-bold mb-2 flex items-center gap-2"><span class="text-lg">🇺🇸</span> ASCII</h4><p class="text-sm text-slate-600 leading-relaxed">電腦界的祖師爺！只用了 <strong class="text-slate-800">1 個 Byte</strong> 空間，定義了英文字母、數字 and 標點符號。對英文國家很夠用，但裝不下任何中文字。</p></div>
+                        <div class="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md transition-shadow"><h4 class="text-indigo-700 font-bold mb-2 flex items-center gap-2"><span class="text-lg">🇹🇼</span> Big-5 (大五碼)</h4><p class="text-sm text-slate-600 leading-relaxed">台灣為了解決中文顯示而發明的本土密碼本。用 <strong class="text-slate-800">2 個 Bytes</strong> 拼出上萬個繁體字。但把文件傳到日本或韓國，就會變成看不懂的亂碼。</p></div>
+                        <div class="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm hover:shadow-md transition-shadow"><h4 class="text-indigo-700 font-bold mb-2 flex items-center gap-2"><span class="text-lg">🌍</span> Unicode (萬國碼)</h4><p class="text-sm text-slate-600 leading-relaxed">文字界的終極救星！把全世界所有語言、甚至 Emoji 表情符號 🍔 都收錄進同一本超大密碼本。現在所有手機和電腦都預設使用它。</p></div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm mb-8">
+                    <div><h3 class="text-xl font-bold text-slate-800 mb-1">密碼本大對決：ASCII vs Big-5 vs Unicode</h3><p class="text-sm text-slate-500">輸入一段文字，觀察它們在不同編碼系統底下所需要的二進位資料與佔用空間！</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                        <div class="md:col-span-4 space-y-4">
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-3xl"><label class="block text-xs text-slate-400 font-bold mb-2 uppercase">Input Text / 輸入明文</label><input type="text" id="cipher-input-text" aria-label="輸入明文" value="A哈!" oninput="runMultiCodec()" class="w-full bg-white border border-slate-200 rounded-2xl p-4 text-slate-800 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all shadow-inner"><p class="text-[11px] text-slate-500 mt-3">同時輸入中英文 (例如 "A哈")，觀察右側的編碼大小變化。</p></div>
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-3xl"><label class="block text-xs text-slate-400 font-bold mb-3 uppercase">Single Char / 單字元偵測</label><div class="flex items-center gap-4"><input type="text" id="text-input" aria-label="單字元偵測：輸入一個字" maxlength="1" value="A" oninput="convertText()" class="w-14 h-14 bg-white border border-slate-200 rounded-2xl text-2xl text-center text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono-code uppercase shadow-inner"><div class="text-xs space-y-1"><div class="text-slate-500">ASCII 十進位：<span id="ascii-result" class="text-slate-800 font-bold">65</span></div><div class="text-slate-500">二進位：<span id="binary-text-result" class="text-indigo-600 font-bold font-mono-code">01000001</span></div></div></div></div>
+                        </div>
+                        <div class="md:col-span-8 space-y-3">
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"><div class="w-28 flex-shrink-0"><div class="text-slate-700 font-bold">ASCII</div><span class="text-[10px] text-slate-400">純英文 1 Byte</span></div><div class="flex-grow font-mono-code text-sm text-slate-600 truncate" id="codec-ascii-bin">01000001 ...</div><div class="text-right flex-shrink-0 bg-white border border-slate-200 px-3 py-1.5 rounded-lg"><span class="text-xs text-slate-400">容量: </span><span id="codec-ascii-size" class="text-slate-700 font-bold text-sm">1 Byte</span></div></div>
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"><div class="w-28 flex-shrink-0"><div class="text-slate-700 font-bold">Big-5 (繁中)</div><span class="text-[10px] text-slate-400">中文2 / 英文1</span></div><div class="flex-grow font-mono-code text-sm text-slate-600 truncate" id="codec-big5-bin">01000001 ...</div><div class="text-right flex-shrink-0 bg-white border border-slate-200 px-3 py-1.5 rounded-lg"><span class="text-xs text-slate-400">容量: </span><span id="codec-big5-size" class="text-slate-700 font-bold text-sm">3 Bytes</span></div></div>
+                            <div class="bg-indigo-50/50 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-indigo-100"><div class="w-28 flex-shrink-0"><div class="text-indigo-700 font-bold">Unicode</div><span class="text-[10px] text-indigo-400">中文3 / 英文1</span></div><div class="flex-grow font-mono-code text-sm text-indigo-500 truncate" id="codec-utf8-bin">01000001 ...</div><div class="text-right flex-shrink-0 bg-white border border-indigo-100 px-3 py-1.5 rounded-lg shadow-sm"><span class="text-xs text-indigo-400">容量: </span><span id="codec-utf8-size" class="text-indigo-700 font-bold text-sm">5 Bytes</span></div></div>
+                        </div>
+                    </div>
+                </div>
+                <section class="card wrapup" aria-labelledby="unit-two-review"><div class="row between"><div><p class="kicker">課後回顧 · 快速檢核</p><h3 id="unit-two-review" class="black" style="font-size:1.25rem">課後回顧：文字需要一份共同的暗號本。</h3></div><a class="btn sm" href="index.html">回到單元首頁</a></div><div class="grid g3 mt2"><p class="note small">✔️ 我能解釋：沒有共同編碼時，訊息為何可能被誤解。</p><p class="note small">✔️ 我能舉例：一個字元如何被轉成位元組合。</p><p class="note small">✔️ 我能比較：不同編碼為何需要共存與演進。</p></div><div class="quiz mt2"><div class="row between"><div><h4 class="bold">✅ 快速檢核</h4><p class="tiny soft">三題全對就過關：一次都沒錯 ⭐⭐⭐、錯 1 次 ⭐⭐、錯 2 次以上 ⭐</p></div><span id="review-score" class="chip">0 / 3</span></div><div class="grid g3 mt2"><div class="review-q"><p class="bold small">1. 解碼摩斯密碼時，字母間要靠什麼區分？</p><div class="review-opts mt1"><button onclick="answerReview(1, this)" class="pick review-btn">停頓／空白</button><button onclick="answerReview(1, this)" class="pick review-btn">點的數量</button></div></div><div class="review-q"><p class="bold small">2. 為什麼雙方需要共同編碼？</p><div class="review-opts mt1"><button onclick="answerReview(2, this)" class="pick review-btn">讓檔案變大</button><button onclick="answerReview(2, this)" class="pick review-btn">正確解讀訊息</button></div></div><div class="review-q"><p class="bold small">3. 摩斯密碼的基本符號是？</p><div class="review-opts mt1"><button onclick="answerReview(3, this)" class="pick review-btn">點與劃</button><button onclick="answerReview(3, this)" class="pick review-btn">0 與 1</button></div></div></div><p id="review-feedback" class="small bold mt2" aria-live="polite">從三題中找出你最需要再練習的概念。</p><div id="review-badge" class="hidden note ok center bold mt1">🏅 編碼解讀員徽章已解鎖！</div></div></section>
+                <section class="card mt2 discuss" aria-labelledby="unit-two-discussion"><div class="row between"><div><p class="kicker">同伴討論</p><h3 id="unit-two-discussion" class="black" style="font-size:1.15rem">🗣️ 同伴討論挑戰</h3></div><span class="tiny soft bold">先選擇，再說明理由</span></div><p class="small mt1">班上要傳送含有表情符號的新訊息，你會優先選擇哪種做法？</p><div class="grid g2 mt1"><button type="button" onclick="chooseDiscussion('採用支援更多字元的共同編碼', this)" class="pick discussion-btn">採用支援更多字元的共同編碼</button><button type="button" onclick="chooseDiscussion('每個人自行約定自己的符號', this)" class="pick discussion-btn">每個人自行約定符號</button></div><p id="discussion-feedback" class="small bold mt1" aria-live="polite">選擇後，和同伴用「我選……因為……」說明你的理由。</p></section>
+            </section>
+            <nav id="pager" aria-label="上一課／下一課"></nav>
+        </main>
+        <footer class="tiny faint center mt3">內容改編自「0 與 1 的藝術」（unforte_114）</footer>
+    </div>
+
+    <script>
+        const morseDict = { 'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----' };
+        const reverseMorse = {}; for(let key in morseDict) { reverseMorse[morseDict[key]] = key; }
+        let morseKeyStart = 0, currentMorseBuffer = [], morseAssembleTimeout = null, audioCtx = null, oscillator = null, gainNode = null;
+        let currentMysteryWord = '', currentSendWord = '', isMorsePlaying = false, morseDemoPlaying = false, morseGameMode = 'timed', morseTimeLeft = 15, morseTimerInterval = null, morseSendTimerInterval = null;
+        const RANDOM_MORSE_WORDS = ['APPLE', 'WATER', 'TIGER', 'BIRD', 'HAPPY', 'SMILE', 'WORLD', 'LIGHT', 'MUSIC', 'DANCE'];
+
+        function randomListenWord() {
+            const word = RANDOM_MORSE_WORDS[Math.floor(Math.random() * RANDOM_MORSE_WORDS.length)];
+            const inputEl = document.getElementById('listen-target-word');
+            if(inputEl) { inputEl.value = word; }
+            setListenWord();
+            const feedback = document.getElementById('listen-word-feedback');
+            if(feedback) feedback.innerHTML = `✅ 電腦已隨機出題！請點擊下方播放。`;
+        }
+
+        function initMorseTable() { const tableContainer = document.getElementById('morse-full-table'); if (!tableContainer) return; tableContainer.innerHTML = ''; "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split('').forEach(char => { const card = document.createElement('div'); card.className = "flex items-center justify-between bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-sm transition-all"; card.innerHTML = `<span class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-white text-slate-700 font-bold rounded border border-slate-200 shadow-sm">${char}</span> <span class="text-indigo-600 font-black tracking-[0.2em] text-sm">${morseDict[char]}</span>`; tableContainer.appendChild(card); }); }
+        function setupMorseTelegraph() { const btn = document.getElementById('morse-pad-btn'); if(!btn) return; let keyboardPressing = false; const onStart = (e) => { e.preventDefault(); if (morseKeyStart) return; morseKeyStart = Date.now(); playTelegraphSound(); if (morseAssembleTimeout) clearTimeout(morseAssembleTimeout); }; const onEnd = (e) => { e.preventDefault(); stopTelegraphSound(); if (morseKeyStart === 0) return; const holdTime = Date.now() - morseKeyStart; morseKeyStart = 0; currentMorseBuffer.push(holdTime < 250 ? '.' : '-'); if (document.getElementById('morse-raw-signal')) document.getElementById('morse-raw-signal').innerText = currentMorseBuffer.join(' '); morseAssembleTimeout = setTimeout(decodeMorseCharacter, 1000); }; btn.addEventListener('mousedown', onStart); btn.addEventListener('mouseup', onEnd); btn.addEventListener('mouseleave', onEnd); btn.addEventListener('touchstart', onStart, { passive: false }); btn.addEventListener('touchend', onEnd, { passive: false }); btn.addEventListener('keydown', event => { if (event.code === 'Space' && !event.repeat) { keyboardPressing = true; onStart(event); } }); btn.addEventListener('keyup', event => { if (event.code === 'Space' && keyboardPressing) { keyboardPressing = false; onEnd(event); } }); }
+        function decodeMorseCharacter() { const code = currentMorseBuffer.join(''), char = reverseMorse[code] || '?'; const decodedDisplay = document.getElementById('morse-decoded-char'); if (decodedDisplay) decodedDisplay.innerHTML = char !== '?' ? `<span class="text-indigo-600 font-bold">${char}</span> <span class="text-xs text-slate-400">(${code})</span>` : `<span class="text-rose-500">?</span> <span class="text-xs text-slate-400">(${code})</span>`; currentMorseBuffer = []; }
+        function clearMorseHistory() { currentMorseBuffer = []; if (document.getElementById('morse-raw-signal')) document.getElementById('morse-raw-signal').innerText = "—— ——"; if (document.getElementById('morse-decoded-char')) document.getElementById('morse-decoded-char').innerText = "等待發報..."; const hint = document.getElementById('morse-restart-hint'); if (hint) hint.innerText = '已清除：Tab 聚焦發報鍵，短按空白鍵送出一個點。'; }
+        function waitMorse(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        async function demoSosTelegraph() { if (morseDemoPlaying) return; morseDemoPlaying = true; clearMorseHistory(); const button = document.getElementById('morse-demo-sos-btn'), pad = document.getElementById('morse-pad-btn'), raw = document.getElementById('morse-raw-signal'), decoded = document.getElementById('morse-decoded-char'), hint = document.getElementById('morse-restart-hint'); if (button) { button.disabled = true; button.innerText = '🔊 示範中…'; } if (pad) pad.disabled = true; const groups = ['...', '---', '...']; const completedGroups = []; for (const group of groups) { let currentGroup = ''; for (const signal of group) { playTelegraphSound(); await waitMorse(signal === '.' ? 120 : 360); stopTelegraphSound(); currentGroup += signal; if (raw) raw.innerText = [...completedGroups, currentGroup].join(' '); await waitMorse(100); } completedGroups.push(currentGroup); await waitMorse(280); } if (raw) raw.innerText = '... --- ...'; if (decoded) decoded.innerHTML = '<span class="text-indigo-600 font-bold">SOS</span> <span class="text-xs text-slate-400">(... --- ...)</span>'; if (hint) hint.innerText = 'SOS 示範完成：試著自己短按三次、長按三次、再短按三次。'; if (button) { button.disabled = false; button.innerText = '▶ 再示範一次'; } if (pad) pad.disabled = false; morseDemoPlaying = false; }
+        function updateSendTime() { const slider = document.getElementById('send-time-slider'), display = document.getElementById('send-time-display'); if (slider && display) display.innerText = slider.value + 's'; }
+        
+        function setMorseMode(mode) { 
+            morseGameMode = mode; 
+            if(morseTimerInterval) clearInterval(morseTimerInterval); 
+            if(morseSendTimerInterval) clearInterval(morseSendTimerInterval); 
+            isMorsePlaying = false; 
+            if (document.getElementById('morse-timer-display')) document.getElementById('morse-timer-display').classList.add('hidden'); 
+            if (document.getElementById('decrypt-input')) { document.getElementById('decrypt-input').value = ''; document.getElementById('decrypt-input').disabled = false; } 
+            if (document.getElementById('decrypt-feedback')) document.getElementById('decrypt-feedback').innerText = ''; 
+            const activeClass = "px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-sm transition-all whitespace-nowrap border border-indigo-600"; 
+            const inactiveClass = "px-3 py-1.5 bg-transparent text-indigo-600 hover:bg-indigo-200 rounded-lg text-xs font-bold transition-all whitespace-nowrap border border-transparent"; 
+            if(document.getElementById('morse-tab-timed')) document.getElementById('morse-tab-timed').className = mode === 'timed' ? activeClass : inactiveClass; 
+            if(document.getElementById('morse-tab-send')) document.getElementById('morse-tab-send').className = mode === 'send' ? activeClass : inactiveClass; 
+            ['morse-timed-desc', 'morse-send-settings', 'decrypt-panel', 'send-panel', 'morse-custom-input', 'morse-custom-desc'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).classList.add('hidden'); }); 
+            if (mode === 'timed') { if(document.getElementById('morse-timed-desc')) document.getElementById('morse-timed-desc').classList.remove('hidden'); if(document.getElementById('decrypt-panel')) document.getElementById('decrypt-panel').classList.remove('hidden'); } 
+            else if (mode === 'send') { if(document.getElementById('morse-send-settings')) document.getElementById('morse-send-settings').classList.remove('hidden'); if(document.getElementById('send-panel')) document.getElementById('send-panel').classList.remove('hidden'); if(document.getElementById('send-target-word-display')) document.getElementById('send-target-word-display').innerText = "???"; } 
+            else if (mode === 'custom') { if(document.getElementById('morse-custom-input')) document.getElementById('morse-custom-input').classList.remove('hidden'); if(document.getElementById('morse-custom-desc')) document.getElementById('morse-custom-desc').classList.remove('hidden'); if(document.getElementById('decrypt-panel')) document.getElementById('decrypt-panel').classList.remove('hidden'); } 
+        }
+
+        function setListenWord() { const inputEl = document.getElementById('listen-target-word'); if (!inputEl) return; const input = inputEl.value.trim().toUpperCase(); if(!/^[A-Z0-9]+$/.test(input)) { alert('請輸入純英文或數字！'); return; } currentMysteryWord = input; if (document.getElementById('listen-word-feedback')) { document.getElementById('listen-word-feedback').classList.remove('hidden'); setTimeout(() => { document.getElementById('listen-word-feedback').classList.add('hidden'); }, 2000); } if (document.getElementById('decrypt-input')) { document.getElementById('decrypt-input').value = ''; document.getElementById('decrypt-input').disabled = false; } if (document.getElementById('decrypt-feedback')) document.getElementById('decrypt-feedback').innerText = ''; }
+        function setSendWord() { const inputEl = document.getElementById('send-target-input'); if (!inputEl) return; const input = inputEl.value.trim().toUpperCase(); if(!/^[A-Z0-9]+$/.test(input)) { alert('請輸入純英文或數字！'); return; } currentSendWord = input; if(document.getElementById('send-target-word-display')) document.getElementById('send-target-word-display').innerText = currentSendWord; if(document.getElementById('send-input')) { document.getElementById('send-input').value = ''; document.getElementById('send-input').disabled = false; } if(document.getElementById('send-feedback')) document.getElementById('send-feedback').innerText = ''; }
+        
+        async function playMysterySignal() { 
+            if (isMorsePlaying) return; 
+            if (!currentMysteryWord) { alert('請先在上方輸入並鎖定神祕單字！'); return; } 
+            const btn = document.getElementById('play-mystery-btn'), inputEl = document.getElementById('decrypt-input'), feedback = document.getElementById('decrypt-feedback'); 
+            if (inputEl) { inputEl.disabled = false; inputEl.value = ''; } 
+            if (feedback) feedback.innerText = ''; 
+            isMorsePlaying = true; 
+            let originalText = '播放神祕訊號 (15s)'; 
+            if (btn) { originalText = btn.innerHTML; btn.innerHTML = '🔊 播放中...'; btn.classList.add('animate-pulse'); } 
+            morseTimeLeft = 15; 
+            if (document.getElementById('morse-timer-display')) { document.getElementById('morse-timer-display').classList.remove('hidden'); document.getElementById('morse-timer-display').innerText = `⏳ ${morseTimeLeft}s`; } 
+            if(morseTimerInterval) clearInterval(morseTimerInterval); 
+            morseTimerInterval = setInterval(() => { morseTimeLeft--; if (document.getElementById('morse-timer-display')) document.getElementById('morse-timer-display').innerText = `⏳ ${morseTimeLeft}s`; if(morseTimeLeft <= 0) { clearInterval(morseTimerInterval); checkDecryption(true); } }, 1000); 
+            if (inputEl) inputEl.focus(); 
+            try { 
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                if (audioCtx.state === 'suspended') await audioCtx.resume(); 
+                const unit = 0.12; let time = audioCtx.currentTime + 0.1; 
+                for (let i = 0; i < currentMysteryWord.length; i++) { 
+                    let code = morseDict[currentMysteryWord[i]]; if (!code) continue; 
+                    for (let j = 0; j < code.length; j++) { 
+                        let duration = (code[j] === '-') ? unit * 3 : unit; 
+                        let osc = audioCtx.createOscillator(), gain = audioCtx.createGain(); 
+                        osc.type = 'sine'; osc.frequency.value = 750; 
+                        gain.gain.setValueAtTime(0, time); gain.gain.linearRampToValueAtTime(0.1, time + 0.01); gain.gain.setValueAtTime(0.1, time + duration - 0.01); gain.gain.linearRampToValueAtTime(0, time + duration); 
+                        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(time); osc.stop(time + duration); time += duration + unit; 
+                    } time += unit * 2; 
+                } 
+                setTimeout(() => { isMorsePlaying = false; if (btn) { btn.innerHTML = originalText; btn.classList.remove('animate-pulse'); } }, (time - audioCtx.currentTime) * 1000); 
+            } catch (e) { isMorsePlaying = false; if (btn) { btn.innerHTML = originalText; btn.classList.remove('animate-pulse'); } } 
+        }
+
+        function checkDecryption(isTimeout = false) { const inputEl = document.getElementById('decrypt-input'), feedback = document.getElementById('decrypt-feedback'); if (!inputEl || !feedback || !currentMysteryWord) return; const input = inputEl.value.trim().toUpperCase(); if (isTimeout) { if (input !== currentMysteryWord) { feedback.innerText = `💥 時間到！答案是 ${currentMysteryWord}。`; feedback.className = 'text-rose-500 font-bold text-sm mt-3 h-5'; inputEl.disabled = true; return; } } if (input === currentMysteryWord) { if (morseTimerInterval) clearInterval(morseTimerInterval); feedback.innerText = `✅ 太神了！成功解碼 ${currentMysteryWord}。你已把訊號正確分成字母並依序還原。`; feedback.className = 'text-emerald-600 font-bold text-sm mt-3 h-5'; inputEl.disabled = true; } else { if (!isTimeout) { feedback.innerText = '❌ 先依字母間的停頓切開訊號，再逐一比對每組點與劃。'; feedback.className = 'text-rose-500 font-bold text-sm mt-3 h-5'; inputEl.value = ''; inputEl.focus(); } } }
+        function startSendChallenge() { if (!currentSendWord) { alert('請先在上方設定你想挑戰的單字！'); return; } if(morseSendTimerInterval) clearInterval(morseSendTimerInterval); if(document.getElementById('send-input')) { document.getElementById('send-input').value = ''; document.getElementById('send-input').disabled = false; document.getElementById('send-input').focus(); } if(document.getElementById('send-feedback')) document.getElementById('send-feedback').innerText = ''; morseTimeLeft = document.getElementById('send-time-slider') ? parseInt(document.getElementById('send-time-slider').value) : 15; if(document.getElementById('send-timer-display')) { document.getElementById('send-timer-display').classList.remove('hidden'); document.getElementById('send-timer-display').innerText = `⏳ ${morseTimeLeft}s`; } morseSendTimerInterval = setInterval(() => { morseTimeLeft--; if(document.getElementById('send-timer-display')) document.getElementById('send-timer-display').innerText = `⏳ ${morseTimeLeft}s`; if(morseTimeLeft <= 0) { clearInterval(morseSendTimerInterval); checkSendChallenge(true); } }, 1000); }
+        function checkSendChallenge(isTimeout = false) { const inputEl = document.getElementById('send-input'), feedback = document.getElementById('send-feedback'); if(!inputEl || !feedback || !currentSendWord) return; const userInput = inputEl.value.trim(); let correctMorse = currentSendWord.split('').map(char => morseDict[char]).join(' '); if (isTimeout) { if (userInput !== correctMorse) { feedback.innerText = `💥 時間到！正確密碼是: ${correctMorse}`; feedback.className = 'text-rose-500 font-bold text-xs mt-1 h-5'; inputEl.disabled = true; return; } } if (userInput === correctMorse) { if (morseSendTimerInterval) clearInterval(morseSendTimerInterval); feedback.innerText = `✅ 太神了！成功發報 ${currentSendWord}。`; feedback.className = 'text-emerald-600 font-bold text-xs mt-1 h-5'; inputEl.disabled = true; } else { if (!isTimeout) { const hint = !userInput.includes(' ') && currentSendWord.length > 1 ? '每個字母之間要空一格。' : (/[^.\-\s]/.test(userInput) ? '只能使用點（.）、劃（-）與空白。' : '逐一比對每個字母的點、劃數量。'); feedback.innerText = `❌ ${hint}`; feedback.className = 'text-rose-500 font-bold text-xs mt-1 h-5'; } } }
+        const originalCheckDecryption = checkDecryption;
+        checkDecryption = function(isTimeout = false) { originalCheckDecryption(isTimeout); if (isTimeout || document.getElementById('decrypt-input')?.disabled) document.getElementById('morse-timer-display')?.classList.add('hidden'); };
+        const originalCheckSendChallenge = checkSendChallenge;
+        checkSendChallenge = function(isTimeout = false) { originalCheckSendChallenge(isTimeout); if (isTimeout || document.getElementById('send-input')?.disabled) document.getElementById('send-timer-display')?.classList.add('hidden'); };
+        
+        function playTelegraphSound() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); oscillator = audioCtx.createOscillator(); gainNode = audioCtx.createGain(); oscillator.type = 'sine'; oscillator.frequency.value = 750; gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.start(); } catch (e) {} }
+        function stopTelegraphSound() { if (oscillator) { oscillator.stop(); oscillator.disconnect(); oscillator = null; } }
+
+        function convertText() { const inputEl = document.getElementById('text-input'); if (!inputEl) return; if(inputEl.value.length === 0) { if (document.getElementById('ascii-result')) document.getElementById('ascii-result').innerText = "0"; if (document.getElementById('binary-text-result')) document.getElementById('binary-text-result').innerText = "00000000"; return; } const asciiCode = inputEl.value.charAt(0).charCodeAt(0); if (document.getElementById('ascii-result')) document.getElementById('ascii-result').innerText = asciiCode; if (document.getElementById('binary-text-result')) document.getElementById('binary-text-result').innerText = asciiCode.toString(2).padStart(8, '0'); }
+        function runMultiCodec() { const txt = document.getElementById('cipher-input-text') ? document.getElementById('cipher-input-text').value : ''; if (!txt) { if (document.getElementById('codec-ascii-bin')) document.getElementById('codec-ascii-bin').innerText = "無輸入"; if (document.getElementById('codec-ascii-size')) document.getElementById('codec-ascii-size').innerText = "0 Bytes"; if (document.getElementById('codec-big5-bin')) document.getElementById('codec-big5-bin').innerText = "無輸入"; if (document.getElementById('codec-big5-size')) document.getElementById('codec-big5-size').innerText = "0 Bytes"; if (document.getElementById('codec-utf8-bin')) document.getElementById('codec-utf8-bin').innerText = "無輸入"; if (document.getElementById('codec-utf8-size')) document.getElementById('codec-utf8-size').innerText = "0 Bytes"; return; } let asciiValid = true, asciiBytes = []; for (let i = 0; i < txt.length; i++) { const code = txt.charCodeAt(i); if (code > 127) asciiValid = false; asciiBytes.push(code.toString(2).padStart(8, '0')); } if (asciiValid) { if (document.getElementById('codec-ascii-bin')) { document.getElementById('codec-ascii-bin').innerText = asciiBytes.join(' '); document.getElementById('codec-ascii-bin').classList.remove('text-rose-500'); } if (document.getElementById('codec-ascii-size')) document.getElementById('codec-ascii-size').innerText = `${txt.length} Byte(s)`; } else { if (document.getElementById('codec-ascii-bin')) { document.getElementById('codec-ascii-bin').innerText = "⚠️ 包含不支援之中文或特殊符號"; document.getElementById('codec-ascii-bin').classList.add('text-rose-500'); } if (document.getElementById('codec-ascii-size')) document.getElementById('codec-ascii-size').innerText = "無法編碼"; } let big5Size = 0, big5FakeBin = []; for (let i = 0; i < txt.length; i++) { const code = txt.charCodeAt(i); if (code > 127) { big5Size += 2; big5FakeBin.push("11010110 10100101"); } else { big5Size += 1; big5FakeBin.push(code.toString(2).padStart(8, '0')); } } if (document.getElementById('codec-big5-bin')) document.getElementById('codec-big5-bin').innerText = big5FakeBin.join(' '); if (document.getElementById('codec-big5-size')) document.getElementById('codec-big5-size').innerText = `${big5Size} Byte(s)`; let utf8Size = 0, utf8BinArr = []; for (let i = 0; i < txt.length; i++) { const code = txt.charCodeAt(i); if (code > 0x7FF) { utf8Size += 3; utf8BinArr.push("1110xxxx 10xxxxxx 10xxxxxx"); } else if (code > 127) { utf8Size += 2; utf8BinArr.push("110xxxxx 10xxxxxx"); } else { utf8Size += 1; utf8BinArr.push(code.toString(2).padStart(8, '0')); } } if (document.getElementById('codec-utf8-bin')) document.getElementById('codec-utf8-bin').innerText = utf8BinArr.join(' '); if (document.getElementById('codec-utf8-size')) document.getElementById('codec-utf8-size').innerText = `${utf8Size} Byte(s)`; }
+
+
+        const reviewPassed = new Set();
+        function answerReview(question, isCorrect, button, hint = '') { const feedback = document.getElementById('review-feedback'), score = document.getElementById('review-score'); if (!feedback || !score) return; if (isCorrect) { reviewPassed.add(question); button.className = 'bg-emerald-500 text-white border-emerald-600 rounded px-2 py-1'; feedback.innerText = `✅ 第 ${question} 題答對了！`; } else { feedback.innerText = `💡 ${hint}`; } score.innerText = `${reviewPassed.size} / 3`; if (reviewPassed.size === 3) document.getElementById('review-badge')?.classList.remove('hidden'); }
+        function chooseDiscussion(choice, button) { document.querySelectorAll('.discussion-btn').forEach(item => item.classList.remove('on')); button.classList.add('on'); const feedback = document.getElementById('discussion-feedback'); if (feedback) feedback.innerText = `你選擇「${choice}」。接著和同伴輪流完成：「我選這個，因為……」與「我同意／我有不同想法，因為……」。`; }
+        window.onload = function() {
+            initMorseTable();
+            setupMorseTelegraph(); 
+            setMorseMode('timed'); 
+            runMultiCodec();
+            convertText(); 
+            
+            const decryptInput = document.getElementById('decrypt-input');
+            if(decryptInput) {
+                decryptInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') checkDecryption(false);
+                });
+            }
+
+            const sendInput = document.getElementById('send-input');
+            if(sendInput) {
+                sendInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') checkSendChallenge(false);
+                });
+            }
+        };
+    </script>
+    <script src="course-data.js"></script>
+    <script src="course-core.js"></script>
+    <!-- 116 課程系統：進度掛鉤（見 progress-hook.js）-->
+    <script src="../config.js"></script>
+    <script src="../../shared/store.js"></script>
+    <script src="../../shared/ui.js"></script>
+    <script src="../../shared/unit.js"></script>
+    <script src="../../shared/api.js"></script>
+    <script src="progress-hook.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+.course-end-unit { margin-top: 2.5rem; border: 1px solid var(--course-border); border-radius: 1.5rem; padding: 1.5rem; background: linear-gradient(90deg, var(--course-soft), #fff); }
+.course-theme-blue { --course-accent: #2563eb; --course-border: #bfdbfe; --course-soft: #eff6ff; }
+.course-theme-indigo { --course-accent: #4f46e5; --course-border: #c7d2fe; --course-soft: #eef2ff; }
+.course-theme-teal { --course-accent: #0f766e; --course-border: #99f6e4; --course-soft: #f0fdfa; }
+.course-theme-rose { --course-accent: #be123c; --course-border: #fecdd3; --course-soft: #fff1f2; }
+.course-kicker { color: var(--course-accent); font-size: .75rem; font-weight: 900; letter-spacing: .16em; }
+.course-reflections, .course-questions { display: grid; gap: .75rem; margin-top: 1.25rem; }
+.course-reflections, .course-questions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.course-reflection, .course-question { border-radius: 1rem; background: rgba(255,255,255,.86); padding: 1rem; color: #475569; font-size: .875rem; }
+.course-quiz, .course-discussion { margin-top: 1.5rem; border: 1px solid var(--course-border); border-radius: 1rem; padding: 1.25rem; background: rgba(255,255,255,.84); }
+.course-quiz-header, .course-discussion-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.course-score { border-radius: 9999px; background: var(--course-soft); color: var(--course-accent); padding: .25rem .75rem; font-size: .75rem; font-weight: 900; }
+.course-question { border: 1px solid #f1f5f9; color: #334155; font-weight: 700; }
+.course-choice-row, .course-discussion-choices { display: flex; gap: .5rem; margin-top: .75rem; }
+.course-choice, .course-discussion-choice { flex: 1; border: 1px solid #cbd5e1; border-radius: .6rem; padding: .5rem .65rem; background: #fff; color: #475569; font-size: .8rem; font-weight: 700; transition: .2s; }
+.course-choice:hover, .course-choice:focus-visible { border-color: var(--course-accent); background: var(--course-soft); outline: none; }
+.course-choice.is-correct { border-color: #059669; background: #059669; color: #fff; }
+.course-choice.is-wrong { border-color: #fb7185; background: #fff1f2; color: #be123c; }
+.course-discussion-choice { border-color: var(--course-border); background: var(--course-soft); color: var(--course-accent); text-align: left; }
+.course-discussion-choice:hover, .course-discussion-choice:focus-visible, .course-discussion-choice[aria-pressed="true"] { border-color: var(--course-accent); background: var(--course-accent); color: #fff; outline: none; }
+.course-feedback { min-height: 1.25rem; margin-top: .75rem; color: var(--course-accent); font-size: .875rem; font-weight: 700; }
+.course-badge { margin-top: .75rem; border-radius: .75rem; padding: .75rem 1rem; background: var(--course-accent); color: #fff; text-align: center; font-size: .875rem; font-weight: 900; }
+.course-hidden { display: none; }
+.course-goals { margin-bottom: 2rem; border: 1px solid var(--course-border); border-radius: 1.5rem; padding: 1.25rem 1.5rem; background: var(--course-soft); }
+.course-goals-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.course-goals h3 { margin: .25rem 0 0; color: #1e293b; font-size: 1.25rem; font-weight: 900; }
+.course-goals-sequence { border-radius: 9999px; background: #fff; padding: .25rem .75rem; color: var(--course-accent); box-shadow: 0 1px 3px rgba(15,23,42,.08); font-size: .75rem; font-weight: 700; }
+.course-goals-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 1.25rem 0 0; padding: 0; list-style: none; color: #475569; font-size: .875rem; }
+.course-goals-list li { border-radius: 1rem; background: rgba(255,255,255,.9); padding: .75rem; }
+.course-goals-list span { margin-right: .5rem; color: var(--course-accent); font-weight: 900; }
+@media (max-width: 767px) { .course-reflections, .course-questions { grid-template-columns: 1fr; } .course-end-unit { padding: 1.25rem; } }
+@media (max-width: 767px) { .course-goals { padding: 1.25rem; } .course-goals-header { align-items: flex-start; flex-direction: column; } .course-goals-list { grid-template-columns: 1fr; } }
+
+/* 116：手機上輸入框和按鈕同一排時，讓輸入框可以縮小，不撐破版面 */
+.flex > input, .flex > select { min-width: 0; }
+
+/* 116：課後回顧、快速檢核、同伴討論改用全站樣式（theme.css 的 .card .pick .note .chip） */
+.wrapup{margin-top:2.2rem}
+.wrapup .quiz{border:2px dashed var(--unit-line);border-radius:1rem;padding:1rem;background:var(--unit-soft)}
+.wrapup .review-q{background:#fff;border:1px solid var(--line);border-radius:.85rem;padding:.8rem}
+.wrapup .review-opts{display:flex;gap:.5rem;flex-wrap:wrap}
+.wrapup .review-opts .pick{flex:1 1 5rem;text-align:center;padding:.55rem .6rem;font-size:.9rem}
+.discuss .discussion-btn{text-align:left}
+
+/* 116：🧪 實驗任務卡 */
+.labtasks{margin:0 0 1.4rem}
+.labtasks .labtask{display:flex;gap:.5rem;align-items:flex-start;background:#fff;border:2px solid var(--line);border-left:6px solid var(--unit);border-radius:.8rem;padding:.6rem .7rem;font-size:.9rem;font-weight:700}
+.labtasks .labtask.done{border-color:var(--ok);background:var(--ok-bg)}
+.labtasks .ck{flex:0 0 auto}

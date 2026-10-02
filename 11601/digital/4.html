@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-4 · 數位時代 · 116-1</title>
+    <link rel="stylesheet" href="../../shared/theme.css">
+    <link rel="stylesheet" href="course-components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================== */
+        /* 共用基礎樣式                               */
+        /* ========================================== */
+        body { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); min-height: 100vh; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .galaxy-card { background-color: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--line); }   /* 116：改成全站卡片樣式 */
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.2s ease-in-out; border-radius: 999px; border: 2px solid transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .nav-active { background-color: #2563eb; color: #ffffff; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .nav-inactive { background-color: #ffffff; color: #64748b; border-color: #e2e8f0; }
+        .nav-inactive:hover { background-color: #f8fafc; color: #3b82f6; border-color: #bae6fd; }
+        .course-nav { scrollbar-width: none; }
+        .course-nav::-webkit-scrollbar { display: none; }
+        .theme-rose .nav-active { background-color: #be123c; box-shadow: 0 8px 20px rgba(225, 29, 72, 0.3); }
+        .section-hidden { display: none; }
+        
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+
+        @keyframes shakeRed { 0%, 100% { transform: translateX(0); border-color: #ef4444; background-color: rgba(239,68,68,0.1); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        .slot-error { animation: shakeRed 0.4s ease-in-out; }
+        
+        .pixelated-canvas { image-rendering: -moz-crisp-edges; image-rendering: -webkit-crisp-edges; image-rendering: pixelated; image-rendering: crisp-edges; }
+
+        /* ========================================== */
+        /* 像素探險家小遊戲專屬樣式                     */
+        /* ========================================== */
+        #pe-pixel-canvas { image-rendering: pixelated; border: 4px solid #bfdbfe; border-radius: 0.75rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .pe-sampling-grid { display: grid; border: 3px solid #334155; width: 100%; max-width: 250px; aspect-ratio: 1/1; margin: 0 auto; border-radius: 4px; overflow: hidden;}
+        .pe-sampling-cell { border: 1px solid rgba(0,0,0,0.1); transition: background-color 0.15s; cursor: pointer; }
+        .pe-sampling-cell:hover { opacity: 0.8; }
+        .pe-target-cell { border: none; } 
+        .pe-magnifier-container { position: relative; overflow: hidden; }
+        .pe-magnifier-lens { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 0 3px #8b5cf6, 0 8px 20px rgba(0,0,0,0.4); pointer-events: none; display: none; background-repeat: no-repeat; z-index: 10; }
+
+        /* ========================================== */
+        /* 1-4 解碼填色遊戲專屬樣式                 */
+        /* ========================================== */
+        .img-game-container { background-color: white; border-radius: 1.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); padding: 2rem; width: 100%; display: flex; flex-direction: column; gap: 1.5rem; }
+        .img-main-content { display: flex; flex-direction: column; gap: 2rem; }
+        @media (min-width: 860px) { .img-main-content { flex-direction: row; align-items: flex-start; } }
+        .img-drawing-area { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .img-grid-container { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: 2px; background-color: #cbd5e1; border: 4px solid #334155; border-radius: 0.5rem; padding: 2px; width: 100%; max-width: 450px; aspect-ratio: 1 / 1; touch-action: none; }
+        .img-cell { background-color: #f1f5f9; border-radius: 2px; cursor: pointer; transition: all 0.1s ease; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; font-family: monospace; font-weight: bold; color: #94a3b8; user-select: none; position: relative; }
+        .img-cell:hover { background-color: #e2e8f0; }
+        .img-cell.unpainted::after { content: '01'; opacity: 0.5; }
+        .img-cell.selected { box-shadow: inset 0 0 0 3px #3b82f6; background-color: #dbeafe; transform: scale(0.95); }
+        .img-cell.filled { color: transparent; }
+        .img-color-palette { display: flex; gap: 0.75rem; justify-content: flex-start; padding: 0.5rem; flex-wrap: wrap; min-height: 4rem; }
+        .img-color-btn { width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; border: 3px solid transparent; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); cursor: pointer; transition: all 0.2s ease; }
+        .img-color-btn.selected { transform: scale(1.15) translateY(-2px); border-color: #1e293b; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
+        .img-level-section { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 1rem; }
+        .img-panel { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; }
+        .img-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 50; }
+        .img-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .img-modal-content { background-color: white; padding: 2.5rem; border-radius: 1rem; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 90%; }
+        .img-modal-overlay.active .img-modal-content { transform: scale(1); }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .img-shake { animation: shake 0.3s ease-in-out; }
+        .timer-urgent { color: #ef4444 !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        #img-game-overlay { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    </style>
+    <!-- 116：Tailwind 改成固定的 CSS（tools/build-tailwind.sh 產生；不再連 cdn.tailwindcss.com） -->
+    <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="theme-rose" data-unit="4">
+    
+    <!-- 背景裝飾 -->
+
+    <div class="wrap wrap-wide relative">
+        <!-- 標題與選單 -->
+        <!-- 116 全站頁首與課程小卡（progress-hook.js 產生） -->
+        <header id="topbar"></header>
+        <nav id="ucards"></nav>
+
+        <main class="relative">
+            <!-- ================= 單元四 ================= -->
+            <section id="section-image" class="galaxy-card p-6 md:p-10 animate-fade-up">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                    <div><h2 class="text-2xl md:text-3xl font-bold text-slate-800">1-4 影像數位化</h2><p class="text-slate-500 mt-1 text-sm">從像素觀察到色彩編碼，探索螢幕裡的影像世界！</p></div>
+                </div>
+
+                <section class="mb-8 rounded-3xl border border-rose-100 bg-rose-50/70 p-5 md:p-6" aria-labelledby="unit-four-goals" data-course-goals><div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><p class="text-xs font-black tracking-[0.18em] text-rose-600">LEARNING GOALS</p><h3 id="unit-four-goals" class="mt-1 text-xl font-black text-slate-800">完成這一單元，你可以……</h3></div><span class="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-rose-600 shadow-sm">建議順序：像素 → 色彩 → 壓縮</span></div><ul class="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-600"><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-rose-600">01</span> 用像素與解析度說明影像的細緻程度。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-rose-600">02</span> 理解取樣、量化與色彩深度的關係。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-rose-600">03</span> 比較圖片格式與壓縮方式的取捨。</li></ul></section>
+
+                <p class="text-xs font-black tracking-[0.18em] text-slate-500 mb-1">本課四個小步驟 · 點小卡切換</p>
+                <nav class="ucards" id="image-steps" style="--n:4" aria-label="1-4 的四個小步驟">
+                    <button type="button" onclick="switchImageSubTab('intro')" id="sub-image-intro" class="ucard uc-1 on"><span class="no">1</span><span class="here">目前在這裡 👇</span><span class="ic">🔍</span><span class="tt">認識解析度</span><span class="ds">像素越多，畫面越細緻</span></button>
+                    <button type="button" onclick="switchImageSubTab('explorer')" id="sub-image-explorer" class="ucard uc-2"><span class="no">2</span><span class="here">目前在這裡 👇</span><span class="ic">🧭</span><span class="tt">像素探險家</span><span class="ds">放大照片，找出一格一格的像素</span></button>
+                    <button type="button" onclick="switchImageSubTab('pixel')" id="sub-image-pixel" class="ucard uc-3"><span class="no">3</span><span class="here">目前在這裡 👇</span><span class="ic">🎨</span><span class="tt">色彩量化與解碼</span><span class="ds">用 0 和 1 記下每一格的顏色</span></button>
+                    <button type="button" onclick="switchImageSubTab('compress')" id="sub-image-compress" class="ucard uc-4"><span class="no">4</span><span class="here">目前在這裡 👇</span><span class="ic">🗜️</span><span class="tt">壓縮與檔案格式</span><span class="ds">容量變小的祕密：JPG、PNG、GIF</span></button>
+                </nav>
+
+                <!-- ================= (1) 認識解析度 ================= -->
+                <div id="image-sub-intro" class="space-y-6">
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><span class="text-rose-500">🔍</span> 視覺解構：什麼是解析度？</h3>
+                        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                            <strong class="text-slate-800">視覺觀察：</strong>請觀察下方三種不同解析度的「小男孩跳躍圖」。由左至右，描述它們在視覺上的第一印象差異（從模糊到精細）。<br>
+                            你有沒有發現最左邊的圖有一種<strong class="text-rose-600">「一格一格的鋸齒感」</strong>？<br><br>
+                            <strong class="text-slate-800">定義像素與取樣：</strong>這種鋸齒感就是<strong class="text-rose-600">「像素化」</strong>現象。這告訴我們，數位影像並不是一幅連續的畫，而是被<strong class="text-rose-600">「切割成數個小方格」</strong>拼湊而成的。這個將連續畫面切割成方格的過程，我們稱為<strong class="text-rose-600">「取樣」</strong>，而每一個方格，就是構成數位影像的基本單位——<strong class="text-rose-600">像素 (Pixel)</strong>。<br>
+                            <span class="text-rose-600 font-bold mt-2 inline-block">💡 連結原理：影像越細膩，代表構成畫面的「格子（像素）」數量越多！</span>
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center shadow-sm"><canvas id="res-canvas-low" class="w-full aspect-square bg-white rounded-xl shadow-inner border border-slate-200 pixelated-canvas"></canvas><div class="mt-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-widest">低解析度</span><p class="text-[11px] text-slate-500 mt-2 font-medium">明顯鋸齒，像素方塊極大</p></div></div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center shadow-sm"><canvas id="res-canvas-mid" class="w-full aspect-square bg-white rounded-xl shadow-inner border border-slate-200 pixelated-canvas"></canvas><div class="mt-4 text-center"><span class="px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-bold uppercase tracking-widest">中解析度</span><p class="text-[11px] text-slate-500 mt-2 font-medium">輪廓漸清晰，邊緣仍可見方塊</p></div></div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center shadow-sm"><img id="res-img-high" src="images/unit4-1.webp" alt="高解析度的小男孩跳躍圖（原圖）" class="w-full h-auto max-h-80 bg-white rounded-xl shadow-inner border border-slate-200 object-contain" crossorigin="anonymous"><div class="mt-4 text-center"><span class="px-3 py-1 bg-rose-500 text-white rounded-full text-xs font-bold uppercase tracking-widest">高解析度 (原圖)</span><p class="text-[11px] text-slate-500 mt-2 font-medium">細膩平滑，幾乎看不出像素點</p></div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><span class="text-rose-500">⚙️</span> 數位化原理：取樣與量化</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-rose-50 border border-rose-100 p-6 rounded-2xl shadow-sm"><h4 class="text-lg font-bold text-rose-800 mb-3 flex items-center gap-2"><span class="text-2xl">✂️</span> 理解取樣 (Sampling)</h4><p class="text-sm text-slate-700 leading-relaxed">現實世界中的畫面是連續的。要讓電腦理解，影像數位化的第一步，就是將連續的畫面<strong class="text-rose-600">切割成無數個小方塊</strong>（這就像在畫面上蓋上一張網格）。切得越密，代表取樣率越高，取得的樣本（像素）就越多。</p></div>
+                            <div class="bg-rose-50 border border-rose-100 p-6 rounded-2xl shadow-sm"><h4 class="text-lg font-bold text-rose-800 mb-3 flex items-center gap-2"><span class="text-2xl">🎨</span> 理解量化 (Quantization)</h4><p class="text-sm text-slate-700 leading-relaxed">切好網格後，每一格只能有一種顏色。我們評估該格最接近的色彩，並透過<strong class="text-rose-600">編碼（將顏色轉換成 0 與 1 的二進位數字）</strong>來記錄這格的色彩資訊，這個記錄的過程就稱為「量化」。</p></div>
+                        </div>
+                    </div>
+
+                    <!-- 影像數位化原理 (附圖與解說) -->
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl mt-6">
+                        <h3 class="text-2xl font-bold text-[#4e71b8] mb-8 flex items-center gap-2">
+                            影像數位化原理
+                        </h3>
+                        
+                        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 w-full px-2">
+                            
+                            <!-- Step 1: 原始訊號 -->
+                            <div class="flex flex-col items-center w-full lg:w-1/3">
+                                <div class="w-48 h-48 bg-white border border-slate-400 flex items-center justify-center p-4 relative mb-4 shadow-sm">
+                                    <svg viewBox="0 0 100 100" class="w-3/4 h-3/4 text-slate-900">
+                                        <path d="M25,60 C25,25 75,25 75,60 Z" fill="currentColor"/>
+                                        <path d="M15,75 C25,50 60,50 85,65 C70,75 30,85 15,75 Z" fill="currentColor"/>
+                                        <text x="40" y="55" fill="white" font-family="serif" font-size="28" font-weight="bold" font-style="italic">L</text>
+                                    </svg>
+                                </div>
+                                <p class="text-[13px] text-slate-500 mb-6 h-10 text-center font-medium">原黑白影像圖</p>
+                                <div class="px-8 py-3 bg-[#b4c6e7] text-slate-800 font-medium rounded-lg border border-[#8faadc] shadow-sm text-lg w-full max-w-[160px] text-center tracking-widest">原始訊號</div>
+                            </div>
+
+                            <!-- Arrow 1 -->
+                            <div class="text-[#5b7fc3] text-5xl hidden lg:block -mt-16">➔</div>
+                            <div class="text-[#5b7fc3] text-5xl lg:hidden rotate-90 my-2">➔</div>
+
+                            <!-- Step 2: 取樣 -->
+                            <div class="flex flex-col items-center w-full lg:w-1/3">
+                                <div class="w-48 h-48 bg-white border border-slate-400 flex items-center justify-center relative mb-4 shadow-sm">
+                                    <div class="w-full h-full p-4 relative z-0">
+                                        <svg viewBox="0 0 100 100" class="w-3/4 h-3/4 text-slate-900 mx-auto">
+                                            <path d="M25,60 C25,25 75,25 75,60 Z" fill="currentColor"/>
+                                            <path d="M15,75 C25,50 60,50 85,65 C70,75 30,85 15,75 Z" fill="currentColor"/>
+                                            <text x="40" y="55" fill="white" font-family="serif" font-size="28" font-weight="bold" font-style="italic">L</text>
+                                        </svg>
+                                    </div>
+                                    <!-- 網格 -->
+                                    <div class="absolute inset-0 z-10" style="background-image: linear-gradient(to right, rgba(0,0,0,0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.4) 1px, transparent 1px); background-size: 5% 5%;"></div>
+                                    
+                                    <!-- 一個樣本標示 -->
+                                    <div class="absolute top-[25%] right-[25%] w-[5%] h-[5%] border-[2px] border-red-500 z-20"></div>
+                                    <div class="absolute top-[5%] right-[-15%] bg-white border border-green-500 text-green-700 px-3 py-1 rounded-full text-xs font-bold shadow-md z-30 whitespace-nowrap">一個樣本</div>
+                                    <svg class="absolute top-[15%] right-[0%] w-16 h-16 z-20 pointer-events-none" style="overflow: visible;">
+                                        <line x1="5" y1="20" x2="35" y2="40" stroke="#22c55e" stroke-width="1.5"/>
+                                    </svg>
+                                </div>
+                                <p class="text-[13px] text-slate-500 mb-6 h-10 text-center px-4 leading-snug font-medium">經過取樣後，黑白影像被分割成400 (20×20) 個樣本</p>
+                                <div class="px-8 py-3 bg-[#b4c6e7] text-slate-800 font-medium rounded-lg border border-[#8faadc] shadow-sm text-lg w-full max-w-[160px] text-center tracking-widest">取樣</div>
+                            </div>
+
+                            <!-- Arrow 2 -->
+                            <div class="text-[#5b7fc3] text-5xl hidden lg:block -mt-16">➔</div>
+                            <div class="text-[#5b7fc3] text-5xl lg:hidden rotate-90 my-2">➔</div>
+
+                            <!-- Step 3: 量化 -->
+                            <div class="flex flex-col items-center w-full lg:w-1/3">
+                                <div class="flex gap-2 mb-4 w-full justify-center h-48 items-center">
+                                    <!-- 黑白量化 -->
+                                    <div class="flex flex-col items-center w-24">
+                                        <div class="w-24 h-24 bg-white border border-slate-400 relative shadow-sm overflow-hidden p-[1px]">
+                                            <div class="w-full h-full grid grid-cols-10 grid-rows-10 text-[5px] leading-none text-center font-mono opacity-90 border-t border-l border-slate-300" style="background-image: linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.2) 1px, transparent 1px); background-size: 10% 10%;">
+                                                <div class="col-start-3 col-span-5 row-start-3 row-span-5 bg-slate-800 text-white flex items-center justify-center w-full h-full border-b border-r border-slate-300">1</div>
+                                                <div class="col-start-2 col-span-7 row-start-7 row-span-2 bg-slate-800 text-white flex items-center justify-center w-full h-full border-b border-r border-slate-300">1</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-center text-[10px] text-rose-500 font-bold whitespace-nowrap scale-90">圖2-14 影像的量化</div>
+                                    </div>
+                                    <!-- 彩色量化 -->
+                                    <div class="flex flex-col items-center w-24 relative">
+                                        <div class="absolute top-[-25px] right-[-30px] bg-white border border-sky-400 text-sky-600 px-1.5 py-0.5 rounded-[12px] text-[9px] font-bold shadow-sm z-20 leading-tight whitespace-nowrap text-center">
+                                            記錄黑、白<br>、藍、黃4色
+                                        </div>
+                                        <div class="w-24 h-24 bg-white border border-slate-400 relative shadow-sm p-[1px]">
+                                            <div class="w-full h-full grid grid-cols-10 grid-rows-10 border-t border-l border-slate-200" style="background-image: linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.15) 1px, transparent 1px); background-size: 10% 10%;">
+                                                <div class="col-start-3 col-span-5 row-start-3 row-span-4 bg-yellow-400 border-b border-r border-slate-200"></div>
+                                                <div class="col-start-2 col-span-7 row-start-7 row-span-2 bg-[#0ea5e9] border-b border-r border-slate-200"></div>
+                                                <div class="col-start-4 col-span-2 row-start-4 row-span-2 bg-slate-800 border-b border-r border-slate-200"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-center text-[10px] text-rose-500 font-bold whitespace-nowrap scale-90 leading-tight">圖2-15 使用2個位元<br>記錄像素點的色彩</div>
+                                    </div>
+                                </div>
+                                <p class="text-[13px] text-slate-500 mb-6 h-10 text-center px-2 leading-snug font-medium"></p>
+                                <div class="px-8 py-3 bg-[#b4c6e7] text-slate-800 font-medium rounded-lg border border-[#8faadc] shadow-sm text-lg w-full max-w-[160px] text-center tracking-widest">量化</div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= (2) 像素探險家小遊戲 ================= -->
+                <div id="image-sub-explorer" class="section-hidden space-y-6">
+                    
+                    <!-- 導言標題區 -->
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 border-b border-slate-100 pb-4 flex items-center gap-3">
+                            <span class="text-4xl">🎮</span> 像素探險家：實境互動
+                        </h2>
+                        <p class="mt-4 text-slate-600 leading-relaxed">透過以下三個實境關卡，親自體驗影像「像素化」的過程，並扮演電腦將真實世界的畫面「取樣」與「量化」為數位資料吧！</p>
+                    </div>
+
+                    <!-- 關卡一：猜猜我是誰 -->
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <div class="flex justify-between items-end mb-6">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="text-blue-500 text-2xl">🔍</span> 關卡一：猜猜我是誰？</h3>
+                            <span id="pe-level1-progress" class="text-sm font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-lg">進度 1/3</span>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-8 items-center justify-center w-full">
+                            <div class="w-full md:w-1/2 space-y-6">
+                                <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                                    <h4 class="font-bold text-blue-800 mb-2">挑戰任務</h4>
+                                    <p class="text-sm text-slate-600 leading-relaxed">滑動下方拉桿改變「解析度」，觀察畫面從「一格一格的馬賽克」變得清晰的過程。<br>你看出來圖片裡是什麼了嗎？</p>
+                                </div>
+                                
+                                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                    <label for="pe-resolution-slider" class="flex justify-between text-sm font-bold text-slate-700 mb-3">
+                                        <span>調整解析度 (像素數量)</span>
+                                        <span id="pe-resolution-value" class="text-blue-600">極低</span>
+                                    </label>
+                                    <input type="range" id="pe-resolution-slider" min="1" max="5" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                                    <div class="flex justify-between text-[11px] text-slate-400 font-bold mt-2 px-1">
+                                        <span>少 (模糊)</span>
+                                        <span>多 (精細)</span>
+                                    </div>
+                                </div>
+
+                                <div id="pe-level1-question" class="hidden bg-blue-50 p-5 rounded-2xl border border-blue-200 animate-fade-up">
+                                    <p class="font-bold text-slate-800 mb-3 text-sm">請選擇圖中的主體：</p>
+                                    <div id="pe-level1-options" class="grid grid-cols-3 gap-2">
+                                        <!-- 選項將由 JS 動態生成 -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="w-full md:w-1/2 flex justify-center items-center">
+                                <div class="relative w-full max-w-[320px] aspect-square bg-slate-50 p-3 rounded-2xl border border-slate-200 shadow-inner">
+                                    <img id="pe-source-image1" src="" alt="Source Image" class="hidden" crossorigin="anonymous">
+                                    <canvas id="pe-pixel-canvas" class="w-full h-full object-cover rounded-xl"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 關卡二：局部放大比較 -->
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <div class="flex justify-between items-end mb-6">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="text-purple-500 text-2xl">🔎</span> 關卡二：細節放大鏡</h3>
+                            <span id="pe-level2-progress" class="text-sm font-bold text-purple-500 bg-purple-50 px-3 py-1 rounded-lg">進度 1/3</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-6 bg-purple-50 p-4 rounded-xl border border-purple-100">將游標移到下方圖片上，觀察「高解析度」與「低解析度」在局部放大細節上的差異。</p>
+
+                        <div class="flex flex-col md:flex-row gap-6 items-stretch justify-center w-full">
+                            <!-- 低解析度 -->
+                            <div class="flex-1 flex flex-col items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <h4 class="font-bold text-sm mb-3 text-rose-500 bg-rose-50 px-3 py-1 rounded-full border border-rose-100">低解析度 (像素少)</h4>
+                                <div class="w-full max-w-[280px] bg-white p-2 rounded-xl relative pe-magnifier-container shadow-sm border border-slate-200" id="pe-mag-container-low">
+                                    <img id="pe-img-low-res" src="" alt="Low Res" class="w-full h-auto rounded-lg" style="image-rendering: pixelated;" crossorigin="anonymous">
+                                    <div class="pe-magnifier-lens border-rose-400 shadow-[0_0_0_3px_#fb7185,0_8px_20px_rgba(0,0,0,0.4)]" id="pe-lens-low"></div>
+                                </div>
+                                <p id="pe-l2-desc-low" class="mt-4 text-xs text-slate-500 leading-relaxed text-center px-4 h-10">載入中...</p>
+                            </div>
+
+                            <!-- 高解析度 -->
+                            <div class="flex-1 flex flex-col items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <h4 class="font-bold text-sm mb-3 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">高解析度 (像素多)</h4>
+                                <div class="w-full max-w-[280px] bg-white p-2 rounded-xl relative pe-magnifier-container shadow-sm border border-slate-200" id="pe-mag-container-high">
+                                    <img id="pe-img-high-res" src="" alt="High Res" class="w-full h-auto rounded-lg" crossorigin="anonymous">
+                                    <div class="pe-magnifier-lens border-emerald-400 shadow-[0_0_0_3px_#34d399,0_8px_20px_rgba(0,0,0,0.4)]" id="pe-lens-high"></div>
+                                </div>
+                                <p id="pe-l2-desc-high" class="mt-4 text-xs text-slate-500 leading-relaxed text-center px-4 h-10">載入中...</p>
+                            </div>
+                        </div>
+
+                        <!-- 換下一張按鈕 -->
+                        <div class="mt-6 flex justify-center">
+                            <button id="pe-btn-l2-next" onclick="peNextLevel2Image()" class="px-8 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold rounded-xl transition-colors shadow-sm text-sm flex items-center gap-2">
+                                我觀察好了，看下一張 →
+                            </button>
+                        </div>
+
+                        <!-- 最終測驗區 (第3張才會顯示) -->
+                        <div id="pe-level2-quiz" class="hidden mt-8 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm animate-fade-up">
+                            <p class="font-bold text-slate-700 mb-3 text-sm">💡 邏輯思考時間：看了這 3 組圖片後，如果想要讓圖片放大後依然清晰，取樣時切出的「格子」應該要？</p>
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="peCheckAnswer2(false)" class="bg-slate-50 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 py-2 px-5 rounded-lg font-bold text-slate-600 text-sm transition-colors">越少越好 (大格子)</button>
+                                <button onclick="peCheckAnswer2(true)" class="bg-slate-50 border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 py-2 px-5 rounded-lg font-bold text-slate-600 text-sm transition-colors">越多越好 (小格子)</button>
+                            </div>
+                            <p id="pe-feedback2" class="mt-3 text-sm font-bold hidden"></p>
+                        </div>
+                    </div>
+
+                    <!-- 關卡三：動手取樣與量化 -->
+                    <div class="bg-white border border-slate-200 shadow-sm p-6 md:p-8 rounded-3xl">
+                        <div class="flex justify-between items-end mb-6">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="text-orange-500 text-2xl">🎨</span> 關卡三：自由取樣與量化</h3>
+                            <span id="pe-level3-progress" class="text-sm font-bold text-orange-500 bg-orange-50 px-3 py-1 rounded-lg">✨ 自由創作模式</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-6 bg-orange-50 p-4 rounded-xl border border-orange-100">體驗電腦如何將真實世界轉化為數位資料。在左側畫布隨意畫個簡單的形狀，接著扮演電腦的「量化器」，在右側網格上重現你的圖案，最後與電腦的演算法比對看看相似度！</p>
+
+                        <div class="flex flex-col lg:flex-row gap-8 items-center justify-center w-full">
+                            
+                            <!-- 工具區 -->
+                            <div class="w-full lg:w-1/3 flex flex-col gap-4">
+                                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                                    <h4 class="font-bold text-slate-700 mb-2 text-sm border-b border-slate-200 pb-2">操作說明</h4>
+                                    <ul class="text-xs text-slate-500 space-y-2">
+                                        <li>1. 在<strong class="text-slate-700">左側畫布</strong>自由繪製圖案。</li>
+                                        <li>2. 從下方調色盤選取代碼 (0或1)。</li>
+                                        <li>3. 在<strong class="text-orange-600">右側網格</strong>上塗色(量化)。</li>
+                                        <li>4. 點擊比對，看看電腦怎麼算！</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+                                    <h4 class="font-bold text-slate-600 mb-3 text-sm">調色盤 (顏色代碼)</h4>
+                                    <div class="flex justify-center gap-4">
+                                        <button type="button" class="flex flex-col items-center gap-1 cursor-pointer group" onclick="peSelectColor(0)" aria-label="選擇白色，代碼 0">
+                                            <div class="w-12 h-12 border-2 border-slate-300 bg-white rounded-xl shadow-sm transition-all group-hover:scale-110" id="pe-color-0"></div>
+                                            <span class="text-xs font-bold text-slate-500">白色 (0)</span>
+                                        </button>
+                                        <button type="button" class="flex flex-col items-center gap-1 cursor-pointer group" onclick="peSelectColor(1)" aria-label="選擇黑色，代碼 1">
+                                            <div class="w-12 h-12 border-2 border-slate-800 bg-slate-800 rounded-xl shadow-sm transition-all ring-offset-2 ring-2 ring-orange-400 group-hover:scale-110" id="pe-color-1"></div>
+                                            <span class="text-xs font-bold text-slate-800">黑色 (1)</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button onclick="peCompareDigitization()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-sm text-sm">
+                                    與電腦比對結果
+                                </button>
+                            </div>
+
+                            <!-- 畫布比較區 -->
+                            <div class="w-full lg:w-2/3 flex flex-col sm:flex-row gap-6 justify-center items-center bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                                <!-- 自由畫布區 -->
+                                <div class="flex flex-col items-center w-full max-w-[200px]">
+                                    <h4 class="font-bold text-slate-600 mb-3 text-sm">1. 在此繪製真實圖案</h4>
+                                    <div class="mb-3 grid grid-cols-3 gap-1.5 text-[11px] font-bold"><button type="button" onclick="peApplyReferencePattern('heart')" class="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 text-rose-700 hover:bg-rose-100">♥ 愛心</button><button type="button" onclick="peApplyReferencePattern('smile')" class="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-amber-700 hover:bg-amber-100">☺ 笑臉</button><button type="button" onclick="peApplyReferencePattern('rocket')" class="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1.5 text-sky-700 hover:bg-sky-100">▲ 火箭</button></div>
+                                    <div class="relative w-full aspect-square border-2 border-slate-300 rounded-lg overflow-hidden shadow-sm bg-white">
+                                        <canvas id="pe-free-draw-canvas" width="200" height="200" class="absolute inset-0 z-10 touch-none cursor-crosshair"></canvas>
+                                        <!-- 輔助網格 -->
+                                        <div class="absolute inset-0 z-0 pointer-events-none opacity-20" style="background-image: linear-gradient(to right, rgba(0,0,0,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.5) 1px, transparent 1px); background-size: 12.5% 12.5%;"></div>
+                                    </div>
+                                    <div class="flex gap-2 mt-3 w-full">
+                                        <button onclick="peSetFreeDrawMode('brush')" id="pe-btn-brush" class="flex-1 py-1.5 bg-slate-800 text-white rounded text-xs font-bold shadow-sm transition-all ring-2 ring-orange-400 ring-offset-1">畫筆</button>
+                                        <button onclick="peSetFreeDrawMode('eraser')" id="pe-btn-eraser" class="flex-1 py-1.5 bg-white border border-slate-300 text-slate-600 rounded text-xs font-bold shadow-sm transition-all">橡皮擦</button>
+                                        <button onclick="peInitFreeDrawCanvas()" class="flex-1 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 rounded text-xs font-bold shadow-sm transition-all hover:bg-rose-100">清除</button>
+                                    </div>
+                                    <p id="pe-restart-hint" class="mt-3 text-center text-xs font-bold text-rose-600" aria-live="polite">重新操作提示：先選色票，再在量化格點選或按 Enter 上色。</p>
+                                </div>
+
+                                <div class="text-slate-300 text-2xl rotate-90 sm:rotate-0">➔</div>
+
+                                <!-- 玩家繪製網格 -->
+                                <div class="flex flex-col items-center w-full max-w-[200px]">
+                                    <h4 class="font-bold text-orange-600 mb-3 text-sm">2. 你的數位化結果</h4>
+                                    <div id="pe-drawing-grid" class="pe-sampling-grid bg-white" style="grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);">
+                                        <!-- JS 動態生成格子 -->
+                                    </div>
+                                    <button onclick="peResetDrawingGrid()" class="mt-3 w-full rounded border border-rose-200 bg-rose-50 py-1.5 text-xs font-bold text-rose-600 shadow-sm transition-colors hover:bg-rose-100">清除網格</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 比對結果 Modal -->
+                    <div id="pe-compare-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center hidden transition-opacity">
+                        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl max-w-2xl w-full mx-4 border border-slate-100 animate-fade-up">
+                            <h3 class="text-2xl font-black mb-4 text-slate-800 flex items-center gap-2">📊 數位化結果比拼</h3>
+                            <p class="text-slate-600 mb-6 text-sm leading-relaxed">
+                                電腦的量化邏輯：它會掃描真實畫布，如果一格裡面的「黑色筆跡面積」超過 <strong class="text-slate-800">5%</strong>，電腦就會把它標記為 <strong class="text-slate-800">黑色(1)</strong>，否則就是 <strong class="text-slate-500">白色(0)</strong>。<br>來看看你和電腦的想法有多接近！
+                            </p>
+                            
+                            <div class="flex flex-col sm:flex-row gap-8 justify-center items-center mb-6">
+                                <!-- 玩家 -->
+                                <div class="flex flex-col items-center">
+                                    <h4 class="font-bold text-orange-600 mb-3 text-sm">你的數位化</h4>
+                                    <div id="pe-compare-player-grid" class="pe-sampling-grid bg-white" style="grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 160px; height: 160px;"></div>
+                                </div>
+                                <!-- 電腦 -->
+                                <div class="flex flex-col items-center">
+                                    <h4 class="font-bold text-blue-600 mb-3 text-sm">電腦的數位化</h4>
+                                    <div id="pe-compare-computer-grid" class="pe-sampling-grid bg-white" style="grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); width: 160px; height: 160px;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mb-8 bg-slate-50 py-3 rounded-xl border border-slate-200">
+                                <span class="text-lg font-bold text-slate-600">與電腦邏輯的相似度：</span>
+                                <span id="pe-compare-score" class="text-4xl font-black text-emerald-500 ml-2">100%</span>
+                            </div>
+                            
+                            <div class="flex justify-end gap-3">
+                                <button onclick="document.getElementById('pe-compare-modal').classList.add('hidden')" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 bg-white border border-slate-300 hover:bg-slate-50 transition-colors text-sm shadow-sm">返回修改</button>
+                                <button onclick="peCompleteExplorer()" class="px-5 py-2.5 rounded-xl font-bold text-white bg-orange-500 hover:bg-orange-600 transition-colors shadow-sm text-sm">太棒了！完成探險</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 自訂提示對話框 -->
+                    <div id="pe-custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center hidden transition-opacity">
+                        <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full mx-4 border border-slate-100 animate-fade-up">
+                            <h3 id="pe-modal-title" class="text-xl font-black mb-3 text-slate-800 flex items-center gap-2">提示</h3>
+                            <p id="pe-modal-message" class="text-slate-600 mb-6 whitespace-pre-line text-sm leading-relaxed"></p>
+                            <div class="flex justify-end gap-3" id="pe-modal-actions">
+                                <button id="pe-modal-btn-cancel" class="hidden px-5 py-2 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">取消</button>
+                                <button id="pe-modal-btn-ok" class="px-5 py-2 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm text-sm">確定</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= (3) 色彩量化與解碼實作 ================= -->
+                <div id="image-sub-pixel" class="section-hidden space-y-8">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 w-full flex flex-col gap-6" id="quantization-section">
+                        <h2 class="text-2xl font-extrabold text-slate-800 border-b pb-3 flex items-center gap-2"><span>📖</span> 影像數位化：色彩量化 (Quantization)</h2>
+                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                            <h3 class="text-xl font-bold text-indigo-800 mb-3 flex items-center gap-2"><span>🎨</span> 色彩量化 (Quantization)：決定顏色的精細度</h3>
+                            <p class="text-slate-700 font-medium mb-4 leading-relaxed">決定每個格子可以塗上什麼顏色。這個決定顏色『精細度』的過程，就叫做<strong>量化 (Quantization)</strong>。<br><span class="text-indigo-600 font-bold">量化的位元 (bits) 數越高，顏色就越豐富、越真實，但佔用的記憶體空間也會越高。</span></p>
+                            <div class="flex flex-col lg:flex-row gap-6 items-center bg-white p-5 rounded-xl shadow-inner mb-4">
+                                <div class="w-full lg:w-1/2 flex justify-center"><img src="images/unit4-2.webp" alt="1-bit, 8-bits, 24-bits 比較圖" class="max-w-full h-auto rounded-lg shadow-sm border border-slate-200"></div>
+                                <div class="w-full lg:w-1/2 space-y-4">
+                                    <div class="border-l-4 border-slate-400 pl-3"><h4 class="font-bold text-slate-800">【1-bit：非黑即白的世界】</h4><p class="text-sm text-slate-600 mt-1">「請看最左邊的小娃。這裡我們只給電腦 1 bit 的空間，也就是 2<sup>1</sup> = 2 種選擇。電腦只能在『黑』與『白』之間二選一。雖然你看得出這是一個小男孩，但所有的陰影、皮膚色、衣服顏色全部都消失了，只剩下輪廓。」</p></div>
+                                    <div class="border-l-4 border-blue-400 pl-3"><h4 class="font-bold text-slate-800">【8-bits：復古的 256 色】</h4><p class="text-sm text-slate-600 mt-1">「中間的小娃進步了，我們給它 8 bits，2<sup>8</sup> = 256 種顏色。大家可以發現顏色變豐富了，有膚色、有藍色衣服。但仔細看（指向陰影處），顏色的過渡看起來一塊一塊的，不夠自然。這就像是只有 24 色的彩色筆，想畫出細膩的日落會有點困難。」</p></div>
+                                    <div class="border-l-4 border-pink-400 pl-3"><h4 class="font-bold text-slate-800">【24-bits：肉眼難辨的全彩】</h4><p class="text-sm text-slate-600 mt-1">「最後，最右邊是我們現在最常見的 24 bits 全彩（RGB 各 8 bits）。它能變出 1,600 萬種顏色！這時候小娃的頭髮光澤、皮膚的紅潤、衣服的摺痕都能平滑呈現。對人類的眼睛來說，這已經跟真實世界看到的顏色一模一樣了。」</p></div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-indigo-100 rounded-lg border border-indigo-200 text-indigo-800 text-sm font-bold flex items-start gap-2"><span class="text-lg">💡</span><p>【核心總結】所以，量化的位元 (bits) 數越高，顏色就越豐富、越真實，但同樣地，每個像素佔用的記憶體空間也會隨之增加喔！</p></div>
+                        </div>
+                    </div>
+
+                    <div class="img-game-container border border-slate-200">
+                        <header class="flex justify-between items-end border-b pb-4 border-slate-200">
+                            <div><h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">💻 影像數位化解碼器</h1><p class="text-slate-500 mt-1 text-sm">解碼RGB並還原神秘圖案，與時間賽跑！</p></div>
+                            <div class="flex gap-4 text-right">
+                                <div><div class="text-sm text-slate-500 font-bold mb-1">剩餘時間</div><div class="text-xl md:text-2xl font-extrabold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-100" id="img-timer-display">無限時</div></div>
+                                <div><div class="text-sm text-slate-500 font-bold mb-1">挑戰進度</div><div class="text-xl md:text-2xl font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100" id="img-game-progress">1/10</div></div>
+                            </div>
+                        </header>
+                        <div class="img-main-content relative" id="img-main-content-area">
+                            <div id="img-game-overlay" class="absolute inset-0 z-20 bg-white/60 flex flex-col justify-center items-center rounded-xl p-4 transition-opacity duration-300">
+                                <div class="text-6xl mb-4 animate-bounce">🎨</div><h2 class="text-3xl font-extrabold text-slate-800 mb-2">準備好挑戰了嗎？</h2><p class="text-slate-600 mb-4 font-bold text-center">在設定的時間內計算出RGB代碼，還原隨機動物圖案！</p>
+                                <div class="mb-6 flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                                    <label class="font-bold text-slate-700 text-sm">⏳ 挑戰時間：</label>
+                                    <select id="img-time-setting" onchange="updateInitialImageTime()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 font-bold text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
+                                        <option value="0">無限時 👼 (無壓力慢慢畫)</option>
+                                        <option value="1000">1000 秒 🟢 (極度寬鬆)</option>
+                                        <option value="900">900 秒 🟢 (簡單)</option>
+                                        <option value="800">800 秒 🟢 (輕鬆)</option>
+                                        <option value="700">700 秒 🟡 (普通)</option>
+                                        <option value="600">600 秒 🟡 (適中)</option>
+                                        <option value="500">500 秒 🟡 (標準)</option>
+                                        <option value="400">400 秒 🟠 (困難)</option>
+                                        <option value="300">300 秒 🔴 (地獄難度)</option>
+                                    </select>
+                                </div>
+                                <button onclick="startImageGame()" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-2xl shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3">▶️ 開始遊戲</button>
+                            </div>
+                            <div class="img-drawing-area w-full">
+                                <div class="flex justify-between w-full mb-1"><span class="text-sm font-bold text-slate-600" id="img-level-title">目前挑戰：神秘圖案❓</span><span class="text-sm font-bold text-blue-600" id="img-progress-text">0%</span></div>
+                                <div class="w-full bg-slate-200 rounded-full h-2 mb-2"><div class="bg-blue-600 h-2 rounded-full transition-all duration-300" id="img-progress-bar" style="width: 0%"></div></div>
+                                <div id="img-grid" class="img-grid-container"></div>
+                                <div class="w-full mt-2 img-panel p-3">
+                                    <div class="flex justify-between items-center mb-2"><h3 class="text-sm font-bold text-slate-700">🎨 調色盤 (已解鎖的顏色)</h3><span class="text-xs text-slate-500">點選顏色當畫筆，再次點選可取消</span></div>
+                                    <div class="img-color-palette" id="img-palette"><div class="text-sm text-slate-400 italic mt-2" id="img-palette-empty-msg">尚未解鎖任何顏色，請點擊上方格子進行解碼。</div></div>
+                                </div>
+                            </div>
+                            <div class="img-level-section">
+                                <div class="img-panel border-blue-200 shadow-sm relative overflow-hidden" id="img-task-panel">
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+                                    <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"><span>🔍 目標像素解碼</span><span id="img-target-coords" class="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded">未選擇</span></h3>
+                                    <div class="bg-slate-900 rounded-lg p-3 mb-4 shadow-inner"><div id="img-binary-screen" class="font-mono text-green-400 text-lg leading-relaxed tracking-widest text-center">請點選左側<br>未解鎖的格子</div></div>
+                                    <div class="space-y-3 opacity-50 pointer-events-none transition-opacity duration-200" id="img-rgb-input-area">
+                                        <div class="flex items-center gap-2"><label class="font-bold text-red-500 w-6 text-right">R</label><input type="number" id="img-input-r" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-red-200 outline-none" placeholder="紅色 (0-255)"></div>
+                                        <div class="flex items-center gap-2"><label class="font-bold text-green-500 w-6 text-right">G</label><input type="number" id="img-input-g" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-green-200 outline-none" placeholder="綠色 (0-255)"></div>
+                                        <div class="flex items-center gap-2"><label class="font-bold text-blue-500 w-6 text-right">B</label><input type="number" id="img-input-b" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-200 outline-none" placeholder="藍色 (0-255)"></div>
+                                        <button onclick="submitImageDecode()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors mt-2">解碼並解鎖顏色</button>
+                                    </div>
+                                </div>
+                                <div class="img-panel bg-slate-50">
+                                    <h3 class="text-sm font-bold text-slate-700 mb-3">🧮 二進位轉十進位小工具</h3>
+                                    <div class="flex gap-2"><input type="text" id="img-calc-bin-in" placeholder="例: 11100010" class="p-2 border border-slate-300 rounded flex-1 font-mono text-sm outline-none focus:border-slate-400" oninput="this.value = this.value.replace(/[^01]/g, '').slice(0,8)"><button onclick="calcImageBinToDec()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 rounded font-bold transition-colors">轉換</button></div>
+                                    <div class="mt-2 text-center bg-white border border-slate-200 rounded p-2 text-xl font-bold text-slate-800 min-h-[2.5rem] flex items-center justify-center" id="img-calc-dec-out">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="img-modal-overlay" id="img-success-modal">
+                        <div class="img-modal-content">
+                            <div class="text-6xl mb-4" id="img-modal-icon">🎉</div>
+                            <h2 class="text-3xl font-bold text-slate-800 mb-2" id="img-modal-title">挑戰成功！</h2>
+                            <p class="text-lg text-slate-600 mb-6" id="img-success-msg">你成功計算並畫出了動物！</p>
+                            <div class="flex gap-4 justify-center" id="img-modal-buttons"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= (4) 壓縮方式與檔案格式 ================= -->
+                <div id="image-sub-compress" class="section-hidden space-y-8">
+                    
+                    <!-- 概念解說：抽真空收納袋 -->
+                    <div class="bg-indigo-50 border border-indigo-100 shadow-sm p-6 md:p-8 rounded-3xl w-full">
+                        <h3 class="text-2xl font-black text-indigo-800 mb-4 flex items-center gap-2">
+                            <span class="text-3xl">🧳</span> 壓縮技術就像「抽真空收納袋」！
+                        </h3>
+                        <p class="text-slate-700 mb-6 font-medium text-lg">如果我們把圖片直接存進電腦，它會超級重！為了解省空間，我們需要把它「壓縮」。你可以想像成把衣服打包進出國用的收納袋裡：</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-rose-200 hover:border-rose-400 transition-colors">
+                                <h4 class="font-black text-rose-600 mb-3 text-xl">💥 破壞性壓縮 (例如：JPG)</h4>
+                                <p class="text-base text-slate-600 leading-relaxed">就像打包時，偷偷<strong class="text-rose-500">把別人不會注意到的舊襪子直接丟掉</strong>。行李變得超級輕！<br><br>👉 電腦是<strong class="text-rose-500">刪除人眼看不見的細節</strong>（雖然失真，但檔案極小，肉眼幾乎看不出來差異）。</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-emerald-200 hover:border-emerald-400 transition-colors">
+                                <h4 class="font-black text-emerald-600 mb-3 text-xl">✨ 無損壓縮 (例如：PNG)</h4>
+                                <p class="text-base text-slate-600 leading-relaxed">就像把衣服<strong class="text-emerald-500">摺得非常整齊、重新排列組合</strong>再抽真空，什麼都沒丟掉。<br><br>👉 打開後衣服<strong class="text-emerald-500">完全不失真</strong>，完美保留所有細節，不過檔案會比破壞性壓縮大一些。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖片格式特攻隊 -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 w-full flex flex-col gap-6">
+                        <h2 class="text-2xl font-extrabold text-slate-800 border-b pb-3 flex items-center gap-2">
+                            <span class="text-3xl">🦸‍♂️</span> 圖片格式特攻隊
+                        </h2>
+                        <p class="text-slate-600 font-medium mb-2">
+                            為了應付不同的任務，電腦科學家發明了四位特攻隊員，它們各自有不同的超能力喔！
+                        </p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                            <!-- BMP 巨無霸 -->
+                            <div class="bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl p-5 border border-slate-200 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+                                <div class="text-5xl text-center mb-3 drop-shadow-md">🦣</div>
+                                <h3 class="text-xl font-black text-slate-700 text-center tracking-wider">BMP</h3>
+                                <div class="text-xs text-center text-slate-500 font-bold mb-4 bg-slate-200 py-1 rounded-full mt-1">「我不減肥的巨無霸」</div>
+                                <ul class="text-sm text-slate-600 space-y-2 mt-4 border-t border-slate-200 pt-4">
+                                    <li class="flex gap-2"><span class="text-green-500">👍</span>完全不壓縮，畫質最完美</li>
+                                    <li class="flex gap-2"><span class="text-red-500">👎</span>檔案超肥，佔用極大空間</li>
+                                    <li class="flex gap-2"><span class="text-blue-500">📌</span>現在很少用了 (太佔空間)</li>
+                                </ul>
+                            </div>
+                            <!-- JPG 魔術師 -->
+                            <div class="bg-gradient-to-b from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+                                <div class="text-5xl text-center mb-3 drop-shadow-md">📸</div>
+                                <h3 class="text-xl font-black text-blue-700 text-center tracking-wider">JPG</h3>
+                                <div class="text-xs text-center text-blue-600 font-bold mb-4 bg-blue-100 py-1 rounded-full mt-1">「丟細節的風景魔術師」</div>
+                                <ul class="text-sm text-slate-600 space-y-2 mt-4 border-t border-blue-200 pt-4">
+                                    <li class="flex gap-2"><span class="text-green-500">👍</span>破壞性壓縮，檔案很小</li>
+                                    <li class="flex gap-2"><span class="text-red-500">👎</span>放大看會稍微有點模糊</li>
+                                    <li class="flex gap-2"><span class="text-blue-500">📌</span><strong class="text-blue-700">最適合存照片</strong> (風景、人像)</li>
+                                </ul>
+                            </div>
+                            <!-- GIF 小精靈 -->
+                            <div class="bg-gradient-to-b from-orange-50 to-amber-50 rounded-2xl p-5 border border-orange-100 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+                                <div class="text-5xl text-center mb-3 drop-shadow-md animate-bounce">🏃</div>
+                                <h3 class="text-xl font-black text-orange-700 text-center tracking-wider">GIF</h3>
+                                <div class="text-xs text-center text-orange-600 font-bold mb-4 bg-orange-100 py-1 rounded-full mt-1">「會動的小精靈」</div>
+                                <ul class="text-sm text-slate-600 space-y-2 mt-4 border-t border-orange-200 pt-4">
+                                    <li class="flex gap-2"><span class="text-green-500">👍</span>可以做成動畫！支援透明</li>
+                                    <li class="flex gap-2"><span class="text-red-500">👎</span>最多只能用 256 種顏色</li>
+                                    <li class="flex gap-2"><span class="text-blue-500">📌</span><strong class="text-orange-700">最適合迷因圖、單純小動畫</strong></li>
+                                </ul>
+                            </div>
+                            <!-- PNG 貼紙王 -->
+                            <div class="bg-gradient-to-b from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100 shadow-sm hover:-translate-y-2 transition-transform duration-300">
+                                <div class="text-5xl text-center mb-3 drop-shadow-md">👻</div>
+                                <h3 class="text-xl font-black text-emerald-700 text-center tracking-wider">PNG</h3>
+                                <div class="text-xs text-center text-emerald-600 font-bold mb-4 bg-emerald-100 py-1 rounded-full mt-1">「完美的去背貼紙」</div>
+                                <ul class="text-sm text-slate-600 space-y-2 mt-4 border-t border-emerald-200 pt-4">
+                                    <li class="flex gap-2"><span class="text-green-500">👍</span>無損壓縮，支援完美透明背景</li>
+                                    <li class="flex gap-2"><span class="text-red-500">👎</span>檔案比 JPG 稍微大一點</li>
+                                    <li class="flex gap-2"><span class="text-blue-500">📌</span><strong class="text-emerald-700">最適合做網頁Logo、去背圖</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 格式選選看：情境大挑戰 -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 w-full flex flex-col gap-6">
+                        <h2 class="text-2xl font-extrabold text-slate-800 border-b pb-3 flex items-center gap-2">
+                            <span class="text-3xl">🎮</span> 格式選選看：情境大挑戰
+                        </h2>
+                        <p class="text-slate-600 font-medium mb-2">請幫忙判斷以下三個情境，最適合呼叫哪一位「格式特攻隊員」來幫忙呢？</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- 情境一 -->
+                            <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col">
+                                <h3 class="font-bold text-lg text-slate-800 mb-2">🌅 情境一：阿里山日出</h3>
+                                <p class="text-slate-600 text-sm mb-6 flex-grow">小明去阿里山玩，拍了一張超級漂亮的日出風景照，色彩超級豐富，他想存進電腦裡並上傳 IG。</p>
+                                <div class="flex gap-2 mb-3">
+                                    <button onclick="checkFormatQuiz(1, 'JPG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">JPG</button>
+                                    <button onclick="checkFormatQuiz(1, 'PNG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">PNG</button>
+                                    <button onclick="checkFormatQuiz(1, 'GIF', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">GIF</button>
+                                </div>
+                                <div id="quiz-feedback-1" class="text-sm font-bold hidden min-h-[3rem] p-2 rounded-lg bg-white border border-transparent" aria-live="polite"></div>
+                            </div>
+                            <!-- 情境二 -->
+                            <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col">
+                                <h3 class="font-bold text-lg text-slate-800 mb-2">🏫 情境二：學校網頁 Logo</h3>
+                                <p class="text-slate-600 text-sm mb-6 flex-grow">網頁設計師正在做學校的網站，需要放上學校的 Logo 校徽，而且背景必須是「透明」的才能融入網頁！</p>
+                                <div class="flex gap-2 mb-3">
+                                    <button onclick="checkFormatQuiz(2, 'JPG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">JPG</button>
+                                    <button onclick="checkFormatQuiz(2, 'PNG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">PNG</button>
+                                    <button onclick="checkFormatQuiz(2, 'GIF', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">GIF</button>
+                                </div>
+                                <div id="quiz-feedback-2" class="text-sm font-bold hidden min-h-[3rem] p-2 rounded-lg bg-white border border-transparent" aria-live="polite"></div>
+                            </div>
+                            <!-- 情境三 -->
+                            <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col">
+                                <h3 class="font-bold text-lg text-slate-800 mb-2">😊 情境三：點頭小動畫</h3>
+                                <p class="text-slate-600 text-sm mb-6 flex-grow">小華畫了一個只有 3 幀畫面、顏色很單純的「點點頭」動圖，他想用 Line 傳給好朋友看。</p>
+                                <div class="flex gap-2 mb-3">
+                                    <button onclick="checkFormatQuiz(3, 'JPG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">JPG</button>
+                                    <button onclick="checkFormatQuiz(3, 'PNG', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">PNG</button>
+                                    <button onclick="checkFormatQuiz(3, 'GIF', this)" class="flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors">GIF</button>
+                                </div>
+                                <div id="quiz-feedback-3" class="text-sm font-bold hidden min-h-[3rem] p-2 rounded-lg bg-white border border-transparent" aria-live="polite"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 進階觀察：圖片減肥大作戰 -->
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 w-full flex flex-col gap-6">
+                        <h2 class="text-xl font-bold text-slate-800 border-b pb-3 flex items-center gap-2">
+                            <span class="text-2xl">🔬</span> 進階觀察：圖片減肥大作戰
+                        </h2>
+                        <p class="text-sm text-slate-600 font-medium">除了轉換格式，我們還可以用這兩種方式幫圖片減肥喔！點擊看看差異：</p>
+                        
+                        <div class="flex flex-col lg:flex-row gap-6 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <!-- 影像展示區 -->
+                            <div class="w-full lg:w-1/2 flex flex-col items-center">
+                                <div class="relative w-full max-w-[250px] aspect-square bg-white p-2 rounded-xl shadow-md border border-slate-200">
+                                    <img id="compress-source-img" src="images/compress-dog.jpg" alt="Cute Dog" class="hidden" crossorigin="anonymous">
+                                    <canvas id="compress-canvas" class="w-full h-full object-cover rounded-lg"></canvas>
+                                </div>
+                                <div class="mt-4 w-full max-w-[250px]">
+                                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                                        <span>檔案重量：</span><span id="compress-weight-text" class="text-rose-600">超級重！🐘</span>
+                                    </div>
+                                    <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                                        <div id="compress-weight-bar" class="h-full bg-rose-500 transition-all duration-500 w-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 按鈕與解說區 -->
+                            <div class="w-full lg:w-1/2 space-y-3">
+                                <button onclick="renderCompressDemo('raw')" id="btn-comp-raw" class="w-full flex items-center justify-between p-3 rounded-xl border-2 border-rose-400 bg-rose-50 transition-colors text-left group">
+                                    <div><div class="text-sm font-bold text-rose-700">1. 不減肥 (全彩原始檔)</div></div><div class="text-xl">🐘</div>
+                                </button>
+                                <button onclick="renderCompressDemo('color')" id="btn-comp-color" class="w-full flex items-center justify-between p-3 rounded-xl border-2 border-transparent bg-white hover:bg-yellow-50 transition-colors text-left shadow-sm group">
+                                    <div><div class="text-sm font-bold text-yellow-700">2. 顏色壓縮 (丟掉相似顏料)</div></div><div class="text-xl">🐕</div>
+                                </button>
+                                <button onclick="renderCompressDemo('size')" id="btn-comp-size" class="w-full flex items-center justify-between p-3 rounded-xl border-2 border-transparent bg-white hover:bg-emerald-50 transition-colors text-left shadow-sm group">
+                                    <div><div class="text-sm font-bold text-emerald-700">3. 尺寸壓縮 (減少像素格子)</div></div><div class="text-xl">🕊️</div>
+                                </button>
+                                <div class="mt-2 p-3 bg-white rounded-xl shadow-sm border border-slate-200">
+                                    <p id="compress-desc" class="text-xs text-slate-800 font-medium leading-relaxed">最原始的圖片，所有的顏色跟細節都在，看起來最漂亮，但是佔用的空間超級大！</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav id="image-step-pager" aria-label="上一步／下一步"></nav>
+
+                <section class="card wrapup" aria-labelledby="unit-four-review"><div class="row between"><div><p class="kicker">課後回顧 · 快速檢核</p><h3 id="unit-four-review" class="black" style="font-size:1.25rem">課後回顧：一張圖片如何變成資料？</h3></div><a class="btn sm" href="index.html">回到單元首頁</a></div><div class="grid g3 mt2"><p class="note small">✔️ 我能區分：解析度、色彩深度與檔案大小並不相同。</p><p class="note small">✔️ 我能說明：降低色彩或尺寸為何能減少檔案容量。</p><p class="note small">✔️ 我能選擇：依透明背景、照片或動畫挑選圖片格式。</p></div><div class="quiz mt2"><div class="row between"><div><h4 class="bold">✅ 快速檢核</h4><p class="tiny soft">三題全對就過關：一次都沒錯 ⭐⭐⭐、錯 1 次 ⭐⭐、錯 2 次以上 ⭐</p></div><span id="review-score" class="chip">0 / 3</span></div><div class="grid g3 mt2"><div class="review-q"><p class="bold small">1. 透明背景的圖示優先選？</p><div class="review-opts mt1"><button onclick="answerReview(1, this)" class="pick review-btn">JPG</button><button onclick="answerReview(1, this)" class="pick review-btn">PNG</button></div></div><div class="review-q"><p class="bold small">2. 想讓照片檔案較小可優先選？</p><div class="review-opts mt1"><button onclick="answerReview(2, this)" class="pick review-btn">JPG</button><button onclick="answerReview(2, this)" class="pick review-btn">PNG</button></div></div><div class="review-q"><p class="bold small">3. 降低解析度通常會？</p><div class="review-opts mt1"><button onclick="answerReview(3, this)" class="pick review-btn">檔案更大</button><button onclick="answerReview(3, this)" class="pick review-btn">像素與容量變少</button></div></div></div><p id="review-feedback" class="small bold mt2" aria-live="polite">從三題中找出你最需要再練習的概念。</p><div id="review-badge" class="hidden note ok center bold mt1">🏅 圖像資料判讀員徽章已解鎖！</div></div></section>
+                <section class="card mt2 discuss" aria-labelledby="unit-four-discussion"><div class="row between"><div><p class="kicker">同伴討論</p><h3 id="unit-four-discussion" class="black" style="font-size:1.15rem">🗣️ 同伴討論挑戰</h3></div><span class="tiny soft bold">先選擇，再說明理由</span></div><p class="small mt1">要製作透明背景的社團 Logo 並放上網站，你會怎麼選？</p><div class="grid g2 mt1"><button type="button" onclick="chooseDiscussion('PNG，保留透明背景與清楚邊緣', this)" class="pick discussion-btn">PNG：保留透明背景與清楚邊緣</button><button type="button" onclick="chooseDiscussion('JPG，把照片壓縮得更小', this)" class="pick discussion-btn">JPG：把照片壓縮得更小</button></div><p id="discussion-feedback" class="small bold mt1" aria-live="polite">選擇後，和同伴用「我選……因為……」說明你的理由。</p></section>
+            </section>
+            <nav id="pager" aria-label="上一課／下一課"></nav>
+        </main>
+        
+        <footer class="tiny faint center mt3">內容改編自「0 與 1 的藝術」（unforte_114）</footer>
+    </div>
+
+    <script>
+        // ==========================================
+        // 全域變數與子頁籤邏輯
+        // ==========================================
+        let currentImageSubTab = 'intro';
+
+        // 彈出式對話框控制
+        function showCustomModal(title, msg, onOk = null) {
+            const modal = document.getElementById('pe-custom-modal');
+            if (!modal) return;
+            document.getElementById('pe-modal-title').innerText = title;
+            document.getElementById('pe-modal-message').innerText = msg;
+            
+            const btnOk = document.getElementById('pe-modal-btn-ok');
+            btnOk.onclick = () => {
+                modal.classList.add('hidden');
+                if (onOk) onOk();
+            };
+            modal.classList.remove('hidden');
+        }
+
+        /* 116：四個小步驟的結尾「← 上一步／下一步 →」（全站共用 UI.pager 的樣式） */
+        const IMAGE_STEPS = [['intro', '🔍 認識解析度'], ['explorer', '🧭 像素探險家'], ['pixel', '🎨 色彩量化與解碼'], ['compress', '🗜️ 壓縮與檔案格式']];
+        function drawImageStepPager(cur) {
+            if (!window.UI || !UI.pager) return;
+            const i = IMAGE_STEPS.findIndex(x => x[0] === cur), prev = IMAGE_STEPS[i - 1], next = IMAGE_STEPS[i + 1];
+            const go = k => () => { switchImageSubTab(k); document.getElementById('image-steps').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+            UI.pager('#image-step-pager',
+                prev ? { lbl: '← 上一步', title: (i) + '. ' + prev[1], go: go(prev[0]) } : null,
+                next ? { lbl: '下一步 →', title: (i + 2) + '. ' + next[1], go: go(next[0]) } : { lbl: '四步都完成了 →', title: '做下面的快速檢核', go: () => document.querySelector('[aria-labelledby="unit-four-review"]').scrollIntoView({ behavior: 'smooth', block: 'start' }) });
+        }
+        document.addEventListener('DOMContentLoaded', () => drawImageStepPager('intro'));
+
+        function switchImageSubTab(subTabName) {
+            ['intro', 'explorer', 'pixel', 'compress'].forEach(s => {
+                const subEl = document.getElementById(`image-sub-${s}`);
+                if (subEl) subEl.classList.toggle('section-hidden', s !== subTabName);
+                
+                const btnEl = document.getElementById(`sub-image-${s}`);
+                if (btnEl) { btnEl.classList.toggle('on', s === subTabName); if (s === subTabName) btnEl.setAttribute('aria-current', 'step'); else btnEl.removeAttribute('aria-current'); }
+            });
+            drawImageStepPager(subTabName);
+            currentImageSubTab = subTabName; 
+            
+            if(subTabName === 'intro') {
+                drawPixelatedDemo();
+            } else if (subTabName === 'explorer') {
+                setTimeout(() => { peDrawPixelated(); }, 50);
+            } else if (subTabName === 'compress') {
+                setTimeout(() => { renderCompressDemo('raw'); }, 50);
+            }
+        }
+
+        // ==========================================
+        // SVG Vector 向量圖備用方案產生器 (CORS 安全防護)
+        // ==========================================
+        function createSvgFallback(emoji) {
+            const colors = [
+                ['#ff9a9e', '#fecfef'], ['#a1c4fd', '#c2e9fb'], ['#f6d365', '#fda085'],
+                ['#d4fc79', '#96e6a1'], ['#84fab0', '#8fd3f4'], ['#cfd9df', '#e2ebf0']
+            ];
+            const randColor = colors[Math.floor(Math.random() * colors.length)];
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+                <defs>
+                    <linearGradient id="grad-${emoji.charCodeAt(0) || 0}" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:${randColor[0]};stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:${randColor[1]};stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grad-${emoji.charCodeAt(0) || 0})" />
+                <text x="50%" y="55%" font-size="120" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
+            </svg>`;
+            return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+        }
+
+        function getEmojiForLevel(opt) {
+            if (opt.includes("狗")) return "🐶";
+            if (opt.includes("貓")) return "🐱";
+            if (opt.includes("鳥")) return "🐦";
+            if (opt.includes("羊")) return "🐑";
+            if (opt.includes("海龜")) return "🐢";
+            if (opt.includes("熊貓")) return "🐼";
+            return "🐱";
+        }
+
+        // ==========================================
+        // (1) 認識解析度 Demo 繪製
+        // ==========================================
+        function drawPixelatedDemo() {
+            const img = document.getElementById('res-img-high');
+            const canvasLow = document.getElementById('res-canvas-low');
+            const canvasMid = document.getElementById('res-canvas-mid');
+            if (!img || !canvasLow || !canvasMid) return;
+
+            if (!img.complete || img.naturalWidth === 0) return;
+
+            const drawToCanvas = (canvas, scale) => {
+                const ctx = canvas.getContext('2d');
+                canvas.width = 300;
+                canvas.height = 300;
+                ctx.imageSmoothingEnabled = false;
+                
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = scale;
+                tempCanvas.height = scale;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(img, 0, 0, scale, scale);
+                
+                ctx.drawImage(tempCanvas, 0, 0, scale, scale, 0, 0, 300, 300);
+            };
+
+            drawToCanvas(canvasLow, 12);  
+            drawToCanvas(canvasMid, 32);  
+        }
+
+        // ==========================================
+        // (2) 像素探險家小遊戲邏輯
+        // ==========================================
+        const peAllLevels = [
+            { img: "images/explorer-dog.jpg", options: ["狗 (Dog)", "貓 (Cat)", "兔子 (Rabbit)"], correct: 0 },
+            { img: "images/explorer-cat.jpg", options: ["獅子 (Lion)", "貓 (Cat)", "老虎 (Tiger)"], correct: 1 },
+            { img: "images/explorer-penguin.jpg", options: ["老鷹 (Eagle)", "企鵝 (Penguin)", "豬 (Pig)"], correct: 1 },
+            { img: "images/explorer-sheep.jpg", options: ["羊 (Sheep)", "牛 (Cow)", "馬 (Horse)"], correct: 0 },
+            { img: "images/explorer-turtle.jpg", options: ["海龜 (Turtle)", "螃蟹 (Crab)", "青蛙 (Frog)"], correct: 0 },
+            { img: "images/explorer-koala.jpg", options: ["無尾熊 (Koala)", "熊貓 (Panda)", "北極熊 (Polar Bear)"], correct: 1 }
+        ];
+        let peSelectedLevels = [];
+        let peCurrentLevel1 = 0;
+        let peCurrentLevel2 = 0;
+        let peSelectedColor = 1; 
+
+        // 關卡二：3組體驗資料
+        const peLevel2Data = [
+            {
+                high: "images/city-high.jpg",
+                low: "images/city-low.jpg",
+                descHigh: "🏙️ 城市街景 (像素極多)",
+                descLow: "🏙️ 城市街景 (像素較少)"
+            },
+            {
+                high: "images/bird-high.jpg",
+                low: "images/bird-low.jpg",
+                descHigh: "🦜 鳩鴿羽毛 (像素極多)",
+                descLow: "🦜 鳩鴿羽毛 (像素較少)"
+            },
+            {
+                high: "images/car-high.jpg",
+                low: "images/car-low.jpg",
+                descHigh: "🏎️ 跑車細節 (像素極多)",
+                descLow: "🏎️ 跑車細節 (像素較少)"
+            }
+        ];
+
+        let playerGrid = Array(8).fill(null).map(() => Array(8).fill(0));
+        let peFreeDrawMode = 'brush';
+
+        function peInitAllLevels() {
+            peSelectedLevels = [...peAllLevels].sort(() => 0.5 - Math.random()).slice(0, 3);
+            peCurrentLevel1 = 0;
+
+            peLoadLevel1();
+            peLoadLevel2();
+            peInitLevel3();
+            
+            const slider = document.getElementById('pe-resolution-slider');
+            if (slider) {
+                slider.addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value);
+                    const labels = ["極低", "低", "中", "高", "極高"];
+                    document.getElementById('pe-resolution-value').innerText = labels[val - 1];
+                    peDrawPixelated();
+                });
+            }
+        }
+
+        // 關卡一
+        function peLoadLevel1() {
+            const levelData = peSelectedLevels[peCurrentLevel1];
+            const img = document.getElementById('pe-source-image1');
+            const slider = document.getElementById('pe-resolution-slider');
+            
+            if (slider) {
+                slider.value = 1;
+                document.getElementById('pe-resolution-value').innerText = "極低";
+            }
+
+            img.onload = () => { peDrawPixelated(); };
+            img.onerror = () => {
+                const emoji = getEmojiForLevel(levelData.options[levelData.correct]);
+                img.src = createSvgFallback(emoji);
+            };
+            img.src = levelData.img;
+
+            document.getElementById('pe-level1-progress').innerText = `進度 ${peCurrentLevel1 + 1}/${peSelectedLevels.length}`;
+
+            const optionsContainer = document.getElementById('pe-level1-options');
+            optionsContainer.innerHTML = '';
+            levelData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border border-slate-200 hover:bg-blue-50 py-2 px-3 rounded-xl text-xs font-bold text-slate-700 transition-all";
+                btn.innerText = opt;
+                btn.onclick = () => peCheckAnswer1(idx);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function peDrawPixelated() {
+            const canvas = document.getElementById('pe-pixel-canvas');
+            const img = document.getElementById('pe-source-image1');
+            if (!canvas || !img) return;
+
+            if (!img.complete || img.naturalWidth === 0) return;
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = 300;
+            canvas.height = 300;
+            ctx.imageSmoothingEnabled = false;
+
+            const sliderVal = parseInt(document.getElementById('pe-resolution-slider')?.value || 1);
+            const sizes = [8, 16, 32, 64, 300];
+            const size = sizes[sliderVal - 1];
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size;
+            tempCanvas.height = size;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(img, 0, 0, size, size);
+
+            ctx.drawImage(tempCanvas, 0, 0, size, size, 0, 0, 300, 300);
+
+            const qArea = document.getElementById('pe-level1-question');
+            if (qArea) qArea.classList.remove('hidden');
+        }
+
+        function peCheckAnswer1(selectedIdx) {
+            const levelData = peSelectedLevels[peCurrentLevel1];
+            if (selectedIdx === levelData.correct) {
+                showCustomModal("✅ 答對了！", "恭喜你答對了！你對解析度的觀察力太優秀了！", () => {
+                    if (peCurrentLevel1 < peSelectedLevels.length - 1) {
+                        peCurrentLevel1++;
+                        peLoadLevel1();
+                    } else {
+                        showCustomModal("🏆 完美通關！", "你已完成了關卡一的所有挑戰！接下來試試關卡二的放大鏡功能吧！");
+                    }
+                });
+            } else {
+                showCustomModal("❌ 再看仔細一點", "這不是正確答案，試著把解析度調高一點再猜猜看！");
+            }
+        }
+
+        // 關卡二
+        function peLoadLevel2() {
+            const data = peLevel2Data[peCurrentLevel2];
+            document.getElementById('pe-level2-progress').innerText = `進度 ${peCurrentLevel2 + 1}/${peLevel2Data.length}`;
+            
+            const imgHigh = document.getElementById('pe-img-high-res');
+            const imgLow = document.getElementById('pe-img-low-res');
+
+            imgHigh.onload = () => { setupMagnifier('pe-mag-container-high', 'pe-img-high-res', 'pe-lens-high'); };
+            imgLow.onload = () => { setupMagnifier('pe-mag-container-low', 'pe-img-low-res', 'pe-lens-low'); };
+
+            imgHigh.onerror = () => {
+                const emojis = ["🏙️", "🦜", "🏎️"];
+                imgHigh.src = createSvgFallback(emojis[peCurrentLevel2]);
+            };
+            imgLow.onerror = () => {
+                const emojis = ["🏙️", "🦜", "🏎️"];
+                imgLow.src = createSvgFallback(emojis[peCurrentLevel2]);
+            };
+
+            imgHigh.src = data.high;
+            imgLow.src = data.low;
+
+            document.getElementById('pe-l2-desc-high').innerText = data.descHigh;
+            document.getElementById('pe-l2-desc-low').innerText = data.descLow;
+
+            if (peCurrentLevel2 === peLevel2Data.length - 1) {
+                document.getElementById('pe-btn-l2-next').style.display = 'none';
+                document.getElementById('pe-level2-quiz').classList.remove('hidden');
+            } else {
+                document.getElementById('pe-btn-l2-next').style.display = 'flex';
+                document.getElementById('pe-level2-quiz').classList.add('hidden');
+            }
+        }
+
+        function peNextLevel2Image() {
+            if (peCurrentLevel2 < peLevel2Data.length - 1) {
+                peCurrentLevel2++;
+                peLoadLevel2();
+            }
+        }
+
+        function peCheckAnswer2(isSmall) {
+            const fb = document.getElementById('pe-feedback2');
+            fb.classList.remove('hidden');
+            if (isSmall) {
+                fb.className = "mt-3 text-sm font-bold text-emerald-600 animate-fade-up";
+                fb.innerText = "✅ 答對了！格子切得越小（數量越多），畫面局部放大後就越精細！";
+            } else {
+                fb.className = "mt-3 text-sm font-bold text-rose-500 animate-fade-up";
+                fb.innerText = "❌ 再想想看，大格子會造成嚴重的馬賽克喔！";
+            }
+        }
+
+        function setupMagnifier(containerId, imgId, lensId) {
+            const container = document.getElementById(containerId);
+            const img = document.getElementById(imgId);
+            const lens = document.getElementById(lensId);
+            if (!container || !img || !lens) return;
+
+            if (img.naturalWidth === 0) return;
+
+            lens.style.backgroundImage = `url('${img.src}')`;
+
+            const moveLens = (e) => {
+                e.preventDefault();
+                lens.style.display = "block";
+                lens.style.backgroundImage = `url('${img.src}')`;
+
+                const pos = getCursorPos(e);
+                let x = pos.x - (lens.offsetWidth / 2);
+                let y = pos.y - (lens.offsetHeight / 2);
+                
+                if (x > img.width - lens.offsetWidth) x = img.width - lens.offsetWidth;
+                if (x < 0) x = 0;
+                if (y > img.height - lens.offsetHeight) y = img.height - lens.offsetHeight;
+                if (y < 0) y = 0;
+
+                lens.style.left = x + "px";
+                lens.style.top = y + "px";
+                lens.style.backgroundSize = (img.width * 2) + "px " + (img.height * 2) + "px";
+                lens.style.backgroundPosition = "-" + (x * 2) + "px -" + (y * 2) + "px";
+            };
+
+            function getCursorPos(e) {
+                let a = img.getBoundingClientRect();
+                let x = (e.pageX !== undefined) ? e.pageX : (e.touches && e.touches.length > 0 ? e.touches[0].pageX : 0);
+                let y = (e.pageY !== undefined) ? e.pageY : (e.touches && e.touches.length > 0 ? e.touches[0].pageY : 0);
+                x = x - a.left - window.scrollX;
+                y = y - a.top - window.scrollY;
+                return {x : x, y : y};
+            }
+
+            const hideLens = () => { lens.style.display = "none"; };
+
+            container.removeEventListener('mousemove', moveLens);
+            container.removeEventListener('touchmove', moveLens);
+            container.removeEventListener('mouseenter', () => lens.style.display = 'block');
+            container.removeEventListener('mouseleave', hideLens);
+            container.removeEventListener('touchend', hideLens);
+
+            container.addEventListener('mousemove', moveLens);
+            container.addEventListener('touchmove', moveLens, { passive: false });
+            container.addEventListener('mouseenter', () => lens.style.display = 'block');
+            container.addEventListener('mouseleave', hideLens);
+            container.addEventListener('touchend', hideLens);
+        }
+
+        // 關卡三：自由創作與演算法比對
+        function peInitLevel3() {
+            peSelectedColor = 1;
+            peSelectColor(1);
+            playerGrid = Array(8).fill(null).map(() => Array(8).fill(0));
+            peCreateDrawingGrid();
+            peInitFreeDrawCanvas();
+        }
+
+        function peResetDrawingGrid() {
+            playerGrid = Array(8).fill(null).map(() => Array(8).fill(0));
+            peCreateDrawingGrid();
+            const hint = document.getElementById('pe-restart-hint');
+            if (hint) hint.innerText = '量化格已重置：先選色票，再點選或按 Enter 上色。';
+        }
+
+        let peIsFreeDrawing = false;
+        let peFreeDrawCtx = null;
+        
+        function peInitFreeDrawCanvas() {
+            const cvs = document.getElementById('pe-free-draw-canvas');
+            if(!cvs) return;
+            
+            // 為了乾淨地移除舊的事件監聽器，使用 cloneNode
+            const newCvs = cvs.cloneNode(true);
+            cvs.parentNode.replaceChild(newCvs, cvs);
+            
+            peFreeDrawCtx = newCvs.getContext('2d', { willReadFrequently: true });
+            
+            // 填滿白色背景
+            peFreeDrawCtx.fillStyle = 'white';
+            peFreeDrawCtx.fillRect(0, 0, newCvs.width, newCvs.height);
+            const hint = document.getElementById('pe-restart-hint');
+            if (hint) hint.innerText = '畫布已清除：先用畫筆畫出輪廓，再用量化格重現。';
+            
+            peFreeDrawCtx.lineCap = 'round';
+            peFreeDrawCtx.lineJoin = 'round';
+            
+            const startDraw = (e) => {
+                peIsFreeDrawing = true;
+                draw(e);
+            };
+            const stopDraw = () => {
+                peIsFreeDrawing = false;
+                peFreeDrawCtx.beginPath();
+            };
+            const draw = (e) => {
+                if(!peIsFreeDrawing) return;
+                e.preventDefault(); // 防止滾動
+                const rect = newCvs.getBoundingClientRect();
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if(e.touches && e.touches.length > 0){
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                const x = (clientX - rect.left) * (newCvs.width / rect.width);
+                const y = (clientY - rect.top) * (newCvs.height / rect.height);
+                
+                peFreeDrawCtx.lineWidth = peFreeDrawMode === 'brush' ? 12 : 25;
+                peFreeDrawCtx.strokeStyle = peFreeDrawMode === 'brush' ? '#1e293b' : 'white';
+                
+                peFreeDrawCtx.lineTo(x, y);
+                peFreeDrawCtx.stroke();
+                peFreeDrawCtx.beginPath();
+                peFreeDrawCtx.moveTo(x, y);
+            };
+            
+            newCvs.addEventListener('mousedown', startDraw);
+            newCvs.addEventListener('mousemove', draw);
+            newCvs.addEventListener('mouseup', stopDraw);
+            newCvs.addEventListener('mouseleave', stopDraw);
+            
+            newCvs.addEventListener('touchstart', startDraw, {passive: false});
+            newCvs.addEventListener('touchmove', draw, {passive: false});
+            newCvs.addEventListener('touchend', stopDraw);
+        }
+
+        function peApplyReferencePattern(patternName) {
+            const patterns = {
+                heart: ['00100100', '01111110', '11111111', '11111111', '01111110', '00111100', '00011000', '00000000'],
+                smile: ['00111100', '01000010', '10100101', '10000001', '10100101', '10011001', '01000010', '00111100'],
+                rocket: ['00011000', '00111100', '01111110', '11011011', '11111111', '01011010', '01011010', '11000011']
+            };
+            const pattern = patterns[patternName];
+            if (!pattern) return;
+            peInitFreeDrawCanvas();
+            const canvas = document.getElementById('pe-free-draw-canvas');
+            const context = canvas?.getContext('2d');
+            if (!canvas || !context) return;
+            playerGrid = pattern.map(row => [...row].map(value => Number(value)));
+            const cellSize = canvas.width / 8;
+            context.fillStyle = '#1e293b';
+            playerGrid.forEach((row, rowIndex) => row.forEach((value, columnIndex) => { if (value) context.fillRect(columnIndex * cellSize + 3, rowIndex * cellSize + 3, cellSize - 6, cellSize - 6); }));
+            peSelectedColor = 1;
+            peSelectColor(1);
+            peCreateDrawingGrid();
+            const hint = document.getElementById('pe-restart-hint');
+            if (hint) hint.innerText = `已套用${({ heart: '愛心', smile: '笑臉', rocket: '火箭' })[patternName]}參考圖案：可直接比較，或再自行修改。`;
+        }
+
+        function peSetFreeDrawMode(mode) {
+            peFreeDrawMode = mode;
+            const btnBrush = document.getElementById('pe-btn-brush');
+            const btnEraser = document.getElementById('pe-btn-eraser');
+            if (mode === 'brush') {
+                btnBrush.className = "flex-1 py-1.5 bg-slate-800 text-white rounded text-xs font-bold shadow-sm transition-all ring-2 ring-orange-400 ring-offset-1";
+                btnEraser.className = "flex-1 py-1.5 bg-white border border-slate-300 text-slate-600 rounded text-xs font-bold shadow-sm transition-all";
+            } else {
+                btnBrush.className = "flex-1 py-1.5 bg-slate-800 text-white rounded text-xs font-bold shadow-sm transition-all";
+                btnEraser.className = "flex-1 py-1.5 bg-white border border-slate-300 text-slate-600 rounded text-xs font-bold shadow-sm transition-all ring-2 ring-orange-400 ring-offset-1";
+            }
+        }
+
+        function peSelectColor(colorIdx) {
+            peSelectedColor = colorIdx;
+            document.getElementById('pe-color-0').className = `w-12 h-12 border-2 ${colorIdx === 0 ? 'ring-2 ring-orange-400 ring-offset-2' : 'border-slate-300'} bg-white rounded-xl shadow-sm transition-all group-hover:scale-110`;
+            document.getElementById('pe-color-1').className = `w-12 h-12 border-2 ${colorIdx === 1 ? 'ring-2 ring-orange-400 ring-offset-2' : 'border-slate-800'} bg-slate-800 rounded-xl shadow-sm transition-all group-hover:scale-110`;
+        }
+
+        function peCreateDrawingGrid() {
+            const drawingContainer = document.getElementById('pe-drawing-grid');
+            if (!drawingContainer) return;
+            
+            // 重新產生以清空事件
+            const newGridContainer = drawingContainer.cloneNode(false);
+            drawingContainer.parentNode.replaceChild(newGridContainer, drawingContainer);
+            
+            let isGridMouseDown = false;
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.className = "pe-sampling-cell bg-white border border-slate-200";
+                    cell.style.backgroundColor = playerGrid[r][c] === 1 ? '#1e293b' : '#ffffff';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.setAttribute('aria-label', `第 ${r + 1} 列、第 ${c + 1} 格；按 Enter 填入目前色彩`);
+                    
+                    const paintCell = (evt) => {
+                        if(evt && evt.type === 'touchstart') evt.preventDefault();
+                        playerGrid[r][c] = peSelectedColor;
+                        cell.style.backgroundColor = peSelectedColor === 1 ? '#1e293b' : '#ffffff';
+                    };
+
+                    cell.addEventListener('mousedown', (e) => { isGridMouseDown = true; paintCell(e); });
+                    cell.addEventListener('click', paintCell);
+                    cell.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); paintCell(event); } });
+                    cell.addEventListener('mouseenter', (e) => { if (isGridMouseDown) paintCell(e); });
+                    cell.addEventListener('touchstart', (e) => { isGridMouseDown = true; paintCell(e); }, {passive: false});
+                    cell.addEventListener('touchmove', (e) => {
+                        if(!isGridMouseDown) return;
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                        if (el && el.classList.contains('pe-sampling-cell') && el.parentNode === newGridContainer) {
+                            const tr = el.dataset.row;
+                            const tc = el.dataset.col;
+                            playerGrid[tr][tc] = peSelectedColor;
+                            el.style.backgroundColor = peSelectedColor === 1 ? '#1e293b' : '#ffffff';
+                        }
+                    }, {passive: false});
+                    cell.addEventListener('touchend', () => isGridMouseDown = false);
+
+                    newGridContainer.appendChild(cell);
+                }
+            }
+            window.addEventListener('mouseup', () => isGridMouseDown = false);
+        }
+
+        function peCompareDigitization() {
+            const canvas = document.getElementById('pe-free-draw-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            const computerGrid = [];
+            const cellW = canvas.width / 8;
+            const cellH = canvas.height / 8;
+            
+            // 電腦演算法：掃描每一個格子內的黑色像素比例
+            for (let r = 0; r < 8; r++) {
+                const row = [];
+                for (let c = 0; c < 8; c++) {
+                    const imgData = ctx.getImageData(c * cellW, r * cellH, cellW, cellH);
+                    const data = imgData.data;
+                    let darkPixels = 0;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+                        if (brightness < 200) darkPixels++; // 認定為暗色
+                    }
+                    const totalPixels = cellW * cellH;
+                    const coverage = darkPixels / totalPixels;
+                    // 覆蓋率大於 5% 即判定為黑色 (1)
+                    row.push(coverage > 0.05 ? 1 : 0); 
+                }
+                computerGrid.push(row);
+            }
+
+            // 進行比對並渲染結果
+            let matchCount = 0;
+            const playerDiv = document.getElementById('pe-compare-player-grid');
+            const computerDiv = document.getElementById('pe-compare-computer-grid');
+            playerDiv.innerHTML = '';
+            computerDiv.innerHTML = '';
+            
+            for(let r=0; r<8; r++){
+                for(let c=0; c<8; c++){
+                    const pVal = playerGrid[r][c];
+                    const cVal = computerGrid[r][c];
+                    if(pVal === cVal) matchCount++;
+                    
+                    // 玩家格子
+                    const pCell = document.createElement('div');
+                    pCell.className = 'border-slate-300 border bg-white';
+                    if (pVal === 1) pCell.classList.add('bg-slate-800');
+                    playerDiv.appendChild(pCell);
+                    
+                    // 電腦格子 (若與玩家不同，加上紅色內陰影提示)
+                    const cCell = document.createElement('div');
+                    cCell.className = 'border-slate-300 border bg-white';
+                    if (cVal === 1) cCell.classList.add('bg-slate-800');
+                    
+                    if (pVal !== cVal) {
+                        pCell.style.boxShadow = 'inset 0 0 0 2px #ef4444';
+                        cCell.style.boxShadow = 'inset 0 0 0 2px #ef4444';
+                    }
+                    computerDiv.appendChild(cCell);
+                }
+            }
+            
+            const score = Math.round((matchCount / 64) * 100);
+            const scoreEl = document.getElementById('pe-compare-score');
+            scoreEl.innerText = `${score}%`;
+            
+            if(score === 100) {
+                scoreEl.className = "text-4xl font-black text-emerald-500 ml-2";
+            } else if (score >= 80) {
+                scoreEl.className = "text-4xl font-black text-orange-500 ml-2";
+            } else {
+                scoreEl.className = "text-4xl font-black text-rose-500 ml-2";
+            }
+
+            document.getElementById('pe-compare-modal').classList.remove('hidden');
+        }
+
+        function peCompleteExplorer() {
+            document.getElementById('pe-compare-modal').classList.add('hidden');
+            showCustomModal("🎉 恭喜通關！", "你親自體驗了『取樣』與『量化』，並且跟電腦的演算法比對過了！\n\n你已經完美掌握了影像數位化的核心奧秘！接下來可以前往下一個階段學習色彩解碼囉！");
+        }
+
+        // ==========================================
+        // (3) 色彩量化與解碼實作遊戲邏輯
+        // ==========================================
+        const IMAGE_RGB_COLORS = { 
+            0: { r: 240, g: 245, b: 235 }, 
+            1: { r: 45, g: 55, b: 65 }, 
+            2: { r: 225, g: 65, b: 85 }, 
+            3: { r: 245, g: 195, b: 55 }, 
+            4: { r: 65, g: 125, b: 235 }, 
+            5: { r: 35, g: 175, b: 95 } 
+        };
+
+        const IMAGE_GAME_LEVELS = [
+            { id: 0, name: "小雞", pattern: [[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,3,3,3,0,0,0],[0,0,0,3,3,3,3,3,0,0],[0,0,3,3,1,3,3,1,3,0],[0,0,3,3,3,3,3,3,3,0],[0,0,0,3,3,2,2,3,0,0],[0,0,3,3,3,3,3,3,3,0],[0,3,3,3,3,3,3,3,3,3],[0,3,3,3,3,3,3,3,3,3],[5,5,0,1,5,5,0,1,5,5]] },
+            { id: 1, name: "青蛙", pattern: [[4,4,0,0,0,0,0,0,4,4],[0,0,5,5,0,0,5,5,0,0],[0,5,1,5,5,5,1,5,5,0],[0,5,5,5,5,5,5,5,5,0],[5,5,5,2,5,5,2,5,5,5],[5,5,5,5,5,5,5,5,5,5],[5,5,0,5,5,5,5,0,5,5],[5,0,0,0,5,5,0,0,0,5],[5,5,0,0,0,0,0,0,5,5],[0,5,5,0,0,0,0,5,5,0]] },
+            { id: 2, name: "螃蟹", pattern: [[4,4,4,4,0,0,4,4,4,4],[0,2,0,0,0,0,0,0,2,0],[2,2,2,0,2,2,0,2,2,2],[0,2,0,2,1,2,2,1,2,0],[0,0,2,2,2,2,2,2,2,0],[0,2,2,2,2,2,2,2,2,2],[2,2,2,2,2,2,2,2,2,2],[2,0,2,2,2,2,2,2,0,2],[3,3,2,3,3,3,3,2,3,3],[3,2,3,3,3,3,3,3,2,3]] },
+            { id: 3, name: "企鵝", pattern: [[4,4,0,0,1,1,0,0,4,4],[0,0,0,1,1,1,1,0,0,0],[0,0,1,1,0,0,1,1,0,0],[0,0,1,1,1,1,1,1,0,0],[0,0,1,2,2,2,2,1,0,0],[0,1,1,0,0,0,0,1,1,0],[0,1,1,0,0,0,0,1,1,0],[1,1,1,0,0,0,0,1,1,1],[1,1,1,1,0,0,1,1,1,1],[4,4,4,3,3,3,3,4,4,4]] },
+            { id: 4, name: "小豬", pattern: [[4,4,0,0,0,0,0,0,4,4],[0,2,0,0,0,0,0,0,2,0],[0,2,2,0,0,0,0,2,2,0],[0,0,2,2,2,2,2,2,0,0],[0,2,1,2,2,2,2,1,2,0],[0,2,2,2,2,2,2,2,2,0],[0,2,2,0,2,2,0,2,2,0],[0,0,2,2,2,2,2,2,0,0],[5,5,5,2,5,5,2,5,5,5],[5,5,5,2,5,5,2,5,5,5]] },
+            { id: 5, name: "藍鯨", pattern: [[3,3,0,0,0,0,0,0,0,0],[3,3,0,0,0,4,0,0,0,0],[0,0,0,0,4,4,4,0,0,0],[0,0,0,4,4,4,4,4,0,0],[0,0,4,4,4,4,4,4,4,4],[4,4,4,4,1,4,4,4,4,4],[4,4,4,4,4,4,4,4,4,4],[0,4,4,4,4,4,4,4,4,0],[0,0,0,0,4,4,4,0,2,2],[0,0,0,0,0,0,0,0,2,2]] },
+            { id: 6, name: "蜜蜂", pattern: [[0,0,0,0,0,0,0,0,0,0],[0,0,4,4,0,0,4,4,0,0],[0,0,0,4,4,4,4,0,0,0],[0,0,0,3,1,3,1,0,0,0],[0,0,3,3,3,3,3,3,0,0],[0,1,1,1,1,1,1,1,1,0],[0,0,3,3,3,3,3,3,0,0],[0,0,0,1,1,1,1,0,0,0],[2,2,0,0,3,3,0,0,0,0],[2,2,0,0,0,1,0,0,0,0]] },
+            { id: 7, name: "熊貓", pattern: [[4,4,4,0,0,0,0,0,3,3],[0,1,1,0,0,0,0,1,1,3],[1,1,1,1,0,0,1,1,1,1],[1,1,1,0,0,0,0,1,1,1],[5,0,0,1,0,0,1,0,0,0],[5,5,0,1,1,1,1,0,0,0],[5,0,0,0,1,1,0,0,0,0],[5,0,1,1,1,1,1,1,0,0],[5,1,1,0,0,0,0,1,1,0],[5,1,1,0,0,0,0,1,1,0]] },
+            { id: 8, name: "狐狸", pattern: [[0,0,0,0,0,0,2,2,0,0],[3,3,0,0,0,0,2,2,3,3],[3,3,3,0,0,0,0,3,3,3],[0,3,3,3,3,3,3,3,3,0],[0,0,3,1,3,3,1,3,0,0],[0,0,3,3,3,3,3,3,0,0],[0,0,0,3,1,1,3,0,0,0],[0,0,0,0,3,3,0,0,0,0],[5,5,3,3,3,3,3,3,5,5],[5,3,3,3,3,3,3,3,3,5]] },
+            { id: 9, name: "烏龜", pattern: [[4,4,4,4,4,4,4,4,4,4],[4,4,4,4,4,4,4,4,4,4],[0,0,0,5,5,5,5,0,0,0],[0,0,5,5,5,5,5,5,0,0],[0,5,5,5,5,5,5,5,5,0],[5,5,5,5,5,5,5,5,5,5],[5,1,5,0,0,0,0,5,1,5],[0,5,0,0,0,0,0,0,5,0],[3,3,3,3,3,3,3,3,3,3],[3,3,3,3,3,3,3,3,3,3]] }
+        ];
+
+        let imageGameLevelId = 0, playedImageLevels = [], imageGridData = [], unlockedColors = new Set(), selectedTargetCell = null, activePaintColor = null, isImageGameActive = false, imageTimerInterval, imageTimeLeft = 0, imageTotalTime = 0;
+        let isImageDrawing = false;
+
+        function toBinaryString(num) { 
+            return num.toString(2).padStart(8, '0');
+        }
+
+        function initImageDecodingGame() { 
+            playedImageLevels = [];
+            imageGridData = Array(10).fill().map(() => Array(10).fill(-1));
+            createDecodeGrid(); 
+            setupDecodeDrawingEvents(); 
+        }
+
+        function startImageGame() {
+            if (playedImageLevels.length === 0) {
+                loadRandomImageLevel();
+            }
+            isImageGameActive = true;
+            const overlay = document.getElementById('img-game-overlay');
+            if(overlay) overlay.style.display = 'none'; 
+            startImageTimer();
+        }
+
+        function startImageTimer() {
+            clearInterval(imageTimerInterval);
+            const timeSetting = document.getElementById('img-time-setting');
+            imageTotalTime = timeSetting ? parseInt(timeSetting.value) : 0;
+            imageTimeLeft = imageTotalTime; 
+            updateImageTimerUI();
+            
+            if (imageTotalTime > 0) {
+                imageTimerInterval = setInterval(() => {
+                    imageTimeLeft--; 
+                    updateImageTimerUI();
+                    if (imageTimeLeft <= 0) { 
+                        clearInterval(imageTimerInterval); 
+                        isImageGameActive = false; 
+                        showImageGameOverModal(false); 
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateImageTimerUI() {
+            const td = document.getElementById('img-timer-display');
+            if(!td) return;
+            
+            if (imageTotalTime === 0) {
+                td.innerText = `無限時`;
+                td.classList.remove('timer-urgent');
+            } else {
+                td.innerText = `${imageTimeLeft}s`;
+                if (imageTimeLeft <= 10) td.classList.add('timer-urgent'); 
+                else td.classList.remove('timer-urgent');
+            }
+        }
+
+        function updateInitialImageTime() {
+            if (!isImageGameActive) {
+                const timeSetting = document.getElementById('img-time-setting');
+                imageTotalTime = timeSetting ? parseInt(timeSetting.value) : 0;
+                imageTimeLeft = imageTotalTime;
+                updateImageTimerUI();
+            }
+        }
+
+        function loadImageCurrentLevelData() {
+            const levelTitle = document.getElementById('img-level-title');
+            if(levelTitle) levelTitle.innerText = `目前挑戰：神秘圖案❓`;
+            
+            imageGridData = Array(10).fill().map(() => Array(10).fill(-1));
+            unlockedColors.clear(); 
+            selectedTargetCell = null; 
+            activePaintColor = null;
+            
+            resetImageTaskPanel(); 
+            updateImagePaletteUI(); 
+            createDecodeGrid();
+            updateImageProgress(false);
+            
+            clearInterval(imageTimerInterval); 
+            const timeSetting = document.getElementById('img-time-setting');
+            imageTotalTime = timeSetting ? parseInt(timeSetting.value) : 0;
+            imageTimeLeft = imageTotalTime; 
+            updateImageTimerUI();
+        }
+
+        function loadRandomImageLevel() {
+            const availableLevels = IMAGE_GAME_LEVELS.filter(l => !playedImageLevels.includes(l.id));
+            if (availableLevels.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * availableLevels.length);
+            imageGameLevelId = availableLevels[randomIndex].id; 
+            playedImageLevels.push(imageGameLevelId);
+            
+            const progEl = document.getElementById('img-game-progress');
+            if(progEl) progEl.innerText = `${playedImageLevels.length}/10`;
+            loadImageCurrentLevelData();
+        }
+
+        function retryImageLevel() { 
+            closeImageModal();
+            loadImageCurrentLevelData(); 
+            isImageGameActive = true;
+            startImageTimer();
+        }
+
+        function playImageNextLevel() { 
+            closeImageModal();
+            loadRandomImageLevel(); 
+            isImageGameActive = true;
+            startImageTimer();
+        }
+
+        function createDecodeGrid() {
+            const gridElement = document.getElementById('img-grid');
+            if(!gridElement) return;
+            
+            gridElement.innerHTML = '';
+            for (let r = 0; r < 10; r++) {
+                for (let c = 0; c < 10; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'img-cell unpainted'; 
+                    cell.dataset.r = r; 
+                    cell.dataset.c = c; 
+                    cell.id = `img-cell-${r}-${c}`;
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function resetImageTaskPanel() {
+            const targetCoords = document.getElementById('img-target-coords');
+            if(targetCoords) targetCoords.innerText = '未選擇';
+            
+            const binScreen = document.getElementById('img-binary-screen');
+            if(binScreen) { 
+                binScreen.innerHTML = '請點選左側<br>未解鎖的格子';
+                binScreen.classList.remove('text-left'); 
+                binScreen.classList.add('text-center'); 
+            }
+            
+            const inputArea = document.getElementById('img-rgb-input-area');
+            if(inputArea) inputArea.classList.add('opacity-50', 'pointer-events-none');
+            
+            ['img-input-r', 'img-input-g', 'img-input-b'].forEach(id => { 
+                const el = document.getElementById(id);
+                if(el) el.value = ''; 
+            });
+            document.querySelectorAll('.img-cell').forEach(c => c.classList.remove('selected'));
+        }
+
+        function handleImageCellClick(r, c) {
+            if (!isImageGameActive || (imageTotalTime > 0 && imageTimeLeft <= 0)) return;
+            const cell = document.getElementById(`img-cell-${r}-${c}`);
+            if (imageGridData[r][c] !== -1) return;
+            
+            const targetColorId = IMAGE_GAME_LEVELS.find(l => l.id === imageGameLevelId).pattern[r][c];
+            
+            if (activePaintColor !== null) { 
+                tryPaintImageCell(r, c);
+                return; 
+            }
+
+            document.querySelectorAll('.img-cell').forEach(c => c.classList.remove('selected'));
+            if (cell) cell.classList.add('selected');
+            
+            selectedTargetCell = { r, c, colorId: targetColorId };
+            const rgb = IMAGE_RGB_COLORS[targetColorId];
+            
+            const targetCoords = document.getElementById('img-target-coords');
+            if(targetCoords) targetCoords.innerText = `(${r+1}, ${c+1})`;
+            
+            const binScreen = document.getElementById('img-binary-screen');
+            if(binScreen) { 
+                binScreen.classList.remove('text-center');
+                binScreen.classList.add('text-left'); 
+                binScreen.innerHTML = `R: ${toBinaryString(rgb.r)}<br>G: ${toBinaryString(rgb.g)}<br>B: ${toBinaryString(rgb.b)}`; 
+            }
+            
+            const inputArea = document.getElementById('img-rgb-input-area');
+            if(inputArea) inputArea.classList.remove('opacity-50', 'pointer-events-none');
+            
+            const inputR = document.getElementById('img-input-r');
+            if(inputR) { inputR.value = ''; inputR.focus(); }
+            
+            const inputG = document.getElementById('img-input-g');
+            if(inputG) inputG.value = ''; 
+            
+            const inputB = document.getElementById('img-input-b');
+            if(inputB) inputB.value = '';
+        }
+
+        function submitImageDecode() {
+            if (!isImageGameActive || !selectedTargetCell || (imageTotalTime > 0 && imageTimeLeft <= 0)) return;
+            const targetRGB = IMAGE_RGB_COLORS[selectedTargetCell.colorId];
+            
+            const inputR = document.getElementById('img-input-r');
+            const inputG = document.getElementById('img-input-g');
+            const inputB = document.getElementById('img-input-b');
+            
+            const valR = inputR ? parseInt(inputR.value) : 0;
+            const valG = inputG ? parseInt(inputG.value) : 0;
+            const valB = inputB ? parseInt(inputB.value) : 0;
+            
+            if (valR === targetRGB.r && valG === targetRGB.g && valB === targetRGB.b) {
+                const cid = selectedTargetCell.colorId;
+                fillImageCell(selectedTargetCell.r, selectedTargetCell.c, cid);
+                if (!unlockedColors.has(cid)) { 
+                    unlockedColors.add(cid);
+                    updateImagePaletteUI(); 
+                }
+                resetImageTaskPanel(); 
+                updateImageProgress(true);
+            } else {
+                const panel = document.getElementById('img-task-panel');
+                if(panel) { 
+                    panel.classList.remove('img-shake');
+                    void panel.offsetWidth; 
+                    panel.classList.add('img-shake'); 
+                }
+            }
+        }
+
+        function fillImageCell(r, c, colorId) {
+            imageGridData[r][c] = colorId;
+            const cell = document.getElementById(`img-cell-${r}-${c}`);
+            const rgb = IMAGE_RGB_COLORS[colorId];
+            if(!cell) return;
+            cell.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            cell.classList.remove('unpainted', 'selected'); 
+            cell.classList.add('filled');
+        }
+
+        function updateImagePaletteUI() {
+            const paletteContainer = document.getElementById('img-palette');
+            const paletteEmptyMsg = document.getElementById('img-palette-empty-msg');
+            if(!paletteContainer || !paletteEmptyMsg) return;
+            
+            if (unlockedColors.size === 0) { 
+                paletteEmptyMsg.style.display = 'block';
+                Array.from(paletteContainer.children).forEach(child => { 
+                    if (child.id !== 'img-palette-empty-msg') child.remove(); 
+                });
+                return; 
+            }
+            
+            paletteEmptyMsg.style.display = 'none';
+            paletteContainer.innerHTML = ''; 
+            paletteContainer.appendChild(paletteEmptyMsg);
+            
+            unlockedColors.forEach(cid => {
+                const rgb = IMAGE_RGB_COLORS[cid];
+                const btn = document.createElement('div');
+                btn.className = `img-color-btn ${activePaintColor === cid ? 'selected' : ''}`; 
+                btn.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                btn.onclick = () => selectImagePaintColor(cid); 
+                paletteContainer.appendChild(btn);
+            });
+        }
+
+        function selectImagePaintColor(colorId) {
+            if (!isImageGameActive) return;
+            if (activePaintColor === colorId) { 
+                activePaintColor = null;
+            } else { 
+                activePaintColor = colorId;
+                resetImageTaskPanel(); 
+            }
+            updateImagePaletteUI();
+        }
+
+        function tryPaintImageCell(r, c) {
+            if (!isImageGameActive || activePaintColor === null || (imageTotalTime > 0 && imageTimeLeft <= 0) || imageGridData[r][c] !== -1) return;
+            const targetColorId = IMAGE_GAME_LEVELS.find(l => l.id === imageGameLevelId).pattern[r][c];
+            if (targetColorId === activePaintColor) {
+                fillImageCell(r, c, activePaintColor);
+                updateImageProgress(true);
+            } else {
+                const cell = document.getElementById(`img-cell-${r}-${c}`);
+                if(cell) { 
+                    cell.style.boxShadow = 'inset 0 0 0 2px rgba(239, 68, 68, 0.5)';
+                    setTimeout(() => cell.style.boxShadow = 'none', 300); 
+                }
+            }
+        }
+
+        function setupDecodeDrawingEvents() {
+            const gridElement = document.getElementById('img-grid');
+            if(!gridElement) return;
+            
+            gridElement.addEventListener('mousedown', (e) => {
+                if(!isImageGameActive) return;
+                const cell = e.target.closest('.img-cell');
+                if (cell) {
+                    const r = parseInt(cell.dataset.r), c = parseInt(cell.dataset.c);
+                    if (activePaintColor !== null) { 
+                        isImageDrawing = true; 
+                        tryPaintImageCell(r, c); 
+                    } else { 
+                        handleImageCellClick(r, c); 
+                    }
+                }
+            });
+            
+            window.addEventListener('mouseup', () => { isImageDrawing = false; });
+            
+            gridElement.addEventListener('mouseover', (e) => {
+                if (isImageDrawing && activePaintColor !== null && isImageGameActive) {
+                    const cell = e.target.closest('.img-cell'); 
+                    if (cell) tryPaintImageCell(parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+                }
+            });
+        }
+
+        function updateImageProgress(isCorrectHit) {
+            let filledCount = 0;
+            for (let r = 0; r < 10; r++) {
+                for (let c = 0; c < 10; c++) {
+                    if (imageGridData[r][c] !== -1) filledCount++;
+                }
+            }
+            const pct = Math.floor((filledCount / 100) * 100);
+            const pText = document.getElementById('img-progress-text');
+            const pBar = document.getElementById('img-progress-bar');
+            
+            if(pText) pText.innerText = `${pct}%`;
+            if(pBar) pBar.style.width = `${pct}%`;
+            
+            if (filledCount === 100 && isImageGameActive) {
+                clearInterval(imageTimerInterval);
+                isImageGameActive = false;
+                setTimeout(() => showImageGameOverModal(true), 500);
+            }
+        }
+
+        function calcImageBinToDec() {
+            const binIn = document.getElementById('img-calc-bin-in');
+            const decOut = document.getElementById('img-calc-dec-out');
+            if(!binIn || !decOut) return;
+            const val = binIn.value;
+            if(val === "") decOut.innerText = "-";
+            else decOut.innerText = parseInt(val, 2).toString(10);
+        }
+
+        function showImageGameOverModal(isSuccess = false) {
+            const modal = document.getElementById('img-success-modal');
+            const title = document.getElementById('img-modal-title');
+            const msg = document.getElementById('img-success-msg');
+            const icon = document.getElementById('img-modal-icon');
+            const btns = document.getElementById('img-modal-buttons');
+            if(!modal || !title || !msg || !icon || !btns) return;
+
+            if (isSuccess) {
+                const levelData = IMAGE_GAME_LEVELS.find(l => l.id === imageGameLevelId);
+                icon.innerText = '🎉';
+                title.innerText = '挑戰成功！';
+                msg.innerText = `你成功計算並畫出了「${levelData ? levelData.name : '神秘動物'}」！`;
+                btns.innerHTML = `
+                    <button onclick="playImageNextLevel()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition-all text-lg">下一關 ➔</button>
+                `;
+            } else {
+                icon.innerText = '⏰';
+                title.innerText = '時間到！';
+                msg.innerText = '真可惜，差一點就完成了！要再試一次嗎？';
+                btns.innerHTML = `
+                    <button onclick="retryImageLevel()" class="px-6 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-bold shadow-md transition-all text-lg">重新挑戰 🔄</button>
+                `;
+            }
+            modal.classList.add('active');
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('img-success-modal');
+            if(modal) modal.classList.remove('active');
+        }
+
+        function updateImageStorageCalc() {
+            const gbEl = document.getElementById('calc-storage-gb');
+            const mpEl = document.getElementById('calc-pixels-mp');
+            const countEl = document.getElementById('calc-result-count');
+            const sizeEl = document.getElementById('calc-result-size');
+            
+            if (!gbEl || !mpEl || !countEl || !sizeEl) return;
+
+            const gb = parseInt(gbEl.value);
+            const mp = parseInt(mpEl.value);
+            
+            const totalPixels = mp * 10000;
+            const singleImageSizeBytes = totalPixels * 3; 
+            const singleImageSizeMB = singleImageSizeBytes / (1024 * 1024);
+            
+            const totalCapacityMB = gb * 1024;
+            const imageCount = Math.floor(totalCapacityMB / singleImageSizeMB);
+            
+            countEl.innerText = imageCount.toLocaleString();
+            sizeEl.innerText = `${singleImageSizeMB.toFixed(1)} MB`;
+        }
+
+        // ==========================================
+        // (4) 壓縮體驗互動 & 測驗題邏輯
+        // ==========================================
+
+        function checkFormatQuiz(scenario, answer, btn) {
+            const feedback = document.getElementById(`quiz-feedback-${scenario}`);
+            
+            const btns = btn.parentElement.querySelectorAll('button');
+            btns.forEach(b => {
+                b.className = "flex-1 py-2 bg-white border border-slate-300 rounded-lg hover:bg-blue-50 font-bold text-slate-600 transition-colors";
+            });
+
+            let isCorrect = false;
+            let msg = "";
+
+            if (scenario === 1) {
+                isCorrect = (answer === 'JPG');
+                msg = isCorrect ? "✅ 答對了！JPG (破壞性壓縮) 是「風景魔術師」，能把相片檔案壓得很小又不影響觀看！" : "❌ 想想看，誰是「風景魔術師」能偷偷把多餘色調刪去並使檔案大幅瘦身呢？";
+            } else if (scenario === 2) {
+                isCorrect = (answer === 'PNG');
+                msg = isCorrect ? "✅ 答對了！PNG (無損壓縮) 是「去背貼紙王」，支援完美透明背景，做網頁 Logo 最適合！" : "❌ 不太對喔，JPG 不支援透明，GIF 的顏色邊緣可能有粗糙雜點。找找「貼紙王」！";
+            } else if (scenario === 3) {
+                isCorrect = (answer === 'GIF');
+                msg = isCorrect ? "✅ 答對了！GIF 是「會動的小精靈」，最適合把少量的連續畫面打包變成輕量動圖！" : "❌ 不對喔，JPG 跟 PNG 通常是靜態圖檔，選一個可以動的小精靈吧！";
+            }
+
+            if (isCorrect) {
+                btn.className = "flex-1 py-2 bg-blue-500 border border-blue-600 rounded-lg font-bold text-white transition-colors shadow-inner";
+                feedback.className = "text-sm font-bold min-h-[3rem] p-2 rounded-lg border bg-blue-50 border-blue-200 text-blue-700 animate-fade-up";
+            } else {
+                btn.className = "flex-1 py-2 bg-rose-500 border border-rose-600 rounded-lg font-bold text-white transition-colors shadow-inner";
+                feedback.className = "text-sm font-bold min-h-[3rem] p-2 rounded-lg border bg-rose-50 border-rose-200 text-rose-700 animate-fade-up";
+            }
+            
+            feedback.innerText = msg;
+            feedback.classList.remove('hidden');
+        }
+
+        function renderCompressDemo(type) {
+            const canvas = document.getElementById('compress-canvas');
+            const img = document.getElementById('compress-source-img');
+            const weightText = document.getElementById('compress-weight-text');
+            const weightBar = document.getElementById('compress-weight-bar');
+            const descText = document.getElementById('compress-desc');
+            
+            if (!canvas || !img || !img.complete || img.naturalWidth === 0) return;
+
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            
+            ['raw', 'color', 'size'].forEach(t => {
+                const btn = document.getElementById(`btn-comp-${t}`);
+                if (btn) {
+                    btn.className = "w-full flex items-center justify-between p-3 rounded-xl border-2 border-transparent bg-white hover:bg-slate-50 transition-colors text-left shadow-sm group";
+                }
+            });
+
+            ctx.imageSmoothingEnabled = false;
+            
+            canvas.width = 400;
+            canvas.height = 400;
+
+            if (type === 'raw') {
+                document.getElementById('btn-comp-raw').className = "w-full flex items-center justify-between p-3 rounded-xl border-2 border-rose-400 bg-rose-50 transition-colors text-left group";
+                
+                ctx.drawImage(img, 0, 0, 400, 400);
+                
+                weightText.innerHTML = "超級重！🐘 (100%)";
+                weightText.className = "text-rose-600 font-black";
+                weightBar.style.width = "100%";
+                weightBar.className = "h-full bg-rose-500 transition-all duration-500 rounded-full";
+                descText.innerText = "最原始的圖片，所有的顏色跟細節都在，看起來最漂亮，但是佔用的空間超級大！";
+                
+            } else if (type === 'color') {
+                document.getElementById('btn-comp-color').className = "w-full flex items-center justify-between p-3 rounded-xl border-2 border-yellow-400 bg-yellow-50 transition-colors text-left group";
+                
+                ctx.drawImage(img, 0, 0, 400, 400);
+                let imgData = ctx.getImageData(0, 0, 400, 400);
+                let data = imgData.data;
+                const factor = 64; 
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = Math.floor(data[i] / factor) * factor + (factor/2);
+                    data[i+1] = Math.floor(data[i+1] / factor) * factor + (factor/2);
+                    data[i+2] = Math.floor(data[i+2] / factor) * factor + (factor/2);
+                }
+                ctx.putImageData(imgData, 0, 0);
+
+                weightText.innerHTML = "輕了一半！🐕 (30%)";
+                weightText.className = "text-yellow-600 font-black";
+                weightBar.style.width = "30%";
+                weightBar.className = "h-full bg-yellow-400 transition-all duration-500 rounded-full";
+                descText.innerText = "電腦把「長得很像的顏色」當作同一種顏色來記。仔細看狗狗的顏色變成一塊一塊的，但檔案變輕很多！";
+                
+            } else if (type === 'size') {
+                document.getElementById('btn-comp-size').className = "w-full flex items-center justify-between p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50 transition-colors text-left group";
+                
+                const smallSize = 40;
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = smallSize;
+                tempCanvas.height = smallSize;
+                const tCtx = tempCanvas.getContext('2d');
+                
+                tCtx.drawImage(img, 0, 0, smallSize, smallSize);
+                ctx.drawImage(tempCanvas, 0, 0, smallSize, smallSize, 0, 0, 400, 400);
+
+                weightText.innerHTML = "超輕盈！🕊️ (5%)";
+                weightText.className = "text-emerald-600 font-black";
+                weightBar.style.width = "5%";
+                weightBar.className = "h-full bg-emerald-500 transition-all duration-500 rounded-full";
+                descText.innerText = "直接把圖片的「格子(像素)」變少！強行放大後會變得充滿馬賽克，但是一秒鐘就可以傳給朋友！";
+            }
+        }
+
+        // ==========================================
+        // 頁面初始化載入
+        // ==========================================
+
+        const reviewPassed = new Set();
+        function answerReview(question, isCorrect, button, hint = '') { const feedback = document.getElementById('review-feedback'), score = document.getElementById('review-score'); if (!feedback || !score) return; if (isCorrect) { reviewPassed.add(question); button.className = 'bg-emerald-500 text-white border-emerald-600 rounded px-2 py-1'; feedback.innerText = `✅ 第 ${question} 題答對了！`; } else { feedback.innerText = `💡 ${hint}`; } score.innerText = `${reviewPassed.size} / 3`; if (reviewPassed.size === 3) document.getElementById('review-badge')?.classList.remove('hidden'); }
+        function chooseDiscussion(choice, button) { document.querySelectorAll('.discussion-btn').forEach(item => item.classList.remove('on')); button.classList.add('on'); const feedback = document.getElementById('discussion-feedback'); if (feedback) feedback.innerText = `你選擇「${choice}」。接著和同伴輪流完成：「我選這個，因為……」與「我同意／我有不同想法，因為……」。`; }
+        window.onload = function() {
+            switchImageSubTab('intro'); 
+            
+            peInitAllLevels();
+            initImageDecodingGame();
+            updateImageStorageCalc(); 
+
+            // 處理第一個子分頁 Demo 圖片載入
+            const demoImg = document.getElementById('res-img-high');
+            if(demoImg) {
+                demoImg.onerror = () => { demoImg.src = createSvgFallback("👦"); };
+                if (demoImg.complete) drawPixelatedDemo();
+                else demoImg.onload = drawPixelatedDemo;
+            }
+            
+            // 處理第四個子分頁 Demo 圖片載入
+            const compImg = document.getElementById('compress-source-img');
+            if (compImg) {
+                compImg.onerror = () => { compImg.src = createSvgFallback("🐶"); };
+                if (compImg.complete) renderCompressDemo('raw');
+                else compImg.onload = () => renderCompressDemo('raw');
+            }
+
+            window.addEventListener('resize', () => {
+                if(currentImageSubTab === 'intro') { drawPixelatedDemo(); }
+                if(currentImageSubTab === 'explorer') { peDrawPixelated(); }
+            });
+        };
+    </script>
+    <script src="course-data.js"></script>
+    <script src="course-core.js"></script>
+    <!-- 116 課程系統：進度掛鉤（見 progress-hook.js）-->
+    <script src="../config.js"></script>
+    <script src="../../shared/store.js"></script>
+    <script src="../../shared/ui.js"></script>
+    <script src="../../shared/unit.js"></script>
+    <script src="../../shared/api.js"></script>
+    <script src="progress-hook.js"></script>
+</body>
+</html>

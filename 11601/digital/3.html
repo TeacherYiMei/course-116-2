@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-3 · 數位時代 · 116-1</title>
+    <link rel="stylesheet" href="../../shared/theme.css">
+    <link rel="stylesheet" href="course-components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); min-height: 100vh; margin: 0; display: flex; flex-direction: column; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .galaxy-card { background-color: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--line); }   /* 116：改成全站卡片樣式 */
+        .nav-btn { position: relative; overflow: hidden; transition: all 0.2s ease-in-out; border-radius: 999px; border: 2px solid transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .nav-active { background-color: #2563eb; color: #ffffff; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .nav-inactive { background-color: #ffffff; color: #64748b; border-color: #e2e8f0; }
+        .nav-inactive:hover { background-color: #f8fafc; color: #3b82f6; border-color: #bae6fd; }
+        .course-nav { scrollbar-width: none; }
+        .course-nav::-webkit-scrollbar { display: none; }
+        .theme-teal .nav-active { background-color: #0f766e; box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3); }
+        .section-hidden { display: none; }
+        input[type=range] { -webkit-appearance: none; background: #e2e8f0; border-radius: 999px; height: 10px; border: 1px solid #cbd5e1; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 22px; width: 22px; border-radius: 50%; background: #ffffff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 2px solid #3b82f6; }
+        .video-wrapper { position: relative; width: 100%; overflow: hidden; background: #000; border-radius: 1rem; }
+        .full-mask { position: absolute; inset: 0; background: #000; z-index: 20; pointer-events: auto; clip-path: none; mask-image: none; -webkit-mask-image: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+    </style>
+    <!-- 116：Tailwind 改成固定的 CSS（tools/build-tailwind.sh 產生；不再連 cdn.tailwindcss.com） -->
+    <link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="theme-teal" data-unit="3">
+
+    <div class="wrap wrap-wide relative">
+        <!-- 標題與選單 -->
+        <!-- 116 全站頁首與課程小卡（progress-hook.js 產生） -->
+        <header id="topbar"></header>
+        <nav id="ucards"></nav>
+
+        <!-- 單元三內容 -->
+        <main class="w-full">
+            <section class="galaxy-card p-6 md:p-10 animate-fade-up">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
+                    <div><h2 class="text-2xl md:text-3xl font-bold text-slate-800">1-3 音訊數位化</h2><p class="text-slate-500 mt-1 text-sm">聲音是物理波動，電腦將其轉換成 0 與 1 的過程。</p></div>
+                </div>
+
+                <section class="mb-8 rounded-3xl border border-teal-100 bg-teal-50/70 p-5 md:p-6" aria-labelledby="unit-three-goals" data-course-goals><div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><p class="text-xs font-black tracking-[0.18em] text-teal-600">LEARNING GOALS</p><h3 id="unit-three-goals" class="mt-1 text-xl font-black text-slate-800">完成這一單元，你可以……</h3></div><span class="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-teal-600 shadow-sm">建議順序：波形 → 取樣 → 格式</span></div><ul class="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-600"><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-teal-600">01</span> 用振幅、頻率與音色描述聲音。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-teal-600">02</span> 說明聲音取樣與量化的步驟。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-teal-600">03</span> 比較 WAV、MP3 與 MIDI 的特性。</li></ul></section>
+
+                <p class="text-xs font-black tracking-[0.18em] text-slate-500 mb-1">本課四個小步驟 · 點小卡切換</p>
+                <nav class="ucards" id="audio-steps" style="--n:4" aria-label="1-3 的四個小步驟">
+                    <button type="button" onclick="switchAudioSubTab('prop')" id="sub-audio-prop" class="ucard uc-1 on"><span class="no">1</span><span class="here">目前在這裡 👇</span><span class="ic">🎚️</span><span class="tt">聲音物理要素</span><span class="ds">響度、音調、音色怎麼變</span></button>
+                    <button type="button" onclick="switchAudioSubTab('digit')" id="sub-audio-digit" class="ucard uc-2"><span class="no">2</span><span class="here">目前在這裡 👇</span><span class="ic">📉</span><span class="tt">數位化三部曲</span><span class="ds">取樣、量化、編碼</span></button>
+                    <button type="button" onclick="switchAudioSubTab('history')" id="sub-audio-history" class="ucard uc-3"><span class="no">3</span><span class="here">目前在這裡 👇</span><span class="ic">💾</span><span class="tt">聲音格式比較</span><span class="ds">WAV、MP3、MIDI 與檔案大小</span></button>
+                    <button type="button" onclick="switchAudioSubTab('audacity')" id="sub-audio-audacity" class="ucard uc-4"><span class="no">4</span><span class="here">目前在這裡 👇</span><span class="ic">🎬</span><span class="tt">聲音情境創作坊</span><span class="ds">幫情境挑聲音、看音訊軟體</span></button>
+                </nav>
+
+                <div id="audio-learning-feedback" class="mb-6 rounded-2xl border border-teal-100 bg-teal-50/70 px-4 py-3 text-sm text-teal-800" aria-live="polite"><span class="font-black">觀察提示：</span> 改變滑桿時，先看波形的高低與密度如何改變，再連結到你聽見的聲音。</div>
+
+                <div id="audio-sub-prop" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-5 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                            <h3 class="text-xl font-bold text-slate-800">模擬物理特徵</h3>
+                            <div><label class="flex justify-between font-bold text-slate-600 text-sm mb-3"><span>響度 (Loudness)</span><span id="label-loudness" class="text-teal-600">中</span></label><input type="range" id="sound-loudness" aria-label="響度" min="10" max="100" value="50" oninput="drawPhysicalWave()" class="w-full accent-teal-500 mb-2"><p class="text-[11px] text-slate-600 mt-1 leading-relaxed bg-teal-50/50 p-2.5 rounded-xl border border-teal-100"><strong class="text-teal-700">定義：</strong>指聲音的強弱，與<strong class="text-slate-800">振幅</strong>有關。波形圖的上下起伏越大 (振幅大)，響度就越強。</p></div>
+                            <div><label class="flex justify-between font-bold text-slate-600 text-sm mb-3"><span>音調 (Pitch)</span><span id="label-pitch" class="text-teal-600">中 (440Hz)</span></label><input type="range" id="sound-pitch" aria-label="音調" min="1" max="10" value="5" oninput="drawPhysicalWave()" class="w-full accent-teal-500 mb-2"><p class="text-[11px] text-slate-600 mt-1 leading-relaxed bg-teal-50/50 p-2.5 rounded-xl border border-teal-100"><strong class="text-teal-700">定義：</strong>指聲音的高低，與<strong class="text-slate-800">頻率</strong>有關。波形圖越密集代表頻率越高。<br><span class="inline-block mt-1">💡 人耳聽覺範圍大約落在 20Hz ~ 20,000Hz 之間。</span></p></div>
+                            <div>
+                                <label class="block font-bold text-slate-600 text-sm mb-3">音色 (Timbre)</label>
+                                <div class="grid grid-cols-2 gap-3 mb-2"><button onclick="changeTimbre('sine')" id="timbre-sine" class="px-3 py-2 bg-teal-500 text-white text-sm font-bold rounded-xl shadow-sm border border-transparent">正弦波</button><button onclick="changeTimbre('square')" id="timbre-square" class="px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-sm font-bold rounded-xl">方波</button><button onclick="changeTimbre('triangle')" id="timbre-triangle" class="px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-sm font-bold rounded-xl">三角波</button><button onclick="changeTimbre('sawtooth')" id="timbre-sawtooth" class="px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-sm font-bold rounded-xl">鋸齒波</button></div>
+                                <p class="text-[11px] text-slate-600 mt-2 leading-relaxed bg-teal-50/50 p-2.5 rounded-xl border border-teal-100"><strong class="text-teal-700">定義：</strong>指聲音的特色，與<strong class="text-slate-800">波形</strong>有關。波形不同，才能分辨不同樂器的聲音。</p>
+                            </div>
+                            <div class="pt-4 border-t border-slate-100"><button onclick="toggleSynthesisSound()" id="synthesis-play-btn" class="w-full py-3.5 bg-slate-800 text-white hover:bg-slate-700 font-bold rounded-full shadow-md transition flex items-center justify-center gap-2"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg><span>播放實測音</span></button></div>
+                        </div>
+                        <div class="lg:col-span-7 bg-slate-50 rounded-3xl p-6 border border-slate-200 flex flex-col justify-between">
+                            <div class="text-sm font-bold text-slate-500">物理示波器 (類比聲波形態)</div>
+                            <canvas id="propCanvas" width="600" height="250" class="w-full h-auto my-4 bg-white rounded-xl border border-slate-100 shadow-inner"></canvas>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 text-xs text-slate-500 leading-relaxed shadow-sm">閉上眼睛，感受當音調和響度變化時，你的大腦如何快速辨識出不同的聲音。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="audio-sub-digit" class="section-hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-5 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-8">
+                            <h3 class="text-xl font-bold text-slate-800">取樣與量化參數</h3>
+                            <div><label class="flex justify-between font-bold text-slate-600 text-sm mb-3"><span>取樣頻率 (Sampling)</span><span id="label-sampling-hz" class="text-teal-600">12 點/秒</span></label><input type="range" id="range-sampling" min="4" max="40" value="12" oninput="drawDigitizeProcess()" class="w-full accent-teal-500"></div>
+                            <div><label class="flex justify-between font-bold text-slate-600 text-sm mb-3"><span>量化解析度 (Quantize)</span><span id="label-quantize-bits" class="text-teal-600">3 Bits (8 階)</span></label><input type="range" id="range-quantize" min="1" max="4" value="3" oninput="drawDigitizeProcess()" class="w-full accent-teal-500"></div>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-xs text-slate-500 leading-relaxed">點越多，連出來的鋸齒就越平滑。<br>量化的 Bit 數（刻度）越多，越能抓住微弱的聲音層次，刺耳的雜音就會消失。</div>
+                        </div>
+                        <div class="lg:col-span-7 flex flex-col gap-4">
+                            <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 overflow-hidden relative">
+                                <div class="text-sm font-bold text-slate-500 mb-2">類比與數位對比</div>
+                                <canvas id="digitCanvas" width="600" height="220" class="w-full h-auto bg-white rounded-xl shadow-inner border border-slate-100"></canvas>
+                            </div>
+                            <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-6">
+                                <div class="text-xs text-slate-400 font-bold mb-3 uppercase">Binary Encoding (編碼流)</div>
+                                <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl font-mono-code text-sm text-teal-600 font-bold overflow-x-auto whitespace-nowrap" id="audio-binary-stream">001 011 110 111 110 011 001</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="audio-sub-history" class="section-hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4">常見聲音格式比較</h3>
+                            <div class="grid grid-cols-3 gap-3">
+                                <button onclick="showFormatDetail('wav')" class="p-4 bg-teal-500 text-white rounded-2xl text-left transition-colors shadow-sm" id="format-btn-wav"><div class="text-xl font-black mb-1">WAV</div><div class="text-xs opacity-90">無損未壓縮</div></button>
+                                <button onclick="showFormatDetail('mp3')" class="p-4 bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100 rounded-2xl text-left transition-colors" id="format-btn-mp3"><div class="text-xl font-black mb-1 text-slate-700">MP3</div><div class="text-xs opacity-80">有損壓縮</div></button>
+                                <button onclick="showFormatDetail('midi')" class="p-4 bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100 rounded-2xl text-left transition-colors" id="format-btn-midi"><div class="text-xl font-black mb-1 text-slate-700">MIDI</div><div class="text-xs opacity-80">樂器指令</div></button>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl text-sm text-slate-600 leading-relaxed min-h-[140px]" id="format-detail-desc"></div>
+                            <div class="bg-blue-50 border border-blue-100 p-5 rounded-2xl">
+                                <div class="flex justify-between items-center mb-4"><h4 class="text-sm font-bold text-blue-800">🎵 同一首音樂格式試聽體驗</h4></div>
+                                <div class="flex flex-wrap gap-4 items-center">
+                                    <button id="compare-play-btn" onclick="toggleCompareMelody()" class="px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-full hover:bg-blue-700 transition shadow-md flex items-center gap-2"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg><span>開始播放</span></button>
+                                    <div class="bg-white border border-blue-100 p-1 rounded-full flex gap-1 shadow-sm">
+                                        <button onclick="setCompareFormat('wav')" id="comp-format-wav" class="px-4 py-2 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">WAV</button>
+                                        <button onclick="setCompareFormat('mp3')" id="comp-format-mp3" class="px-4 py-2 text-slate-500 text-xs font-bold rounded-full hover:bg-slate-50">MP3</button>
+                                        <button onclick="setCompareFormat('midi')" id="comp-format-midi" class="px-4 py-2 text-slate-500 text-xs font-bold rounded-full hover:bg-slate-50">MIDI</button>
+                                    </div>
+                                </div>
+                                <p id="compare-status-text" class="text-xs text-slate-500 mt-4">目前模擬：<span class="text-blue-600 font-bold">WAV 格式（無損原音，音質飽滿）</span></p>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-5 flex flex-col gap-6">
+                            <div class="bg-white border border-slate-200 shadow-sm p-6 rounded-3xl space-y-5">
+                                <h3 class="text-lg font-bold text-slate-800">聲音檔案大小計算機</h3>
+                                <p class="text-xs text-slate-500">以 CD 音質（44.1kHz、16bits、雙聲道）為標準試算。</p>
+                                <div>
+                                    <label class="flex justify-between font-bold text-slate-600 text-sm mb-3"><span>設定錄音時間</span><span class="text-slate-800"><span id="audio-calc-time-display">1</span> 分鐘</span></label>
+                                    <input type="range" id="audio-calc-slider" min="1" max="60" value="1" oninput="calcAudioStorage()" class="w-full accent-blue-500">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center"><div class="text-[10px] text-slate-400 mb-1">老實的 WAV 容量</div><span class="font-mono-code text-lg text-teal-600 font-bold" id="audio-wav-calc-result">10.1 MB</span></div>
+                                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center"><div class="text-[10px] text-slate-400 mb-1">壓縮後 MP3</div><span class="font-mono-code text-lg text-blue-600 font-bold" id="audio-mp3-calc-result">0.9 MB</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-white border border-slate-200 shadow-sm p-6 rounded-3xl">
+                                <h3 class="text-sm font-bold text-slate-800 mb-2">消失的 200 億美金與版權</h3>
+                                <p class="text-[12px] text-slate-500 leading-relaxed">MP3 技術讓音樂複製極度廉價。1999 年至 2014 年間，實體音樂產值縮水了 200 億美金。我們更應思考如何利用法律與訂閱模式守護創意的價值。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="audio-sub-audacity" class="section-hidden space-y-8">
+                    <div class="bg-indigo-50 border border-indigo-100 p-6 md:p-8 rounded-3xl shadow-sm relative overflow-hidden">
+                        <h3 class="text-xl font-bold text-indigo-800 mb-4 flex items-center gap-2 relative z-10"><span class="text-2xl">🌧️</span> 聲音情境體驗</h3>
+                        <p class="text-sm md:text-base text-slate-700 leading-relaxed relative z-10">大家都聽過〈下雨的聲音〉，聲音不只是聽見，更能看見。它能帶我們走進不同場景，感受空間氛圍，喚起想像與記憶。<br><br>本課程將透過音效與情境聲音的探索，引導學習者用耳朵觀察世界。</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                        <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><span class="text-rose-500">▶️</span> 聽音辨位：場景盲測</h4>
+                        <div class="max-w-2xl mx-auto">
+                            <div class="flex gap-2 mb-4">
+                                <button class="scene-btn flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95" data-url="https://youtu.be/a7VfRhKN91w?si=BVFqmtUL6gAlxmf0&t=18">場景一</button>
+                                <button class="scene-btn flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95" data-url="https://youtu.be/BytrOCk_U98?si=jOoA0SKFtUAJvlBn&t=43">場景二</button>
+                                <button class="scene-btn flex-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-2 py-2.5 rounded-xl font-bold text-sm transition-transform active:scale-95" data-url="https://youtu.be/kqR-ibYu4cQ?si=TsLYoIzwpYgJyzD0&t=240">場景三</button>
+                            </div>
+                            <div id="videoContainer" class="video-wrapper aspect-video mb-4 shadow-inner border border-slate-200"><div id="yt-player"></div><div id="maskLayer" class="full-mask hidden"></div></div>
+                            <div class="grid grid-cols-4 gap-2 mb-2">
+                                <button id="ctrlPlay" class="bg-emerald-500 hover:bg-emerald-400 text-white py-2.5 rounded-xl font-bold text-xs transition-transform active:scale-95 uppercase">Play</button>
+                                <button id="ctrlReload" class="bg-sky-500 hover:bg-sky-400 text-white py-2.5 rounded-xl font-bold text-xs transition-transform active:scale-95 uppercase">Reload</button>
+                                <button id="ctrlStop" class="bg-rose-500 hover:bg-rose-400 text-white py-2.5 rounded-xl font-bold text-xs transition-transform active:scale-95 uppercase">Stop</button>
+                                <button id="ctrlToggle" class="bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl font-bold text-xs transition-transform active:scale-95 uppercase">隱藏畫面</button>
+                            </div>
+                            <div id="yt-status" class="text-center text-[10px] text-slate-400 tracking-widest uppercase font-mono">System Standby</div>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 relative shadow-sm">
+                        <div class="flex justify-between items-center mb-4"><div class="text-sm font-bold text-slate-800">聲音數位化</div></div>
+                        <canvas id="audacityCanvas" width="600" height="200" class="w-full h-auto bg-[#c8cbce] rounded-xl border border-slate-300 shadow-inner overflow-hidden"></canvas>
+                        <p class="text-[11px] text-slate-400 mt-3 text-center">💡 常見的數位剪輯軟體中，聲音是由無數個密集的取樣點與不同的振幅高度繪製而成的波形圖。</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2"><span class="text-teal-500">🎧</span> 聲音情境創作坊：Audacity 混音實作指南</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                                <div class="flex items-center gap-3 mb-4"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 0</span><h4 class="text-lg font-bold text-slate-800">Audacity 介面說明</h4></div>
+                                <a href="images/Audacity-01.webp" target="_blank" class="relative group overflow-hidden rounded-xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center cursor-pointer block"><img src="images/Audacity-01.webp" alt="介面說明" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-opacity flex items-center gap-1">🔍 點擊看大圖</span></div></a>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-center">
+                                <div class="flex items-center gap-3 mb-3"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 1</span><h4 class="text-lg font-bold text-slate-800">挑選並下載喜歡的音效</h4></div>
+                                <p class="text-slate-500 text-sm mb-6 leading-relaxed">準備好你的混音素材！請前往以下素材庫，挑選並下載 <strong class="text-teal-600">最少三個</strong> 音效檔案。</p>
+                                <div class="space-y-4">
+                                    <a href="https://drive.google.com/drive/folders/17Av3qHp2mYGE0JGozZ8WAJqKPWiAtDr6" target="_blank" class="flex items-center gap-4 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-2xl transition group"><div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg group-hover:scale-110 transition shadow-sm">📁</div><div><div class="font-bold text-blue-800 text-sm">教師嚴選素材庫</div><div class="text-xs text-blue-600 mt-0.5">Google Drive 雲端資料夾</div></div></a>
+                                    <a href="https://taira-komori.net/freesoundtw.html" target="_blank" class="flex items-center gap-4 p-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-2xl transition group"><div class="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg group-hover:scale-110 transition shadow-sm">🎵</div><div><div class="font-bold text-emerald-800 text-sm">小森平的免費音效</div><div class="text-xs text-emerald-600 mt-0.5">日本知名免費音效網站 ➔</div></div></a>
+                                </div>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                                <div class="flex items-center gap-3 mb-4"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 2</span><h4 class="text-lg font-bold text-slate-800">匯入三個音效</h4></div>
+                                <a href="images/Audacity-02.webp" target="_blank" class="relative group overflow-hidden rounded-xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center cursor-pointer block"><img src="images/Audacity-02.webp" alt="匯入音效" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-opacity flex items-center gap-1">🔍 點擊看大圖</span></div></a>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                                <div class="flex items-center gap-3 mb-4"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 3</span><h4 class="text-lg font-bold text-slate-800">播放與暫停</h4></div>
+                                <a href="images/Audacity-04.webp" target="_blank" class="relative group overflow-hidden rounded-xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center cursor-pointer block"><img src="images/Audacity-04.webp" alt="播放與暫停" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-opacity flex items-center gap-1">🔍 點擊看大圖</span></div></a>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                                <div class="flex items-center gap-3 mb-4"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 4</span><h4 class="text-lg font-bold text-slate-800">編輯聲音</h4></div>
+                                <a href="images/Audacity-05.webp" target="_blank" class="relative group overflow-hidden rounded-xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center cursor-pointer block"><img src="images/Audacity-05.webp" alt="編輯聲音" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-opacity flex items-center gap-1">🔍 點擊看大圖</span></div></a>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                                <div class="flex items-center gap-3 mb-4"><span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">Step 5</span><h4 class="text-lg font-bold text-slate-800">匯出聲音檔</h4></div>
+                                <a href="images/Audacity-07.webp" target="_blank" class="relative group overflow-hidden rounded-xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center cursor-pointer block"><img src="images/Audacity-07.webp" alt="匯出聲音檔" class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"><div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center"><span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-800 text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-opacity flex items-center gap-1">🔍 點擊看大圖</span></div></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <nav id="audio-step-pager" aria-label="上一步／下一步"></nav>
+
+                <section class="card wrapup" aria-labelledby="unit-three-review"><div class="row between"><div><p class="kicker">課後回顧 · 快速檢核</p><h3 id="unit-three-review" class="black" style="font-size:1.25rem">課後回顧：把連續聲音變成數位資料。</h3></div><a class="btn sm" href="index.html">回到單元首頁</a></div><div class="grid g3 mt2"><p class="note small">✔️ 我能區分：響度、音高與音色分別對應什麼特徵。</p><p class="note small">✔️ 我能說明：取樣率與位元深度各影響什麼。</p><p class="note small">✔️ 我能選擇：依情境挑選合適的聲音格式。</p></div><div class="quiz mt2"><div class="row between"><div><h4 class="bold">✅ 快速檢核</h4><p class="tiny soft">三題全對就過關：一次都沒錯 ⭐⭐⭐、錯 1 次 ⭐⭐、錯 2 次以上 ⭐</p></div><span id="review-score" class="chip">0 / 3</span></div><div class="grid g3 mt2"><div class="review-q"><p class="bold small">1. 聲音的響度主要對應？</p><div class="review-opts mt1"><button onclick="answerReview(1, this)" class="pick review-btn">振幅大小</button><button onclick="answerReview(1, this)" class="pick review-btn">波形密度</button></div></div><div class="review-q"><p class="bold small">2. 取樣點變少時，常見結果是？</p><div class="review-opts mt1"><button onclick="answerReview(2, this)" class="pick review-btn">保留更多細節</button><button onclick="answerReview(2, this)" class="pick review-btn">失去波形細節</button></div></div><div class="review-q"><p class="bold small">3. 想節省音訊容量可優先選？</p><div class="review-opts mt1"><button onclick="answerReview(3, this)" class="pick review-btn">WAV</button><button onclick="answerReview(3, this)" class="pick review-btn">MP3</button></div></div></div><p id="review-feedback" class="small bold mt2" aria-live="polite">從三題中找出你最需要再練習的概念。</p><div id="review-badge" class="hidden note ok center bold mt1">🏅 數位聲音觀察員徽章已解鎖！</div></div></section>
+                <section class="card mt2 discuss" aria-labelledby="unit-three-discussion"><div class="row between"><div><p class="kicker">同伴討論</p><h3 id="unit-three-discussion" class="black" style="font-size:1.15rem">🗣️ 同伴討論挑戰</h3></div><span class="tiny soft bold">先選擇，再說明理由</span></div><p class="small mt1">要把一段訪談上傳到網路，你會優先採用哪種格式？</p><div class="grid g2 mt1"><button type="button" onclick="chooseDiscussion('MP3，兼顧容量與一般聆聽需求', this)" class="pick discussion-btn">MP3：兼顧容量與聆聽需求</button><button type="button" onclick="chooseDiscussion('WAV，保留更多原始聲音細節', this)" class="pick discussion-btn">WAV：保留更多原始細節</button></div><p id="discussion-feedback" class="small bold mt1" aria-live="polite">選擇後，和同伴用「我選……因為……」說明你的理由。</p></section>
+            </section>
+            <nav id="pager" aria-label="上一課／下一課"></nav>
+        </main>
+        <footer class="tiny faint center mt3">內容改編自「0 與 1 的藝術」（unforte_114）</footer>
+    </div>
+
+    <script>
+        let ytPlayerObj, currentYtInfo = { id: '', start: 0 }, isYtApiReady = false;
+        let currentAudioSubTab = 'prop', currentTimbre = 'sine', synthesisOsc = null, synthesisGain = null, audioCtx = null;
+        let compAudioCtx = null, compOsc = null, compFilter = null, compGain = null, isCompPlaying = false, compCurrentFormat = 'wav';
+        const odeToJoy = [[329.6, 0.5], [329.6, 0.5], [349.2, 0.5], [392.0, 0.5], [392.0, 0.5], [349.2, 0.5], [329.6, 0.5], [293.7, 0.5], [261.6, 0.5], [261.6, 0.5], [293.7, 0.5], [329.6, 0.5], [329.6, 0.75], [293.7, 0.25], [293.7, 1.0]];
+
+        const ytScriptTag = document.createElement('script');
+        ytScriptTag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(ytScriptTag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = function() { 
+            isYtApiReady = true;
+            const statusEl = document.getElementById('yt-status');
+            if(statusEl) statusEl.textContent = "API Ready"; 
+        };
+
+        function parseYtUrl(url) {
+            const idMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+            let startTime = 0;
+            const tMatch = url.match(/[?&]t=([^&]+)/);
+            if (tMatch) {
+                const t = tMatch[1];
+                if (t.includes('s') || t.includes('m') || t.includes('h')) {
+                    const h = (t.match(/(\d+)h/) || [0,0])[1], m = (t.match(/(\d+)m/) || [0,0])[1], s = (t.match(/(\d+)s/) || [0,0])[1];
+                    startTime = parseInt(h)*3600 + parseInt(m)*60 + parseInt(s);
+                } else startTime = parseInt(t);
+            }
+            return { id: idMatch ? idMatch[1] : null, start: startTime };
+        }
+
+        function bindMaskEvents(maskElement) {
+            maskElement.addEventListener('click', () => {
+                const statusEl = document.getElementById('yt-status');
+                if(!statusEl) return;
+                const origText = statusEl.textContent;
+                statusEl.textContent = "防誤觸屏蔽生效中 🛡️";
+                setTimeout(() => { statusEl.textContent = origText; }, 1200);
+            });
+        }
+
+        function loadYtVideo(url) {
+            if (!isYtApiReady) { alert("YouTube API 尚未載入完成！"); return; }
+            const info = parseYtUrl(url), statusEl = document.getElementById('yt-status');
+            if (!info.id) { if(statusEl) statusEl.textContent = "網址格式錯誤"; return; }
+            currentYtInfo = info;
+            if(statusEl) statusEl.textContent = "Loading Player...";
+            const videoContainer = document.getElementById('videoContainer');
+            if(!videoContainer) return;
+            if (ytPlayerObj && typeof ytPlayerObj.destroy === 'function') ytPlayerObj.destroy();
+            videoContainer.innerHTML = '<div id="yt-player"></div><div id="maskLayer" class="full-mask"></div>';
+            const newMaskLayer = document.getElementById('maskLayer');
+            if(newMaskLayer) bindMaskEvents(newMaskLayer);
+            ytPlayerObj = new YT.Player('yt-player', { height: '100%', width: '100%', videoId: info.id, playerVars: { 'autoplay': 1, 'start': info.start, 'rel': 0, 'enablejsapi': 1, 'origin': '*' }, events: { 'onReady': () => { if(statusEl) statusEl.textContent = "Ready to Play（畫面全黑，按 Play 開始聽；遇到廣告可按「顯示畫面」略過）"; } } });
+            const ctrlToggle = document.getElementById('ctrlToggle');
+            if(ctrlToggle) ctrlToggle.textContent = "顯示畫面";
+        }
+
+        /* 116：四個小步驟的結尾「← 上一步／下一步 →」（全站共用 UI.pager 的樣式） */
+        const AUDIO_STEPS = [['prop', '🎚️ 聲音物理要素'], ['digit', '📉 數位化三部曲'], ['history', '💾 聲音格式比較'], ['audacity', '🎬 聲音情境創作坊']];
+        function drawAudioStepPager(cur) {
+            if (!window.UI || !UI.pager) return;
+            const i = AUDIO_STEPS.findIndex(x => x[0] === cur), prev = AUDIO_STEPS[i - 1], next = AUDIO_STEPS[i + 1];
+            const go = k => () => { switchAudioSubTab(k); document.getElementById('audio-steps').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+            UI.pager('#audio-step-pager',
+                prev ? { lbl: '← 上一步', title: i + '. ' + prev[1], go: go(prev[0]) } : null,
+                next ? { lbl: '下一步 →', title: (i + 2) + '. ' + next[1], go: go(next[0]) } : { lbl: '四步都完成了 →', title: '做下面的快速檢核', go: () => document.querySelector('[aria-labelledby="unit-three-review"]').scrollIntoView({ behavior: 'smooth', block: 'start' }) });
+        }
+        document.addEventListener('DOMContentLoaded', () => drawAudioStepPager('prop'));
+
+        function switchAudioSubTab(subTabName) { 
+            ['prop', 'digit', 'history', 'audacity'].forEach(s => { 
+                if (document.getElementById(`audio-sub-${s}`)) document.getElementById(`audio-sub-${s}`).classList.toggle('section-hidden', s !== subTabName); 
+                const b = document.getElementById(`sub-audio-${s}`); if (b) { b.classList.toggle('on', s === subTabName); if (s === subTabName) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); }
+            }); 
+            if(subTabName !== 'audacity' && ytPlayerObj && typeof ytPlayerObj.pauseVideo === 'function') ytPlayerObj.pauseVideo(); 
+            currentAudioSubTab = subTabName; 
+            if(subTabName === 'prop') drawPhysicalWave(); 
+            if(subTabName === 'digit') drawDigitizeProcess(); 
+            if(subTabName === 'history') { showFormatDetail('wav'); calcAudioStorage(); } 
+            if(subTabName === 'audacity') drawAudacitySimulation(); 
+            if(subTabName !== 'history' && isCompPlaying) toggleCompareMelody(); 
+            updateAudioLearningFeedback(subTabName);
+            drawAudioStepPager(subTabName);
+        }
+
+        function updateAudioLearningFeedback(subTabName) { const feedback = document.getElementById('audio-learning-feedback'); if (!feedback) return; const messages = { prop: '先拖動一個滑桿，再看波形的高低與密度如何改變。', digit: '先降低取樣點或量化階數，觀察原本連續的波形如何失去細節。', history: '先選一種格式，再問自己要保留完整音質，還是優先節省容量？', audacity: '依序套用取樣與格式概念，看看每一步如何改變聲音資料。' }; feedback.innerHTML = `<span class="font-black">重新操作提示：</span> ${messages[subTabName]}`; }
+
+
+        function drawPhysicalWave() { const canvas = document.getElementById('propCanvas'); if (!canvas || canvas.parentElement.clientWidth === 0) return; canvas.width = canvas.parentElement.clientWidth; const ctx = canvas.getContext('2d'); const width = canvas.width, height = canvas.height; ctx.clearRect(0, 0, width, height); ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth = 1; for(let i=0; i<width; i+=30) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,height); ctx.stroke(); } for(let i=0; i<height; i+=30) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(width,i); ctx.stroke(); } const rawLoudness = document.getElementById('sound-loudness') ? parseInt(document.getElementById('sound-loudness').value) : 50; const rawPitch = document.getElementById('sound-pitch') ? parseInt(document.getElementById('sound-pitch').value) : 5; if (document.getElementById('label-loudness')) document.getElementById('label-loudness').innerText = rawLoudness > 75 ? "強 (大振幅)" : (rawLoudness < 35 ? "弱 (小振幅)" : "中"); if (document.getElementById('label-pitch')) document.getElementById('label-pitch').innerText = `${rawPitch * 88}Hz (${rawPitch > 7 ? "高/密" : (rawPitch < 4 ? "低/疏" : "中")})`; ctx.beginPath(); ctx.strokeStyle = '#0d9488'; ctx.lineWidth = 4; const amplitude = (rawLoudness / 100) * (height / 2.5), frequency = rawPitch * 1.5; for(let x = 0; x < width; x++) { let y = height / 2; const phase = (x * frequency * Math.PI * 2) / width; if (currentTimbre === 'sine') y += Math.sin(phase) * amplitude; else if (currentTimbre === 'square') y += (Math.sin(phase) >= 0 ? 1 : -1) * amplitude; else if (currentTimbre === 'triangle') y += (Math.abs((phase % (Math.PI * 2)) - Math.PI) / Math.PI - 0.5) * 2 * amplitude; else if (currentTimbre === 'sawtooth') y += (((phase % (Math.PI * 2)) / (Math.PI * 2)) - 0.5) * 2 * amplitude; if(x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); if (synthesisOsc && synthesisGain && audioCtx) { synthesisOsc.frequency.setTargetAtTime(rawPitch * 88, audioCtx.currentTime, 0.05); synthesisGain.gain.setTargetAtTime(rawLoudness / 100, audioCtx.currentTime, 0.05); } }
+        function changeTimbre(type) { ['sine', 'square', 'triangle', 'sawtooth'].forEach(t => { if (document.getElementById(`timbre-${t}`)) document.getElementById(`timbre-${t}`).className = t === type ? "px-3 py-2 bg-teal-500 text-white text-sm font-bold rounded-xl shadow-sm border border-transparent" : "px-3 py-2 bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 text-sm font-bold rounded-xl"; }); currentTimbre = type; drawPhysicalWave(); if (synthesisOsc) synthesisOsc.type = type; }
+        function toggleSynthesisSound() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const btn = document.getElementById('synthesis-play-btn'); if (!btn) return; if (synthesisOsc) { synthesisOsc.stop(); synthesisOsc.disconnect(); if(synthesisGain) synthesisGain.disconnect(); synthesisOsc = null; synthesisGain = null; btn.classList.replace('bg-rose-500', 'bg-slate-800'); btn.classList.replace('hover:bg-rose-600', 'hover:bg-slate-700'); btn.querySelector('span').innerText = "播放實測音"; } else { synthesisOsc = audioCtx.createOscillator(); synthesisGain = audioCtx.createGain(); synthesisOsc.type = currentTimbre; const rawLoudness = document.getElementById('sound-loudness') ? parseInt(document.getElementById('sound-loudness').value) : 50; const rawPitch = document.getElementById('sound-pitch') ? parseInt(document.getElementById('sound-pitch').value) : 5; synthesisOsc.frequency.setValueAtTime(rawPitch * 88, audioCtx.currentTime); synthesisGain.gain.setValueAtTime(rawLoudness / 100, audioCtx.currentTime); synthesisOsc.connect(synthesisGain); synthesisGain.connect(audioCtx.destination); synthesisOsc.start(); btn.classList.replace('bg-slate-800', 'bg-rose-500'); btn.classList.replace('hover:bg-slate-700', 'hover:bg-rose-600'); btn.querySelector('span').innerText = "停止播放 ⏹️"; } } catch (e) { console.error("Audio failed.", e); } }
+        function drawDigitizeProcess() { const canvas = document.getElementById('digitCanvas'); if (!canvas || canvas.parentElement.clientWidth === 0) return; canvas.width = canvas.parentElement.clientWidth; const ctx = canvas.getContext('2d'); const width = canvas.width, height = canvas.height; ctx.clearRect(0, 0, width, height); const hz = document.getElementById('range-sampling') ? parseInt(document.getElementById('range-sampling').value) : 12; const bits = document.getElementById('range-quantize') ? parseInt(document.getElementById('range-quantize').value) : 3; const maxVal = Math.pow(2, bits) - 1; if (document.getElementById('label-sampling-hz')) document.getElementById('label-sampling-hz').innerText = `${hz} 點/週期`; if (document.getElementById('label-quantize-bits')) document.getElementById('label-quantize-bits').innerText = `${bits} Bits`; ctx.strokeStyle = 'rgba(0,0,0,0.05)'; ctx.lineWidth = 1; ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.font = '10px monospace'; for (let i = 0; i <= maxVal; i++) { let y = height - (i * height / maxVal); if(i === 0) y = height - 5; if(i === maxVal) y = 5; if(i > 0 && i < maxVal) y = 5 + (height - 10) * (1 - i / maxVal); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); ctx.fillText(i.toString(2).padStart(bits, '0'), 5, y - 4); } const frequency = 2; ctx.beginPath(); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; for(let x = 0; x < width; x++) { let y = 5 + (height - 10) * (1 - ((Math.sin(x * frequency * Math.PI * 2 / width) + 1) / 2)); if(x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); } ctx.stroke(); const step = width / hz; ctx.beginPath(); ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3; let prevX = 0, firstYNorm = (Math.sin(0) + 1) / 2, prevY = 5 + (height - 10) * (1 - (Math.round(firstYNorm * maxVal) / maxVal)), binaryStream = []; for(let i = 0; i <= hz; i++) { let currentX = i * step; if (currentX > width) currentX = width; let quantVal = Math.round(((Math.sin(currentX * frequency * Math.PI * 2 / width) + 1) / 2) * maxVal); binaryStream.push(quantVal.toString(2).padStart(bits, '0')); let currentY = 5 + (height - 10) * (1 - (quantVal / maxVal)); ctx.moveTo(prevX, prevY); ctx.lineTo(currentX, prevY); ctx.lineTo(currentX, currentY); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(currentX, currentY, 5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#10b981'; ctx.stroke(); ctx.beginPath(); prevX = currentX; prevY = currentY; } ctx.stroke(); if (document.getElementById('audio-binary-stream')) document.getElementById('audio-binary-stream').innerText = binaryStream.join(' '); }
+        
+        const formatDetails = { wav: `<div class="font-bold text-teal-700 mb-2">📌 WAV 格式特色：</div><p class="mb-2"><strong>1. 取樣原理：</strong>直接儲存經由「取樣」與「量化」後的原始振幅數據，不經過任何壓縮，完美還原真實聲音細節。</p><p><strong>2. 應用：</strong>專業錄音室混音、CD唱片儲存。缺點是檔案容量極大。</p>`, mp3: `<div class="font-bold text-slate-700 mb-2">📌 MP3 格式特色：</div><p class="mb-2"><strong>1. 取樣原理：</strong>利用破壞性壓縮，刪除人耳聽覺死角（如極高、極低頻）數據。</p><p><strong>2. 應用：</strong>將檔案容量縮小至 WAV 的 1/10 左右，極適合用於網路傳輸、線上音樂串流訂閱服務。</p>`, midi: `<div class="font-bold text-slate-700 mb-2">📌 MIDI 格式特色：</div><p class="mb-2"><strong>1. 運作原理：</strong>像儲存「電子樂譜」一樣。只記錄音軌、時間、按下了什麼音符。</p><p><strong>2. 應用：</strong>容量極其微小，但無法儲存人聲歌唱。多用於電腦編曲與配樂指令傳輸。</p>` };
+        function showFormatDetail(key) { ['wav', 'mp3', 'midi'].forEach(k => { if (document.getElementById(`format-btn-${k}`)) { if (k === key) { document.getElementById(`format-btn-${k}`).classList.add('bg-teal-500', 'text-white'); document.getElementById(`format-btn-${k}`).classList.remove('bg-slate-50', 'text-slate-500', 'border-slate-200'); } else { document.getElementById(`format-btn-${k}`).classList.remove('bg-teal-500', 'text-white'); document.getElementById(`format-btn-${k}`).classList.add('bg-slate-50', 'text-slate-500', 'border-slate-200'); } } }); if (document.getElementById('format-detail-desc')) document.getElementById('format-detail-desc').innerHTML = formatDetails[key]; }
+        function setCompareFormat(format) { compCurrentFormat = format; ['wav', 'mp3', 'midi'].forEach(f => { if (document.getElementById(`comp-format-${f}`)) document.getElementById(`comp-format-${f}`).className = f === format ? "px-4 py-2 bg-blue-100 text-blue-700 text-xs font-bold rounded-full" : "px-4 py-2 text-slate-500 text-xs font-bold rounded-full hover:bg-slate-50"; }); if (document.getElementById('compare-status-text')) { if(format === 'wav') document.getElementById('compare-status-text').innerHTML = `目前模擬：<span class="text-blue-600 font-bold">WAV（無損原音，音質飽滿）</span>`; if(format === 'mp3') document.getElementById('compare-status-text').innerHTML = `目前模擬：<span class="text-blue-600 font-bold">MP3（破壞壓縮，高頻砍除較沉悶）</span>`; if(format === 'midi') document.getElementById('compare-status-text').innerHTML = `目前模擬：<span class="text-blue-600 font-bold">MIDI（生硬方波，電子感重）</span>`; } applyFormatAudioEffects(); }
+        function applyFormatAudioEffects() { if(!isCompPlaying || !compFilter || !compOsc) return; const time = compAudioCtx.currentTime; if(compCurrentFormat === 'wav') { compOsc.type = 'triangle'; compFilter.type = 'lowpass'; compFilter.frequency.setValueAtTime(20000, time); compFilter.Q.setValueAtTime(0, time); } else if (compCurrentFormat === 'mp3') { compOsc.type = 'triangle'; compFilter.type = 'lowpass'; compFilter.frequency.setValueAtTime(2500, time); compFilter.Q.setValueAtTime(2, time); } else if (compCurrentFormat === 'midi') { compOsc.type = 'square'; compFilter.type = 'lowpass'; compFilter.frequency.setValueAtTime(20000, time); compFilter.Q.setValueAtTime(0, time); } }
+        function toggleCompareMelody() { const btn = document.getElementById('compare-play-btn'); if (!btn) return; if(isCompPlaying) { isCompPlaying = false; if(compAudioCtx) compAudioCtx.suspend(); btn.classList.replace('bg-rose-500', 'bg-blue-600'); btn.classList.replace('hover:bg-rose-600', 'hover:bg-blue-700'); btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg><span>開始播放</span>`; return; } try { if (!compAudioCtx) compAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (compAudioCtx.state === 'suspended') compAudioCtx.resume(); isCompPlaying = true; btn.classList.replace('bg-blue-600', 'bg-rose-500'); btn.classList.replace('hover:bg-blue-700', 'hover:bg-rose-600'); btn.innerHTML = `<span class="font-bold tracking-widest text-xs text-white">⏹️ 停止播放</span>`; playMelodyLoop(); } catch (e) { console.log("Audio failed.", e); isCompPlaying = false; } }
+        function playMelodyLoop() { if(!isCompPlaying) return; compOsc = compAudioCtx.createOscillator(); compFilter = compAudioCtx.createBiquadFilter(); compGain = compAudioCtx.createGain(); applyFormatAudioEffects(); compOsc.connect(compFilter); compFilter.connect(compGain); compGain.connect(compAudioCtx.destination); let startTime = compAudioCtx.currentTime + 0.1; const tempo = 0.6; odeToJoy.forEach(note => { const freq = note[0], duration = note[1] * tempo; compOsc.frequency.setValueAtTime(freq, startTime); compGain.gain.setValueAtTime(0, startTime); compGain.gain.linearRampToValueAtTime(0.5, startTime + 0.05); compGain.gain.setValueAtTime(0.5, startTime + duration - (compCurrentFormat === 'midi' ? 0.01 : 0.1)); compGain.gain.linearRampToValueAtTime(0, startTime + duration); startTime += duration; }); compOsc.start(compAudioCtx.currentTime); compOsc.stop(startTime); compOsc.onended = () => { if(isCompPlaying) playMelodyLoop(); }; }
+        function calcAudioStorage() { const slider = document.getElementById('audio-calc-slider'); if (!slider) return; const minutes = parseInt(slider.value); if (document.getElementById('audio-calc-time-display')) document.getElementById('audio-calc-time-display').innerText = minutes; const wavSize = (44100 * 2 * 2 * minutes * 60) / (1024 * 1024), mp3Size = (16 * minutes * 60) / 1024; if (document.getElementById('audio-wav-calc-result')) document.getElementById('audio-wav-calc-result').innerText = `${wavSize.toFixed(1)} MB`; if (document.getElementById('audio-mp3-calc-result')) document.getElementById('audio-mp3-calc-result').innerText = `${mp3Size.toFixed(1)} MB`; }
+        function drawAudacitySimulation() { const canvas = document.getElementById('audacityCanvas'); if (!canvas || canvas.parentElement.clientWidth === 0) return; canvas.width = canvas.parentElement.clientWidth; const ctx = canvas.getContext('2d'); const width = canvas.width, height = canvas.height, centerY = height / 2; ctx.clearRect(0, 0, width, height); ctx.fillStyle = '#c8cbce'; ctx.fillRect(0, 0, width, height); ctx.strokeStyle = '#8b9bb4'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY); ctx.stroke(); for(let x = 0; x < width; x += 1.5) { let t = x / width * 25, envelope = Math.pow(Math.sin(t) * Math.cos(t * 3.1) * Math.sin(t * 7.3), 2) * 0.8 + 0.2; let amp1 = envelope * (((Math.sin(x * 12.345) + 1) / 2) * 0.7 + 0.3) * (height / 2) * 1.15; let amp2 = envelope * (((Math.cos(x * 67.890) + 1) / 2) * 0.8 + 0.2) * (height / 2) * 0.80; if (amp1 > height / 2 * 0.95) amp1 = height / 2 * 0.95; if (amp2 > height / 2 * 0.95) amp2 = height / 2 * 0.95; ctx.fillStyle = '#657bbd'; ctx.fillRect(x, centerY - amp1, 1.2, amp1 * 2); ctx.fillStyle = '#4a62a8'; ctx.fillRect(x, centerY - amp2, 1.2, amp2 * 2); } }
+
+
+        const reviewPassed = new Set();
+        function answerReview(question, isCorrect, button, hint = '') { const feedback = document.getElementById('review-feedback'), score = document.getElementById('review-score'); if (!feedback || !score) return; if (isCorrect) { reviewPassed.add(question); button.className = 'bg-emerald-500 text-white border-emerald-600 rounded px-2 py-1'; feedback.innerText = `✅ 第 ${question} 題答對了！`; } else { feedback.innerText = `💡 ${hint}`; } score.innerText = `${reviewPassed.size} / 3`; if (reviewPassed.size === 3) document.getElementById('review-badge')?.classList.remove('hidden'); }
+        function chooseDiscussion(choice, button) { document.querySelectorAll('.discussion-btn').forEach(item => item.classList.remove('on')); button.classList.add('on'); const feedback = document.getElementById('discussion-feedback'); if (feedback) feedback.innerText = `你選擇「${choice}」。接著和同伴輪流完成：「我選這個，因為……」與「我同意／我有不同想法，因為……」。`; }
+        window.onload = function() {
+            drawPhysicalWave(); 
+            drawDigitizeProcess();
+            drawAudacitySimulation();
+            calcAudioStorage();
+
+            document.querySelectorAll('#audio-sub-audacity .scene-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    loadYtVideo(e.target.dataset.url);
+                });
+            });
+
+            const ctrlPlay = document.getElementById('ctrlPlay');
+            if (ctrlPlay) ctrlPlay.addEventListener('click', () => ytPlayerObj && ytPlayerObj.playVideo && ytPlayerObj.playVideo());
+            
+            const ctrlStop = document.getElementById('ctrlStop');
+            if (ctrlStop) ctrlStop.addEventListener('click', () => ytPlayerObj && ytPlayerObj.pauseVideo && ytPlayerObj.pauseVideo()); 
+            
+            const ctrlReload = document.getElementById('ctrlReload');
+            if (ctrlReload) {
+                ctrlReload.addEventListener('click', () => {
+                    if (ytPlayerObj && typeof ytPlayerObj.seekTo === 'function') {
+                        ytPlayerObj.seekTo(currentYtInfo.start, true);
+                        ytPlayerObj.pauseVideo(); 
+                        
+                        const currentMask = document.getElementById('maskLayer');
+                        if (currentMask) {
+                            currentMask.className = "full-mask";
+                        }
+                        const toggleBtn = document.getElementById('ctrlToggle');
+                        if(toggleBtn) toggleBtn.textContent = "顯示畫面";
+                        const statusEl = document.getElementById('yt-status');
+                        if(statusEl) statusEl.textContent = "Ready to Play (已回到起點並啟用全遮罩)";
+                    }
+                });
+            }
+
+            const ctrlToggle = document.getElementById('ctrlToggle');
+            if (ctrlToggle) {
+                ctrlToggle.addEventListener('click', function() {
+                    const currentMask = document.getElementById('maskLayer');
+                    if (!currentMask) return;
+                    const statusEl = document.getElementById('yt-status');
+
+                    if (currentMask.classList.contains('full-mask')) {
+                        currentMask.className = 'hidden';
+                        this.textContent = "隱藏畫面";
+                        if(statusEl) statusEl.textContent = "已完全取消遮罩 (顯示完整影片)";
+                    } else {
+                        currentMask.className = 'full-mask';
+                        this.textContent = "顯示畫面";
+                        if(statusEl) statusEl.textContent = "已切換至全遮罩模式 (純音訊播放)";
+                    }
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                if(currentAudioSubTab === 'prop') drawPhysicalWave();
+                if(currentAudioSubTab === 'digit') drawDigitizeProcess();
+                if(currentAudioSubTab === 'audacity') drawAudacitySimulation();
+            });
+        };
+    </script>
+    <script src="course-data.js"></script>
+    <script src="course-core.js"></script>
+    <!-- 116 課程系統：進度掛鉤（見 progress-hook.js）-->
+    <script src="../config.js"></script>
+    <script src="../../shared/store.js"></script>
+    <script src="../../shared/ui.js"></script>
+    <script src="../../shared/unit.js"></script>
+    <script src="../../shared/api.js"></script>
+    <script src="progress-hook.js"></script>
+</body>
+</html>

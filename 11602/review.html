@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會考前總複習 · 116-2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="config.js"></script>
+<script src="../shared/k12.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+<script src="../shared/api.js"></script>
+<script src="../shared/cardgame.js"></script>
+<script src="../shared/net-labs.js"></script>
+<script src="../shared/pf-labs.js"></script>
+<script src="../shared/media-labs.js"></script>
+<script src="../shared/ai-labs.js"></script>
+<script src="../shared/data-labs.js"></script>
+<script src="../11601/content/platform.js"></script>
+<script src="content/network.js"></script>
+<script src="content/media.js"></script>
+<script src="content/data.js"></script>
+<link rel="stylesheet" href="../shared/cardgame.css">
+<link rel="stylesheet" href="../shared/net-labs.css">
+<link rel="stylesheet" href="../shared/pf-labs.css">
+<link rel="stylesheet" href="../shared/labs2.css">
+</head>
+<body>
+<main class="wrap">
+  <header id="topbar"></header>
+  <div id="app"></div>
+</main>
+<script>
+/* 🎓 會考前總複習：把九年級上下學期的關卡「混在一起」重新抽題（每次打開都重新抽）
+   ⭐ 基礎＝各關題庫隨機抽（答案在驗證伺服器，網頁看不到）→ ⭐⭐ 操作＝🎲 出題器混合 → ⭐⭐⭐ 挑戰＝🧪 實驗站混合（較難版）
+   紀錄存在 review 模組，不算進闖關地圖的單元進度。 */
+UI.topbar('#topbar', { title: '🎓 會考前總複習', kicker: '九年級上下學期混合 · 每次打開重新抽題' });
+(function () {
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function base(levels) {   // 各關第 1 階裡的分類題（sort）
+    return [].concat.apply([], levels.map(function (lv) { return (lv.stages ? lv.stages[0].rounds : lv.rounds || []).filter(function (r) { return r.type === 'sort'; }); }));
+  }
+  function sample(rounds, k, per) { return shuffle(rounds).slice(0, k).map(function (r) { return Object.assign({}, r, { pick: Math.min(per, (r.items || []).length) }); }); }
+  function gens(list, n) { return shuffle(list).slice(0, n).map(function (g) { return { type: 'gen', gen: g[0], n: 1, prompt: g[1], tool: g[2] }; }); }
+  function labs(list, n) { return shuffle(list).slice(0, n).map(function (l) { return { type: 'lab', lab: l[0], n: 1, prompt: l[1] + '：挑戰', hard: true }; }); }
+  var PF = window.PF_LEVELS || [], NET = window.NET_LEVELS || [], MED = (window.MEDIA_LEVELS || []).concat(window.MEDIA_AI_LEVELS || []), DAT = window.DATA_LEVELS || [];
+  var R = [
+    { id: 'R1', icon: '🖥️', title: '系統平臺 × 多媒體 × AI', book: '上學期 單元三＋下學期 單元四', lv: PF.concat(MED),
+      gens: [], labs: [['memPlan', '記憶體調度員'], ['pcBuild', '電腦組裝師'], ['osManager', '作業系統總管'], ['cloudPizza', '雲端披薩店'], ['resFrame', '解析度與影格'], ['licenseCheck', '素材授權檢查'], ['trainer', 'AI 訓練師'], ['fakeSpot', '深偽偵探']] },
+    { id: 'R2', icon: '🌐', title: '網路世界', book: '下學期 單元五', lv: NET,
+      gens: [['portsCalc', '網路孔夠不夠？'], ['packetLost', '要重送哪幾號？'], ['ipValid', 'IP 合不合法？'], ['ipPrivate', '私有還是公有 IP？'], ['bitsToDec', '二進位換十進位'], ['v6short', 'IPv6 縮寫'], ['v6expand', 'IPv6 還原'], ['urlRead', '看網址判斷'], ['wirelessPick', '選哪一種無線技術？'], ['download', '下載要多久？'], ['bottleneck', '網速卡在哪裡？']],
+      labs: [['ipPanel', 'IP 設定面板'], ['dnsBook', 'DNS 電話簿'], ['wifiMap', 'Wi-Fi 覆蓋地圖'], ['packetSim', '封包快遞模擬器']] },
+    { id: 'R3', icon: '🗂️', title: '資料處理 × 密碼', book: '下學期 單元六', lv: DAT,
+      gens: [['letterNum', '字母編號'], ['wrap', '轉盤繞圈圈'], ['caesarEnc', '凱薩加密', 'caesar'], ['caesarDec', '凱薩解密', 'caesar'], ['bruteForce', '暴力破解', 'caesar'], ['vigEnc', '維吉尼亞加密', 'vigenere'], ['tally', '答題統計']],
+      labs: [['dataToInfo', '資料 → 資訊'], ['cleanLab', '資料清潔隊'], ['rleLab', '解壓縮']] }
+  ];
+  // 第 1 關沒有出題器：操作階改用實驗站（一般版）
+  window.REVIEW_LEVELS = R.map(function (r) {
+    var b = base(r.lv);
+    return { id: r.id, icon: r.icon, title: r.title, book: r.book, custom: true,   // custom：伺服器照這裡抽到的回合（src／出題器／實驗站）開局，每一項都會檢查是真的
+      learn: '<b>總複習怎麼玩</b><ul><li>⭐ 基礎：從各關題庫抽 ' + Math.min(4, b.length) + ' 組分類題（每組 3 張）</li><li>⭐⭐ 操作：' + (r.gens.length ? '🎲 出題器混合，每題數字都不一樣' : '🧪 實驗站（一般版）') + '</li><li>⭐⭐⭐ 挑戰：🧪 實驗站較難版</li></ul>每次打開都重新抽題；卡住就回到原本的單元看「概念小卡」。',
+      stages: [
+        { goal: '各關題庫混合抽題', rounds: sample(b, 4, 3) },
+        { goal: r.gens.length ? '🎲 出題器混合' : '🧪 實驗站混合', rounds: r.gens.length ? gens(r.gens, 5) : shuffle(r.labs).slice(0, 2).map(function (l) { return { type: 'lab', lab: l[0], n: 1, prompt: l[1] }; }) },
+        { goal: '🧪 實驗站挑戰版混合', rounds: labs(r.labs, 2) }
+      ] };
+  });
+  CARDGAME.mount({ app: '#app', levels: REVIEW_LEVELS, mod: 'review', headline: '會考前總複習：九年級的重點一次混著練（每次重新抽題）' });
+})();
+</script>
+</body>
+</html>

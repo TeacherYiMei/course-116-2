@@ -1,0 +1,51 @@
+/* 📦 Python 教師試用版（pylab）的複本：來源 shared/pyapp.css（2026-09-29 複製）。
+   和闖關網站分開，改這裡不會影響學生用的系統；主系統改了也不會自動跟過來。 */
+/* Python 闖關頁的樣式（pyapp.js）── 兩學期共用 */
+  .py-grid{display:grid;grid-template-columns:15.5rem minmax(0,1fr);gap:1rem;align-items:start}
+  .py-grid>*{min-width:0}
+  @media (max-width:900px){ .py-grid{grid-template-columns:1fr} .lv-list{display:flex!important;overflow-x:auto;gap:.5rem;padding-bottom:.4rem} .lv{min-width:12.5rem} }
+  /* 任務清單：和其他單元的關卡卡片同一套規則（單元色邊條、編號圓牌、金色星星、鎖住變灰、目前這關浮起） */
+  .lv-list{display:grid;gap:.5rem}
+  .lv{position:relative;display:flex;align-items:center;gap:.5rem;border:2px solid var(--line);border-left:6px solid var(--unit);background:#fff;border-radius:.8rem;
+    padding:.5rem .6rem;cursor:pointer;text-align:left;font:inherit;font-weight:800;font-size:.88rem;color:var(--ink);box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+  .lv:hover{transform:translateX(2px);box-shadow:0 6px 16px rgba(0,0,0,.07)}
+  .lv.on{border-color:var(--unit);background:var(--unit-soft);box-shadow:0 8px 18px rgba(15,23,42,.12)}
+  .lv.lock{opacity:.55;cursor:not-allowed;filter:grayscale(.6)}
+  .lv .no{flex:0 0 auto;min-width:1.45rem;height:1.45rem;border-radius:999px;background:var(--unit);color:#fff;font-size:.72rem;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .lv.done .no{background:var(--ok)}
+  .lv .ic{font-size:1.2rem}
+  .lv .bd{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+  .lv .st{font-size:.72rem;white-space:nowrap}
+  .lv-prog{display:flex;justify-content:space-between;font-size:.75rem;font-weight:800;margin:0 .2rem .35rem}
+  .lv-bar{height:.45rem;background:rgba(15,23,42,.08);border-radius:999px;overflow:hidden;margin:0 .2rem .7rem}
+  .lv-bar>i{display:block;height:100%;background:var(--unit);border-radius:999px}
+  .engine{font-size:.78rem;font-weight:800;padding:.25rem .65rem;border-radius:999px;background:#fef3c7;color:#92400e}
+  .engine.ok{background:#dcfce7;color:#166534}
+  .engine.bad{background:#fee2e2;color:#991b1b}
+  /* 編輯器 */
+  .ed{display:flex;border:2px solid #cbd5e1;border-radius:.85rem;overflow:hidden;background:#fff}
+  .ed:focus-within{border-color:#86efac}
+  .gut{background:#f1f5f9;color:#475569;text-align:right;padding:.75rem .5rem;font:15px/1.6 ui-monospace,Consolas,monospace;user-select:none;min-width:2.6rem;overflow:hidden;white-space:pre}
+  .gut b{color:#fff;background:var(--bad);border-radius:.25rem;padding:0 .2rem}
+  #code{flex:1;border:0;outline:none;resize:vertical;min-height:15rem;padding:.75rem;font:15px/1.6 ui-monospace,Consolas,monospace;tab-size:4;white-space:pre;overflow:auto;color:#0f172a;background:#fff}
+  .io-in{background:#fde68a;color:#78350f;border-radius:.2rem;padding:0 .2rem}
+  .io-prompt{color:#93c5fd}
+  .console input{background:#1e293b;border:1px solid #475569;color:#fde68a;font:inherit;padding:.1rem .4rem;border-radius:.3rem;width:10rem;outline:none}
+  .console input:focus{border-color:#fde68a}
+  .sample{background:#0f172a;color:#e2e8f0;border-radius:.7rem;padding:.7rem .9rem;font:14px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap}
+  .map-t td:first-child{color:#c2410c;font-weight:800}
+  .map-t td:last-child{font-family:ui-monospace,Consolas,monospace;white-space:pre-wrap}
+  .hint{background:#fffbeb;border:1px dashed #f59e0b;border-radius:.7rem;padding:.6rem .8rem;user-select:none}
+  .res-star{font-size:2.4rem;letter-spacing:.1em}
+  .ok-c{color:var(--ok);font-weight:900}.bad-c{color:var(--bad);font-weight:900}
+  code{background:#f1f5f9;border-radius:.3rem;padding:.05rem .35rem;font-size:.92em}
+  /* 錯誤說明 */
+  .errbox .lbl{font-size:.78rem;font-weight:900;color:#7f1d1d;margin:.35rem 0 .15rem}
+  .errbox .egood+.lbl,.errex .lbl{color:var(--ink-soft)}
+  .ecode{margin:0;border-radius:.55rem;padding:.5rem .7rem;font:14px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word;border:1px solid}
+  .ecode.ebad{background:#fff;border-color:#fecaca;color:#0f172a}
+  .ecode.egood{background:#f0fdf4;border-color:#bbf7d0;color:#0f172a}
+  .ecode .ln{display:inline-block;min-width:1.8rem;color:#94a3b8;user-select:none}
+  .ecode mark.del{background:#fecaca;color:#991b1b;border-radius:.2rem;padding:0 .1rem;font-weight:900}
+  .ecode mark.add{background:#86efac;color:#14532d;border-radius:.2rem;padding:0 .1rem;font-weight:900}
+  .ecode .caret{color:#dc2626;font-weight:900}

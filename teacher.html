@@ -47,9 +47,24 @@ dialog.manageDialog::backdrop{background:#22314a80}
   }
 </style>
 
+
+<style>
+  .recordActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .warningBtn{background:#fff4df;color:#8a5a12}
+  .adminForm{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .adminForm label{font-size:13px;color:#687385;font-weight:700}
+  .adminForm input{width:100%;box-sizing:border-box;margin-top:5px;padding:10px 12px;border:1px solid #cfd6df;border-radius:10px;font-size:16px}
+  .adminForm .full{grid-column:1/-1}
+  .dialogError{color:#b43b3b;font-weight:700;margin-top:10px}
+  .dialogWarning{background:#fff8e8;color:#6e531f;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.55;margin-top:12px}
+  .progressTable{width:100%;border-collapse:collapse;margin-top:12px}
+  .progressTable th,.progressTable td{padding:8px 10px;border-bottom:1px solid #e8ebef;text-align:left}
+  @media(max-width:650px){.adminForm{grid-template-columns:1fr}.adminForm .full{grid-column:auto}.recordActions{justify-content:stretch}.recordActions button{flex:1 1 45%}}
+</style>
+
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v13.2 教師資料維護版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v15 完整帳號刪除版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -66,6 +81,53 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section></main>
 
+
+<dialog id="progressDetailDialog" class="manageDialog">
+  <div class="manageHead">
+    <h2 style="margin:0 0 6px">📊 Python 關卡明細</h2>
+    <div id="detailTitle"></div>
+  </div>
+  <div class="manageBody">
+    <div id="progressDetailSummary" class="status"></div>
+    <table class="progressTable">
+      <thead><tr><th>關卡</th><th>完成挑戰</th><th>狀態</th></tr></thead>
+      <tbody id="progressDetailBody"></tbody>
+    </table>
+  </div>
+  <div class="manageFooter">
+    <span></span>
+    <button id="closeDetailBtn" class="soft" type="button">關閉</button>
+  </div>
+</dialog>
+
+<dialog id="editRecordDialog" class="manageDialog">
+  <div class="manageHead">
+    <h2 style="margin:0 0 6px">✏️ 更正學生資料</h2>
+    <div class="status">只能維護自己被授權的班級。</div>
+  </div>
+  <div class="manageBody">
+    <input id="editDocId" type="hidden">
+    <input id="editOriginalClass" type="hidden">
+    <div class="adminForm">
+      <label>班級
+        <input id="editClassName" inputmode="numeric" maxlength="3">
+      </label>
+      <label>座號
+        <input id="editSeatNo" inputmode="numeric" maxlength="2">
+      </label>
+      <label class="full">姓名
+        <input id="editStudentName" maxlength="20">
+      </label>
+    </div>
+    <div id="editAccountWarning" class="dialogWarning"></div>
+    <div id="editRecordError" class="dialogError"></div>
+  </div>
+  <div class="manageFooter">
+    <button id="closeEditBtn" class="soft" type="button">取消</button>
+    <button id="saveEditBtn" type="button">儲存更正</button>
+  </div>
+</dialog>
+
 <dialog id="studentManageDialog" class="manageDialog">
   <div class="manageHead">
     <h2 style="margin:0 0 6px">🛠️ 學生資料維護</h2>
@@ -73,7 +135,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
   </div>
   <div class="manageBody">
     <p id="manageStudentNote" class="status"></p>
-    <div class="warn">⚠️ 請只刪除確認輸入錯誤或重複的紀錄。刪除 Firestore 學習紀錄不會自動刪除 Firebase Authentication 的登入帳號。</div>
+    <div class="warn">⚠️ 「刪除全部資料與帳號」會永久刪除 Firestore 學習資料與 Firebase Authentication 登入帳號，無法復原。</div>
     <div id="manageRecordList" class="recordList"></div>
   </div>
   <div class="manageFooter">
@@ -81,7 +143,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
     <button id="closeManageBtn" class="soft" type="button">關閉</button>
   </div>
 </dialog>
-<script src="shared/firebase-config.js?v=13.2"></script>
+<script src="shared/firebase-config.js?v=15"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="shared/teacher-dashboard.js?v=13.2"></script>
+<script src="shared/teacher-dashboard.js?v=15"></script>
 </body></html>

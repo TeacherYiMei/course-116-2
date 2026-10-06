@@ -133,3 +133,28 @@ npm run quick     ← 快速：洩漏掃描、伺服器驗證、亂猜模擬、�
 - 將「維護」欄從最右側移到姓名後方。
 - 強制維護按鈕可見，避免被表格寬度或容器裁切。
 - 保留 v13 的逐筆刪除、重複紀錄展開、授權班級刪除限制。
+
+## v13.2：教師端快取刷新
+- `teacher.html` 對 firebase-config.js 與 teacher-dashboard.js 加入 `?v=13.2`。
+- 強制 GitHub Pages / 瀏覽器重新載入教師端 JavaScript。
+- 教師頁顯示「版本：v13.2 教師資料維護版」，方便確認部署版本。
+
+
+## v14：學生資料管理
+- 教師維護視窗新增「📊 關卡明細」「✏️ 更正資料」「↺ 重設進度」「🗑️ 刪除此筆」。
+- 關卡明細列出 P1～P10 各關完成挑戰數與完成狀態。
+- 可更正姓名、座號、班級。
+- 修改班級時，修改前後班級都必須是該教師授權班級；admin 不受此限制。
+- 儲存前檢查同班同座號是否已有其他紀錄，避免製造衝突。
+- 重設進度必須再次輸入「重設」確認，才會把 Python 星星／進度／證書狀態歸零。
+- Firestore Rules 已允許任課教師更新自己授權班級的學生資料。
+- 注意：Firebase Authentication 的學生學習帳號仍不能由瀏覽器教師端直接改 Email；更正班級／座號時會顯示警告。
+
+
+## v15：完整刪除學生帳號
+- 教師端刪除功能改為「刪除全部資料與帳號」。
+- 必須輸入「永久刪除」再次確認。
+- 新增 Firebase Cloud Function `deleteStudentAccount`。
+- 後端使用 Firebase Admin SDK 刪除 Firestore 學習資料與 Firebase Authentication 帳號。
+- 一般教師仍只能刪自己授權班級；admin 可刪全部班級。
+- Cloud Function 必須另外部署；GitHub Pages 本身無法執行 Admin SDK。

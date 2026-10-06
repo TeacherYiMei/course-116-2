@@ -55,9 +55,23 @@ service cloud.firestore {
           resource.data.className in teacherData().classes
         );
 
-      // 學生只能建立 / 更新自己的文件。
-      allow create, update: if signedIn() &&
+      // 學生只能建立自己的文件。
+      allow create: if signedIn() &&
         request.auth.uid == studentUid;
+
+      // 學生可更新自己的文件。
+      // 任課教師可維護自己授權班級，但若修改班級，
+      // 修改前與修改後的班級都必須在其授權範圍內。
+      allow update: if signedIn() &&
+        (
+          request.auth.uid == studentUid ||
+          isAdmin() ||
+          (
+            isTeacher() &&
+            teachesClass(resource.data.className) &&
+            teachesClass(request.resource.data.className)
+          )
+        );
 
       // 任課教師只能刪除自己授權班級的錯誤學生紀錄。
       // admin 可刪除所有班級。

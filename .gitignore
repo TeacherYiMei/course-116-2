@@ -1,0 +1,10 @@
+node_modules/
+tests/node_modules
+*.log
+.DS_Store
+# 備課 PDF 有版權，不要進公開 repo
+課程資料/
+
+# 🔒 明碼答案（正解、解說、提示、隱藏測資、參考程式）只留在老師電腦，絕對不能進公開 repo
+#    修改後執行 node tools/build.mjs 產生封存版；private/ 要自己備份（隨身碟或雲端硬碟）
+private/

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>期中考複習關卡｜116-1 資訊科技</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="midterm-review.css">
+<script src="config.js"></script>
+<script src="../shared/store.js"></script>
+<script src="../shared/ui.js"></script>
+</head>
+<body>
+<main class="reviewWrap">
+  <div class="topbar">
+    <a class="backLink" href="hub.html">← 回 116-1 闖關地圖</a>
+    <div id="studentTag" class="studentTag">讀取學生資料中…</div>
+  </div>
+  <section class="hero">
+    <div class="heroIcon">🧭</div>
+    <div>
+      <div class="eyebrow">獨立複習任務</div>
+      <h1>期中考複習關卡</h1>
+      <p>四個複習站、共 40 題。每題作答後立即看到正確答案與觀念說明；答錯題會反覆重練，直到該站 10 題全部答對才解鎖下一站。</p>
+    </div>
+  </section>
+  <section id="mapView">
+    <div class="sectionTitle">
+      <h2>複習地圖</h2>
+      <p>每站必須 10 / 10 全對才算完成；錯題會一直重練。不影響 Python 原本 26 個挑戰。</p>
+    </div>
+    <div id="stationGrid" class="stationGrid"></div>
+    <div id="finalTreasure" class="finalTreasure hidden">
+      <div class="treasureIcon">🎁</div>
+      <h2>期中複習寶箱開啟！</h2>
+      <p>四個複習站都完成了。可以回頭重玩任一站，把還不熟的觀念再練一次。</p>
+    </div>
+  </section>
+  <section id="quizView" class="quizView hidden">
+    <div class="quizHeader">
+      <button id="backToMap" class="softBtn" type="button">← 回複習地圖</button>
+      <div>
+        <div id="stationName" class="eyebrow"></div>
+        <h2 id="stationTitle"></h2>
+      </div>
+      <div id="progressPill" class="progressPill"></div>
+    </div>
+    <div class="progressBar"><div id="progressFill"></div></div>
+    <article class="questionCard">
+      <div class="questionMeta">
+        <span id="questionNo"></span>
+        <span id="topicTag" class="topicTag"></span>
+      </div>
+      <h3 id="questionText"></h3>
+      <div id="options" class="options"></div>
+      <div class="questionActions">
+        <button id="checkBtn" class="primaryBtn" type="button" disabled>確認答案</button>
+        <button id="nextBtn" class="primaryBtn hidden" type="button">下一題 →</button>
+      </div>
+      <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+    </article>
+  </section>
+  <dialog id="stationDoneDialog" class="resultDialog">
+    <div class="resultIcon">🏁</div>
+    <h2 id="doneTitle">複習站完成</h2>
+    <p id="doneSummary"></p>
+    <div id="wrongTopics" class="wrongTopics"></div>
+    <div class="dialogActions">
+      <button id="retryStationBtn" class="softBtn" type="button">再練一次</button>
+      <button id="continueBtn" class="primaryBtn" type="button">繼續冒險 →</button>
+    </div>
+  </dialog>
+</main>
+<script src="content/midterm-review.js"></script>
+<script>UI.requireLogin(function(){ MIDTERM.init(); });</script>
+</body>
+</html>

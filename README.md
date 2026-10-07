@@ -151,10 +151,15 @@ npm run quick     ← 快速：洩漏掃描、伺服器驗證、亂猜模擬、�
 - 注意：Firebase Authentication 的學生學習帳號仍不能由瀏覽器教師端直接改 Email；更正班級／座號時會顯示警告。
 
 
-## v15：完整刪除學生帳號
-- 教師端刪除功能改為「刪除全部資料與帳號」。
-- 必須輸入「永久刪除」再次確認。
-- 新增 Firebase Cloud Function `deleteStudentAccount`。
-- 後端使用 Firebase Admin SDK 刪除 Firestore 學習資料與 Firebase Authentication 帳號。
-- 一般教師仍只能刪自己授權班級；admin 可刪全部班級。
-- Cloud Function 必須另外部署；GitHub Pages 本身無法執行 Admin SDK。
+## v14.1：期中考複習關卡
+- 新增 `11601/midterm-review.html`。
+- 4 個複習站、40 題，每題立即顯示正確答案與觀念解析。
+- 依序解鎖，完成四站後開啟複習寶箱。
+- 進度獨立存於 `midterm` 模組，不影響 Python 26 挑戰。
+
+## 期中複習 v2：全對才過關
+- 每站第一輪先作答全部 10 題。
+- 有答錯時，下一輪只重做錯題。
+- 若重做仍答錯，繼續只重做尚未答對的題目。
+- 必須 10/10 全部答對，該站才標記完成並解鎖下一站。
+- 完成後 STORE 記錄 stars=10、score=100、done=true。

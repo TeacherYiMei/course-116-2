@@ -58,10 +58,14 @@
         name:String(r.name||""),
         stars:Number(r.stars||0),
         totalStars:Number(r.totalStars||26),
+        score:Number(r.score||0),
+        progress:r.progress||{},
         currentStation:String(r.currentStation||""),
         currentChallenge:r.currentChallenge||"",
         completed:!!r.completed,
-        updatedAt:r.updatedAt||null
+        certificateUnlocked:!!r.certificateUnlocked,
+        updatedAt:r.updatedAt||null,
+        lastSeenAt:r.lastSeenAt||null
       }));
       if(group.length>1){
         const merged={};
@@ -160,7 +164,7 @@
     );
 
     list.innerHTML=records.map((rec,index)=>`
-      <div class="recordCard">
+      <div class="recordCard" data-record="${esc(rec.id)}">
         <div class="recordInfo">
           <b>紀錄 ${index+1}</b>
           <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}</span>
@@ -168,21 +172,171 @@
           <span>${rec.completed?"已完成":"進行中"}</span>
           <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
         </div>
-        <button class="deleteRecordBtn danger" type="button"
-          data-docid="${esc(rec.id)}"
-          data-class="${esc(rec.className)}"
-          data-seat="${esc(rec.seatNo)}"
-          data-name="${esc(rec.name)}">
-          🗑️ 刪除此筆
-        </button>
+        <div class="recordActions">
+          <button class="detailRecordBtn soft" type="button" data-docid="${esc(rec.id)}">📊 關卡明細</button>
+          <button class="editRecordBtn soft" type="button" data-docid="${esc(rec.id)}">✏️ 更正資料</button>
+          <button class="resetRecordBtn warningBtn" type="button" data-docid="${esc(rec.id)}">↺ 重設進度</button>
+          <button class="deleteRecordBtn danger" type="button"
+            data-docid="${esc(rec.id)}"
+            data-class="${esc(rec.className)}"
+            data-seat="${esc(rec.seatNo)}"
+            data-name="${esc(rec.name)}">
+            🗑️ 刪除此筆
+          </button>
+        </div>
       </div>
     `).join("");
 
     list.querySelectorAll(".deleteRecordBtn").forEach(btn=>{
       btn.addEventListener("click",()=>deleteStudentRecord(btn.dataset));
     });
+    list.querySelectorAll(".detailRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>showProgressDetail(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
+    list.querySelectorAll(".editRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>openEditRecord(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
+    list.querySelectorAll(".resetRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>resetStudentProgress(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
 
     dlg.showModal();
+  }
+
+
+  function progressRows(progress){
+    const needs={p1:2,p2:3,p3:3,p4:2,p5:3,p6:2,p7:2,p8:3,p9:3,p10:3};
+    return Object.entries(needs).map(([id,total])=>{
+      const done=Math.max(0,Math.min(total,Number(progress?.[id]||0)));
+      return {id:id.toUpperCase(),done,total,complete:done>=total};
+    });
+  }
+
+  function showProgressDetail(rec){
+    if(!rec)return;
+    const rows=progressRows(rec.progress);
+    $("#detailTitle").textContent=`${rec.className} 班｜${rec.seatNo} 號｜${rec.name}`;
+    $("#progressDetailBody").innerHTML=rows.map(r=>`
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.done} / ${r.total}</td>
+        <td>${r.complete?'<span class="badge done">完成</span>':'<span class="badge">進行中</span>'}</td>
+      </tr>
+    `).join("");
+    $("#progressDetailSummary").textContent=
+      `總星星 ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}｜評分 ${Number(rec.score||0)}｜${rec.completed?"全部完成":"尚未全部完成"}`;
+    $("#progressDetailDialog").showModal();
+  }
+
+  function openEditRecord(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有維護此班級資料的權限。");
+      return;
+    }
+    $("#editDocId").value=rec.id;
+    $("#editOriginalClass").value=rec.className;
+    $("#editClassName").value=rec.className;
+    $("#editSeatNo").value=rec.seatNo;
+    $("#editStudentName").value=rec.name;
+    $("#editRecordError").textContent="";
+    $("#editAccountWarning").textContent=
+      "🔒 學生端已無法自行修改班級、座號與姓名，只有教師可在此更正。注意：若學生已建立學習帳號，班級／座號同時也是登入識別的一部分；免 Functions 版本無法同步修改 Firebase Authentication 登入帳號，因此更正班級或座號前請先確認，學生之後可能仍需用原班級／座號登入。";
+    $("#editRecordDialog").showModal();
+  }
+
+  function validEditFields(className,seatNo,name){
+    if(!/^[1-9][0-9]{2}$/.test(className)) return "班級請輸入 3 位數，例如 701、802、910。";
+    if(!/^(?:[1-9]|[1-9][0-9])$/.test(seatNo)) return "座號請輸入 1～99，不要加「號」或前導 0。";
+    if(name.length<2||name.length>20||!/^[\u3400-\u9FFF A-Za-z·・．'’-]+$/.test(name))
+      return "姓名請輸入 2～20 個中文字或英文字母。";
+    return "";
+  }
+
+  async function seatConflict(className,seatNo,excludeId){
+    const {collection,query,where,getDocs}=mods.fs;
+    const q=query(
+      collection(db,"students"),
+      where("className","==",String(className)),
+      where("seatNo","==",String(seatNo))
+    );
+    const snap=await getDocs(q);
+    return snap.docs.some(d=>d.id!==excludeId);
+  }
+
+  async function saveEditedRecord(){
+    const docid=$("#editDocId").value;
+    const originalClass=$("#editOriginalClass").value;
+    const className=$("#editClassName").value.trim();
+    const seatNo=String(Number($("#editSeatNo").value.trim()||0));
+    const name=$("#editStudentName").value.trim();
+    const err=$("#editRecordError");
+
+    const msg=validEditFields(className,seatNo,name);
+    if(msg){err.textContent=msg;return;}
+
+    if(!canManageClass(originalClass) || !canManageClass(className)){
+      err.textContent="只能把學生資料維護在你被授權的班級範圍內。";
+      return;
+    }
+
+    try{
+      err.textContent="正在檢查班級與座號…";
+      if(await seatConflict(className,seatNo,docid)){
+        err.textContent=`${className} 班 ${seatNo} 號已經有其他學生紀錄，請先確認是否為重複資料。`;
+        return;
+      }
+
+      const ok=confirm(
+        `確定儲存學生資料更正？\n\n`+
+        `${originalClass} 班 → ${className} 班\n`+
+        `座號：${seatNo}\n姓名：${name}`
+      );
+      if(!ok){err.textContent="";return;}
+
+      err.textContent="正在儲存…";
+      await mods.fs.updateDoc(mods.fs.doc(db,"students",docid),{
+        className,seatNo,name,
+        updatedAt:mods.fs.serverTimestamp()
+      });
+      $("#editRecordDialog").close();
+      $("#studentManageDialog").close();
+      await loadRows();
+    }catch(e){
+      err.textContent="儲存失敗："+(e?.code||e?.message||"未知錯誤");
+    }
+  }
+
+  async function resetStudentProgress(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有重設此班級學生進度的權限。");
+      return;
+    }
+    const typed=prompt(
+      `這會把 ${rec.className} 班 ${rec.seatNo} 號 ${rec.name} 的 Python 進度歸零。\n\n`+
+      `請輸入「重設」兩個字確認：`
+    );
+    if(typed!=="重設")return;
+
+    try{
+      $("#manageDeleteStatus").textContent="正在重設進度…";
+      await mods.fs.updateDoc(mods.fs.doc(db,"students",rec.id),{
+        stars:0,
+        score:0,
+        progress:{},
+        completed:false,
+        certificateUnlocked:false,
+        currentStation:"P1",
+        currentChallenge:1,
+        updatedAt:mods.fs.serverTimestamp()
+      });
+      $("#studentManageDialog").close();
+      await loadRows();
+    }catch(e){
+      $("#manageDeleteStatus").textContent="";
+      alert("重設失敗："+(e?.code||e?.message||"未知錯誤"));
+    }
   }
 
   async function deleteStudentRecord(data){
@@ -410,6 +564,9 @@
     $("#manageDeleteStatus").textContent="";
     $("#studentManageDialog").close();
   };
+  $("#closeDetailBtn").onclick=()=>$("#progressDetailDialog").close();
+  $("#closeEditBtn").onclick=()=>$("#editRecordDialog").close();
+  $("#saveEditBtn").onclick=saveEditedRecord;
 
   init();
 })();

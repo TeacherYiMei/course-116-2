@@ -86,10 +86,12 @@ function validate(code,step){
       if(p.length<2 || p.some(x=>x.length<2)) return fail("兩行都要有實際文字內容。");
       if(new Set(p.slice(0,2)).size<2) return fail("兩行內容目前相同；第一行是地點，第二行是活動，請寫成不同內容。");
       const place=p[0], activity=p[1];
-      if(!looksLikePlace(place))
-        return fail(`第一行「${place}」不像實際地點。請輸入例如「高雄」、「台北」、「東京」等想去的地方。`);
-      if(!looksLikeActivity(activity))
-        return fail(`第二行「${activity}」不像旅行活動。請寫例如「拍照」、「逛夜市」、「看風景」等想做的事情。`);
+      if(!looksLikeUsableText(place))
+        return fail("第一行請輸入至少 2 個字的內容，不要使用 ddddd、aaaaa 這類明顯亂碼。");
+      if(!looksLikeUsableText(activity))
+        return fail("第二行請輸入至少 2 個字的內容，不要使用 ddddd、aaaaa 這類明顯亂碼。");
+      if(place===activity)
+        return fail("地點和活動不能完全一樣，請讓兩行內容不同。");
       return ok();
     }
     case "p2_one_input_var":{
@@ -253,13 +255,183 @@ function validate(code,step){
 }
 
 
+
+function feedbackExample(rule,msg=""){
+  const examples={
+    p1_greeting:{
+      title:"print() 的正確概念範例",
+      code:'print("今天一起加油！")',
+      note:"print() 的括號裡放要顯示的文字；文字要放在引號中。"
+    },
+    p1_two_distinct:{
+      title:"兩行不同內容的範例",
+      code:'print("圖書館")\nprint("看漫畫")',
+      note:"題目要兩行時，可以用兩次 print()；兩行內容要不同。"
+    },
+    p2_one_input_var:{
+      title:"input() 存進變數的範例",
+      code:'drink = input("你想喝什麼？")\nprint(drink)',
+      note:"input() 的回答先存進變數，後面才能再次使用。"
+    },
+    p2_two_inputs:{
+      title:"兩筆資料用兩個變數",
+      code:'color = input("喜歡的顏色：")\nanimal = input("喜歡的動物：")\nprint(color, animal)',
+      note:"不同資料放進不同變數，才不會互相覆蓋。"
+    },
+    p2_three_inputs_print:{
+      title:"三筆資料分開保存",
+      code:'food = input("食物：")\ndrink = input("飲料：")\nplace = input("用餐地點：")\nprint(food, drink, place)',
+      note:"三次 input() 分別放入三個變數，輸出時再使用這三個變數。"
+    },
+    p3_multiply_int:{
+      title:"整數輸入＋乘法範例",
+      code:'price = int(input("鉛筆單價："))\ncount = int(input("買幾枝："))\ntotal = price * count\nprint(total)',
+      note:"input() 得到文字；要做整數乘法時先用 int()。"
+    },
+    p3_divmod:{
+      title:"整除與餘數範例",
+      code:'balls = int(input("球的總數："))\nbox = int(input("每盒幾顆："))\nprint(balls // box)\nprint(balls % box)',
+      note:"// 看完整分成幾份，% 看最後剩多少。"
+    },
+    p3_budget:{
+      title:"連續減法範例",
+      code:'money = int(input("原有金額："))\nbook = int(input("書本花費："))\npen = int(input("文具花費："))\nleft = money - book - pen\nprint(left)',
+      note:"先保存各筆數字，再依問題建立算式。"
+    },
+    p4_square:{
+      title:"小數、平方與 round() 範例",
+      code:'side = float(input("邊長："))\narea = side ** 2\nprint(round(area, 2))',
+      note:"float() 處理小數，** 2 是平方，round(..., 2) 整理到小數第 2 位。"
+    },
+    p4_speed:{
+      title:"小數除法範例",
+      code:'pages = float(input("閱讀頁數："))\nhours = float(input("花費小時："))\nrate = pages / hours\nprint(round(rate, 1))',
+      note:"先做除法，再把結果交給 round()。"
+    },
+    p5_pass:{
+      title:"if / else 兩條路的範例",
+      code:'age = int(input("年齡："))\nif age >= 18:\n    print("成年")\nelse:\n    print("未成年")',
+      note:"if 判斷條件；成立走第一條路，不成立走 else。"
+    },
+    p5_rain:{
+      title:"門檻判斷範例",
+      code:'battery = int(input("電量："))\nif battery >= 20:\n    print("可以繼續使用")\nelse:\n    print("需要充電")',
+      note:"先決定分界值，再讓 if / else 顯示兩種不同結果。"
+    },
+    p5_custom_threshold:{
+      title:"自訂門檻範例",
+      code:'books = int(input("讀完幾本書："))\nif books >= 5:\n    print("達成目標")\nelse:\n    print("繼續努力")',
+      note:"情境可以自己設計，但一定要有數值輸入、比較條件與兩種結果。"
+    },
+    p6_age3:{
+      title:"三種分類範例",
+      code:'score = int(input("分數："))\nif score < 60:\n    print("未通過")\nelif score < 80:\n    print("通過")\nelse:\n    print("表現很好")',
+      note:"三種結果可用 if / elif / else；條件順序會影響分類。"
+    },
+    p6_temp4:{
+      title:"四種分類範例",
+      code:'level = int(input("等級："))\nif level < 10:\n    print("初級")\nelif level < 20:\n    print("中級")\nelif level < 30:\n    print("進階")\nelse:\n    print("高手")',
+      note:"四種結果通常需要 if + 2 個 elif + else。"
+    },
+    p7_and:{
+      title:"and 的範例",
+      code:'homework = 1\nbag = 1\nif homework == 1 and bag == 1:\n    print("準備完成")\nelse:\n    print("還要準備")',
+      note:"and 代表左右兩個條件都要成立。"
+    },
+    p7_or:{
+      title:"or 的範例",
+      code:'bus_card = 0\ncash = 1\nif bus_card == 1 or cash == 1:\n    print("可以搭車")\nelse:\n    print("目前不能搭車")',
+      note:"or 代表至少一個條件成立即可。"
+    },
+    p8_1to5:{
+      title:"for + range() 範例",
+      code:'for n in range(2, 6):\n    print(n)',
+      note:"range(開始, 停止前) 不包含停止值；這個例子會顯示 2、3、4、5。"
+    },
+    p8_countdown:{
+      title:"負步進倒數範例",
+      code:'for n in range(3, 0, -1):\n    print(n)\nprint("完成！")',
+      note:"倒數時第三個參數用負數；迴圈外的訊息只出現一次。"
+    },
+    p8_even:{
+      title:"固定步進範例",
+      code:'for n in range(3, 13, 3):\n    print(n)',
+      note:"第三個參數是步進；這個例子每次增加 3。"
+    },
+    p9_count5:{
+      title:"while 計數範例",
+      code:'count = 1\nwhile count <= 3:\n    print(count)\n    count = count + 1',
+      note:"while 裡一定要讓計數變數改變，否則可能永遠停不下來。"
+    },
+    p9_password:{
+      title:"while 重複詢問範例",
+      code:'answer = 7\nguess = 0\nwhile guess != answer:\n    guess = int(input("猜數字："))\nprint("答對")',
+      note:"只要條件仍成立就繼續；每一輪都要更新 guess。"
+    },
+    p9_password_hint:{
+      title:"while 裡加入 if 的範例",
+      code:'answer = 7\nguess = 0\nwhile guess != answer:\n    guess = int(input("猜數字："))\n    if guess > answer:\n        print("太大")\n    elif guess < answer:\n        print("太小")\nprint("答對")',
+      note:"while 負責重複，if / elif 負責每一輪的判斷。"
+    },
+    p10_random:{
+      title:"隨機數範例",
+      code:'import random\nnumber = random.randint(1, 6)\nprint(number)',
+      note:"先 import random，再用 randint(最小值, 最大值) 產生整數。"
+    },
+    p10_guess:{
+      title:"猜數字邏輯範例",
+      code:'answer = 5\nguess = 0\nwhile guess != answer:\n    guess = int(input("猜 1～9："))\n    if guess > answer:\n        print("太大")\n    elif guess < answer:\n        print("太小")\nprint("答對")',
+      note:"答案放在迴圈外，while 重複輸入，if / elif 提供提示。"
+    },
+    p10_boss:{
+      title:"計次變數範例",
+      code:'count = 0\nfor i in range(3):\n    count += 1\nprint("共執行", count, "次")',
+      note:"計次變數通常從 0 開始，每完成一次就 +1，最後再顯示。"
+    }
+  };
+
+  let ex=examples[rule];
+  if(ex) return ex;
+
+  if(/int|整數|數字轉換/.test(msg)){
+    return {title:"數字轉換範例",code:'age = int(input("年齡："))\nprint(age + 1)',note:"input() 是文字；要做整數計算時先用 int()。"};
+  }
+  if(/float|小數/.test(msg)){
+    return {title:"小數轉換範例",code:'height = float(input("身高："))\nprint(height)',note:"可能有小數的輸入可使用 float()。"};
+  }
+  if(/if|else|elif|分支|條件/.test(msg)){
+    return {title:"條件判斷範例",code:'number = 8\nif number >= 5:\n    print("較大")\nelse:\n    print("較小")',note:"冒號下一行要縮排，讓 Python 知道哪幾行屬於這個分支。"};
+  }
+  if(/while|迴圈/.test(msg)){
+    return {title:"while 範例",code:'n = 1\nwhile n <= 3:\n    print(n)\n    n += 1',note:"while 裡要更新會影響條件的變數。"};
+  }
+  if(/for|range/.test(msg)){
+    return {title:"for / range 範例",code:'for n in range(1, 4):\n    print(n)',note:"range 的停止值不包含在內。"};
+  }
+  if(/input|變數/.test(msg)){
+    return {title:"input 與變數範例",code:'food = input("喜歡的食物：")\nprint(food)',note:"把 input() 的回答存進變數，再使用變數。"};
+  }
+  return {title:"參考寫法",code:'message = "先把問題拆成小步驟"\nprint(message)',note:"先完成一個小步驟，再逐步加入下一個功能。"};
+}
+
+function exampleHTML(ex){
+  if(!ex) return "";
+  return `<details class="correctExample" open>
+    <summary>✅ 看一個不同情境的正確範例</summary>
+    <div class="exampleTitle">${esc(ex.title||"正確概念範例")}</div>
+    <pre><code>${esc(ex.code||"")}</code></pre>
+    <div class="exampleNote">💡 ${esc(ex.note||"請觀察寫法，再回到自己的題目修改。")}</div>
+    <small>這不是本題答案，請理解後再自己完成。</small>
+  </details>`;
+}
+
 const PY_RESERVED=new Set([
 "False","None","True","and","as","assert","async","await","break","class","continue","def","del",
 "elif","else","except","finally","for","from","global","if","import","in","is","lambda","nonlocal",
 "not","or","pass","raise","return","try","while","with","yield"
 ]);
 
-function debugCoach(err, code){
+function debugCoachBase(err, code){
   const raw=String(err||"");
   const lines=String(code||"").split(/\n/);
   let lineNo=null;
@@ -343,12 +515,66 @@ function debugCoach(err, code){
   };
 }
 
+
+function debugCoach(err, code){
+  const info=debugCoachBase(err,code);
+  const raw=String(err||"");
+  let example=null;
+
+  if(/IndentationError|unexpected indent|expected an indented block/i.test(raw)){
+    example={
+      title:"縮排正確範例",
+      code:'score = 70\nif score >= 60:\n    print("通過")\nelse:\n    print("再試一次")',
+      note:"if / else 下一行要縮排，而且同一區塊的縮排要一致。"
+    };
+  }else if(/NameError/i.test(raw)){
+    example={
+      title:"先建立變數，再使用",
+      code:'city = "台南"\nprint(city)',
+      note:"變數第一次使用前要先有值，而且前後拼字必須相同。"
+    };
+  }else if(/ValueError.*invalid literal for int/i.test(raw)){
+    example={
+      title:"int() 正確輸入範例",
+      code:'age = int(input("請輸入整數年齡："))\nprint(age + 1)',
+      note:"執行時可輸入 15；若輸入「十五」或 15.5，int() 會無法直接轉換。"
+    };
+  }else if(/TypeError/i.test(raw)){
+    example={
+      title:"先轉型再計算",
+      code:'count = int(input("數量："))\nprint(count + 2)',
+      note:"input() 得到字串；數字運算前要依需要轉成 int() 或 float()。"
+    };
+  }else if(/SyntaxError/i.test(raw)){
+    example={
+      title:"完整語法範例",
+      code:'name = input("名字：")\nif name == "小明":\n    print("你好")',
+      note:"檢查引號、括號、冒號是否完整成對。"
+    };
+  }else if(/timeout|timed out|時間|too long/i.test(raw)){
+    example={
+      title:"會停止的 while 範例",
+      code:'n = 1\nwhile n <= 3:\n    print(n)\n    n = n + 1',
+      note:"每一輪都更新 n，所以條件最後會變成 False，迴圈就會停止。"
+    };
+  }else{
+    example={
+      title:"先拆成小步驟",
+      code:'value = 3\nprint(value)',
+      note:"先確認最小版本能執行，再逐步加入 input、運算、判斷或迴圈。"
+    };
+  }
+
+  return {...info,example};
+}
+
 function coachHTML(info){
   return `<div class="debugCoach">
     <b>${esc(info.title)}</b>
     <div class="debugRow"><strong>📍 哪裡：</strong>${esc(info.where)}</div>
     <div class="debugRow"><strong>🤔 原因：</strong>${esc(info.why)}</div>
     <div class="debugRow"><strong>➡️ 下一步：</strong>${esc(info.next)}</div>
+    ${exampleHTML(info.example)}
   </div>`;
 }
 
@@ -516,6 +742,10 @@ function showProfileErrors(errors={}){
   if(n)n.textContent=errors.name||"";
 }
 
+function identityLocked(){
+  return !!(window.CourseDB && CourseDB.state==="ready" && !CourseDB.isAnonymous());
+}
+
 function updateProfileStrip(){
   const p=getStudentProfile();
   const el=document.getElementById("studentProfileText");
@@ -523,6 +753,17 @@ function updateProfileStrip(){
   el.textContent=profileIsValid(p)
     ?`班級 ${p.className}　｜　座號 ${p.seatNo}　｜　姓名 ${p.name}`
     :"尚未設定";
+
+  const editBtn=document.getElementById("editProfileBtn");
+  if(editBtn){
+    if(identityLocked()){
+      editBtn.textContent="🔒 身分由教師管理";
+      editBtn.title="學習帳號建立後，班級、座號與姓名只能由教師端更正。";
+    }else{
+      editBtn.textContent="修改";
+      editBtn.title="";
+    }
+  }
 }
 
 function updateAccountButton(){
@@ -565,8 +806,8 @@ function openAccountDialog(required=false){
   if(pass)pass.value="";
   if(intro){
     intro.textContent=required
-      ?"為避免同一位學生產生多筆紀錄，請建立或登入學習帳號後繼續。"
-      :"設定一次學習密碼後，以後換版本或重新進入，都可以回到同一筆學習紀錄。";
+      ?"為避免關機還原後遺失進度，請先建立或登入學習帳號。舊版從未設定密碼的學生，請由老師使用「🔑 舊帳號救援」。"
+      :"設定學習密碼後，以後重新登入會從雲端取回正式進度。舊版無密碼帳號可請老師救援。";
   }
   dlg.dataset.required=required?"1":"0";
   dlg.showModal();
@@ -631,8 +872,10 @@ async function linkLearningAccount(){
       return;
     }
     await CourseDB.linkStudentAccount(p.className,p.seatNo,pw);
+    await CourseDB.saveStudent(p);
     await adoptRemoteAndLocalProgress();
     updateAccountButton();
+    updateProfileStrip();
     document.getElementById("accountDialog").close();
     updateCloudStatus("☁️ 學習帳號已連結，進度已保留","ok");
   }catch(e){
@@ -659,9 +902,11 @@ async function loginLearningAccount(){
   try{
     err.textContent="正在登入並取回進度…";
     await CourseDB.signInStudentAccount(p.className,p.seatNo,pw);
+    await CourseDB.saveStudent(p);
     state=localSnapshot;
     await adoptRemoteAndLocalProgress();
     updateAccountButton();
+    updateProfileStrip();
     document.getElementById("accountDialog").close();
     updateCloudStatus("☁️ 已登入學習帳號，進度已合併","ok");
   }catch(e){
@@ -694,10 +939,32 @@ function updateCloudStatus(text,kind=""){
 
 function openProfileDialog(required=true){
   const p=getStudentProfile()||{};
-  document.getElementById("profileClass").value=p.className||"";
-  document.getElementById("profileSeatNo").value=p.seatNo||"";
-  document.getElementById("profileName").value=p.name||"";
-  document.getElementById("profileError").textContent="";
+  const locked=identityLocked();
+
+  const classInput=document.getElementById("profileClass");
+  const seatInput=document.getElementById("profileSeatNo");
+  const nameInput=document.getElementById("profileName");
+  const saveBtn=document.getElementById("saveProfileBtn");
+  const err=document.getElementById("profileError");
+
+  classInput.value=p.className||"";
+  seatInput.value=p.seatNo||"";
+  nameInput.value=p.name||"";
+
+  classInput.disabled=locked;
+  seatInput.disabled=locked;
+  nameInput.disabled=locked;
+
+  if(saveBtn){
+    saveBtn.disabled=locked;
+    saveBtn.style.display=locked?"none":"";
+  }
+
+  if(err){
+    err.textContent=locked
+      ?"🔒 學習帳號已建立。班級、座號與姓名已鎖定；若資料有誤，請由教師端「更正學生資料」。"
+      :"";
+  }
   showProfileErrors({});
   const dlg=document.getElementById("profileDialog");
   dlg.dataset.required=required?"1":"0";
@@ -750,34 +1017,45 @@ async function retryFirebaseConnection(){
 }
 async function syncCloudProgress(){
   const profile=getStudentProfile();
-  if(!profileIsValid(profile))return;
-  if(!window.CourseDB){updateCloudStatus("💾 僅儲存在本機","local");return;}
+  if(!profileIsValid(profile))return false;
+  if(!window.CourseDB){updateCloudStatus("💾 僅儲存在本機","error");return false;}
   try{
     await CourseDB.ready;
-    if(!CourseDB.configured||CourseDB.state==="disabled"){
-      updateCloudStatus("💾 本機模式","local");return;
+    if(!CourseDB.configured||CourseDB.state!=="ready"){
+      updateCloudStatus("⚠️ 資料庫尚未連線","error");return false;
     }
-    if(CourseDB.state!=="ready"){
-      updateCloudStatus("⚠️ 資料庫連線失敗（點此查看原因）","error");return;
+    if(CourseDB.isAnonymous()){
+      updateCloudStatus("🔐 請建立／登入學習帳號","error");
+      ensureStableStudentAccount();
+      return false;
     }
     updateCloudStatus("☁️ 同步中…","syncing");
-    const cur=currentProgressInfo();
+    const stars=Object.values(state).reduce((a,b)=>a+Number(b||0),0);
     await CourseDB.saveStudent({
       ...profile,
-      progress:state,
-      stars:total(),
+      courseId:"python",
+      progress:{...state},
+      stars,
       totalStars:TOTAL_CHALLENGES,
-      completed:total()>=TOTAL_CHALLENGES,
-      currentStation:cur.station,
-      currentChallenge:cur.challenge
+      score:Math.round(stars/TOTAL_CHALLENGES*100),
+      completed:stars>=TOTAL_CHALLENGES,
+      certificateUnlocked:stars>=TOTAL_CHALLENGES,
+      currentStation:stars>=TOTAL_CHALLENGES?"完成":LEVELS[Math.min(pos().i,LEVELS.length-1)]?.title||"",
+      currentChallenge:stars>=TOTAL_CHALLENGES?0:pos().j+1
     });
     updateCloudStatus("☁️ 已同步教師資料庫","ok");
+    return true;
   }catch(e){
-    updateCloudStatus("⚠️ 同步失敗（點此查看原因）","error");
+    updateCloudStatus("⚠️ 同步失敗，進度目前只在本機","error");
+    return false;
   }
 }
-
 async function saveStudentProfile(){
+  if(identityLocked()){
+    const err=document.getElementById("profileError");
+    if(err)err.textContent="🔒 班級、座號與姓名只能由教師端更正。";
+    return;
+  }
   const className=document.getElementById("profileClass").value.trim();
   const seatNo=document.getElementById("profileSeatNo").value.trim();
   const name=document.getElementById("profileName").value.trim();
@@ -888,6 +1166,10 @@ function render(){
   $("#mission").innerHTML=`<article class="card">
     <div class="head"><div class="ico">${l.icon}</div><div><small>${l.title}・挑戰 ${p.j+1}/${stepsOf(l)}</small><h1>${s.title}</h1><div>${l.concept}</div></div></div>
     <div class="scratch"><b>${l.scratch}</b></div>
+    <div class="actions">
+      <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 先理解這一關</a>
+      <a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 只查指令寫法</a>
+    </div>
     ${demo}
     <div class="task"><b>🎯 任務</b><br>${s.prompt}</div>
     ${criteria}
@@ -899,7 +1181,7 @@ function render(){
     </div>
     <div class="actions">
       <button id="hintBtn" class="help">💡 我需要線索</button><button id="varBtn" class="translate">🌐 變數英文小幫手</button>
-      <a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 我想查指令</a>
+      <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 我想先弄懂觀念</a><a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 我只想查寫法</a>
     </div>
     <div class="runNote">「執行看看」只看自己的程式結果，不會判定闖關；覺得完成後再按「檢查挑戰」。</div>
     <div class="consoleLabel">🖥️ 執行結果</div>
@@ -947,6 +1229,13 @@ const OBVIOUS_NON_PLACE=[
 
 function cleanAnswer(v){
   return String(v??"").trim();
+}
+
+// P1～P2 初學階段採寬鬆文字判定：
+// 只排除空白、太短與明顯亂碼，不再要求一定命中地名／活動詞庫。
+function looksLikeUsableText(v){
+  const x=cleanAnswer(v);
+  return x.length>=2 && !looksLikeGibberish(x);
 }
 function inputPromptLiterals(code){
   const out=[];
@@ -1027,8 +1316,8 @@ function semanticValidate(rule,interactions){
 
   if(rule==="p2_one_input_var"){
     const city=interactionValue(interactions,["城市","地點","目的地"],0);
-    if(!looksLikePlace(city))
-      return fail(`「${city||"空白"}」不像實際的城市或地點。請輸入例如「高雄」、「台北」、「東京」等地點。`);
+    if(!looksLikeUsableText(city))
+      return fail("請輸入至少 2 個字的內容，不要使用 ddddd、aaaaa 這類明顯亂碼。");
   }
 
   if(rule==="p2_two_inputs"){
@@ -1044,12 +1333,14 @@ function semanticValidate(rule,interactions){
     const destination=interactionValue(interactions,["目的地","城市","地點"],0);
     const days=interactionValue(interactions,["天數","幾天"],1);
     const activity=interactionValue(interactions,["活動","期待"],2);
-    if(!looksLikePlace(destination))
-      return fail(`目的地「${destination||"空白"}」不像實際地點。請輸入真實城市或旅遊地點。`);
+    if(!looksLikeUsableText(destination))
+      return fail("目的地請輸入至少 2 個字的內容，不要使用明顯亂碼。");
     if(!validNumber(days,1,30,true))
       return fail("旅行天數請輸入 1～30 的整數。");
-    if(activity.length<2 || /^(不知道|隨便|無|沒有|123|abc)$/i.test(activity))
-      return fail("「最期待的活動」請輸入有意義的活動內容，例如參觀、拍照、逛夜市等。");
+    if(!looksLikeUsableText(activity))
+      return fail("活動請輸入至少 2 個字的內容，不要使用明顯亂碼。");
+    if(destination===activity)
+      return fail("目的地和活動不能完全相同，請輸入兩個不同內容。");
   }
 
   if(rule==="p3_multiply_int"){
@@ -1258,7 +1549,11 @@ async function checkChallenge(l,j,s){
   try{
     let check=validate(c,s);
     if(!check.ok){
-      f.innerHTML=`<div class="feedback wait">🔎 ${esc(check.msg)}<br><small>先修正這一點，再按「執行看看」測試。</small></div>`;
+      const ex=feedbackExample(s.rule,check.msg);
+      f.innerHTML=`<div class="feedback wait">🔎 <b>目前問題：</b>${esc(check.msg)}
+        <br><small>先修正這一點，再按「執行看看」測試。</small>
+        ${exampleHTML(ex)}
+      </div>`;
       return;
     }
 
@@ -1267,7 +1562,11 @@ async function checkChallenge(l,j,s){
 
     const meaning=semanticValidate(s.rule,result.interactions);
     if(!meaning.ok){
-      f.innerHTML=`<div class="feedback meaning">🧭 情境內容還要再確認：${esc(meaning.msg)}<br><small>程式寫法可能已經正確，但輸入內容也要符合題目的情境。</small></div>`;
+      const ex=feedbackExample(s.rule,meaning.msg);
+      f.innerHTML=`<div class="feedback meaning">🧭 <b>情境內容還要再確認：</b>${esc(meaning.msg)}
+        <br><small>程式寫法可能已經正確，請看看下面的不同情境例子，再回頭調整自己的內容。</small>
+        ${exampleHTML(ex)}
+      </div>`;
       return;
     }
 

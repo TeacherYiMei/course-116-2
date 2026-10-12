@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 主題學習站｜116-1 資訊科技</title>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f5f7fb;color:#26354b;line-height:1.75}
+header{position:sticky;top:0;z-index:10;background:#ffffffee;backdrop-filter:blur(10px);border-bottom:1px solid #e4e8ee;padding:12px 18px}
+.headerInner{max-width:1080px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.headerInner a{text-decoration:none;color:#40516f;font-weight:850}
+main{max-width:1080px;margin:auto;padding:24px 18px 70px}
+.hero{background:white;border:1px solid #e3e8ef;border-radius:22px;padding:24px;box-shadow:0 10px 32px #35475b10;margin-bottom:18px}
+.hero h1{margin:.1em 0}.hero p{margin:.5em 0}
+.notice{background:#fff8e5;border-left:5px solid #e6b64c;border-radius:10px;padding:12px 14px}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0}
+.nav a{background:#fff;text-decoration:none;color:#33445f;border:1px solid #dfe5ec;border-radius:13px;padding:10px;text-align:center;font-weight:850}
+.topic{scroll-margin-top:86px;background:#fff;border:1px solid #e3e8ef;border-radius:22px;padding:22px;margin:18px 0;box-shadow:0 8px 26px #35475b0c}
+.topic h2{margin-top:0;font-size:1.55rem}
+.topic h3{margin:1.3em 0 .4em}
+.tag{display:inline-block;background:#eef3ff;border-radius:999px;padding:4px 9px;margin:2px 4px 2px 0;font-size:.9rem;font-weight:750}
+.why{background:#eef8f3;border-radius:14px;padding:14px}
+.trace{background:#f5f2ff;border-radius:14px;padding:14px}
+.mistake{background:#fff1f1;border-radius:14px;padding:14px}
+.think{background:#eff7ff;border-radius:14px;padding:14px}
+pre{background:#18202b;color:#f4f7fb;padding:15px;border-radius:13px;overflow:auto;font-size:1rem;line-height:1.55}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.steps{margin:0;padding-left:1.4em}
+.links{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.links a{display:inline-block;text-decoration:none;background:#edf0f5;color:#40516f;border-radius:10px;padding:8px 11px;font-weight:800}
+.k{font-weight:900;color:#375a8a}
+table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #dfe5ec;padding:8px;text-align:left}th{background:#f5f7fb}
+@media(max-width:720px){.nav{grid-template-columns:repeat(2,1fr)}.topic{padding:17px}}
+</style>
+</head>
+<body>
+<header><div class="headerInner">
+  <a href="python.html">← 回 Python 學習冒險</a>
+  <b>📖 Python 主題學習站</b>
+  <a href="python-guide.html" target="_blank">📘 指令小百科</a>
+</div></header>
+
+<main>
+<section class="hero">
+  <h1>不是背指令，而是看懂「電腦怎麼想」</h1>
+  <p>這裡不是闖關答案。每一個範例都刻意使用和闖關不同的情境，幫你理解程式的運作方式，再回去自己完成任務。</p>
+  <div class="notice"><b>建議學法：</b>先看「為什麼要學」→ 用手指著程式逐行追蹤 → 關掉範例 → 用自己的話說一次 → 再回闖關。</div>
+</section>
+
+<nav class="nav">
+  <a href="#p1">P1 輸出</a><a href="#p2">P2 變數與輸入</a><a href="#datatype">資料類型</a><a href="#p3">P3 變數與運算</a><a href="#p4">P4 小數與整理</a><a href="#logic">程式邏輯</a><a href="#p5">P5 條件判斷</a>
+  <a href="#p6">P6 多重選擇</a><a href="#p7">P7 組合條件</a><a href="#p8">P8 for 重複</a><a href="#p9">P9 while 重複</a><a href="#p10">P10 綜合遊戲</a>
+</nav>
+
+<section class="topic" id="p1">
+  <h2>👋 P1｜print()：程式怎麼「說話」？</h2>
+  <span class="tag">輸出</span><span class="tag">字串</span><span class="tag">執行順序</span>
+  <div class="why"><b>核心觀念：</b>程式執行時通常由上往下。<code>print()</code> 的工作，是把括號裡的內容送到畫面上。引號包住的內容叫做「字串」，代表文字資料。</div>
+  <h3>看懂這段程式</h3>
+  <pre><code>print("早餐準備好了")
+print("記得帶水壺")</code></pre>
+  <div class="trace"><b>電腦腦內流程：</b><ol class="steps"><li>讀到第一行 → 顯示第一句。</li><li>再讀第二行 → 顯示第二句。</li><li>兩個 print() 會產生兩次輸出。</li></ol></div>
+  <h3>文字和變數不一樣</h3>
+  <pre><code>city = "台中"
+print("city")
+print(city)</code></pre>
+  <p>第一個輸出的是四個英文字母 <code>city</code>；第二個才會找到變數裡保存的「台中」。引號會改變意思。</p>
+  <div class="mistake"><b>常見錯誤：</b>忘記左右引號、左右括號不成對；或把變數加上引號，結果印出變數名稱而不是內容。</div>
+  <div class="think"><b>想一想：</b>如果有 3 個 print()，通常會有幾次輸出？如果把第二行移到第一行前面，輸出的順序會怎樣？</div>
+  <div class="links"><a href="python-guide.html#print" target="_blank">📘 查 print() 寫法</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p2">
+  <h2>🚌 P2｜變數＋input()：程式怎麼「記住回答」？</h2>
+  <span class="tag">變數</span><span class="tag">input()</span><span class="tag">資料流</span>
+  <div class="why"><b>核心觀念：</b>變數像「有名字的資料盒」。<code>input()</code> 取得使用者輸入後，如果不存進變數，後面的程式就不方便再次使用它。</div>
+  <pre><code>drink = input("你想喝什麼？")
+print("你選的是")
+print(drink)</code></pre>
+  <div class="trace"><b>逐行追蹤：</b><ol class="steps"><li>畫面先出現問題。</li><li>程式暫停，等待使用者輸入。</li><li>回答被放進 <code>drink</code> 這個變數。</li><li>之後只要寫 <code>drink</code>，就能取出剛才的回答。</li></ol></div>
+  <h3>為什麼不同資料要用不同變數？</h3>
+  <pre><code>animal = input("喜歡的動物：")
+color = input("喜歡的顏色：")</code></pre>
+  <p>如果兩次都存到同一個變數，第二次回答會把第一次的內容蓋掉。變數名稱應該能讓自己看懂它裝了什麼。</p>
+  <div class="mistake"><b>常見錯誤：</b>只寫 <code>input()</code> 卻沒有用 <code>=</code> 存起來；或所有答案都存進同一個變數。</div>
+  <div class="think"><b>想一想：</b>如果程式需要記住「名字、興趣、年級」三種資料，你會設計哪三個英文變數名稱？</div>
+  <div class="links"><a href="python-guide.html#input" target="_blank">📘 查 input()</a><a href="python-guide.html#variable" target="_blank">📘 查變數</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+
+<section class="topic" id="datatype">
+  <h2>🧰 重要基礎｜Python 的資料類型</h2>
+  <span class="tag">str</span><span class="tag">int</span><span class="tag">float</span><span class="tag">bool</span>
+  <div class="why"><b>核心觀念：</b>電腦不只要知道「資料內容是什麼」，還要知道「這是文字、整數、小數，還是真假」。資料類型會決定你可以對它做哪些運算。</div>
+
+  <h3>四種初學最常用的資料類型</h3>
+  <table>
+    <tr><th>類型</th><th>意思</th><th>例子</th><th>適合做什麼</th></tr>
+    <tr><td><code>str</code></td><td>字串、文字</td><td><code>"高雄"</code>、<code>"123"</code></td><td>姓名、地名、訊息、文字資料</td></tr>
+    <tr><td><code>int</code></td><td>整數</td><td><code>12</code>、<code>-3</code>、<code>0</code></td><td>人數、次數、年齡、整數計算</td></tr>
+    <tr><td><code>float</code></td><td>小數</td><td><code>12.5</code>、<code>0.8</code></td><td>身高、重量、距離、平均值</td></tr>
+    <tr><td><code>bool</code></td><td>真假</td><td><code>True</code>、<code>False</code></td><td>條件判斷，例如「有沒有及格」</td></tr>
+  </table>
+
+  <h3>看起來一樣，不代表類型一樣</h3>
+  <pre><code>a = "25"
+b = 25
+
+print(a)
+print(b)</code></pre>
+  <p>兩個都會顯示 25，但 <code>a</code> 是文字，<code>b</code> 是整數。</p>
+  <pre><code>print(a + "5")   # 文字接在一起 → 255
+print(b + 5)     # 數字相加 → 30</code></pre>
+  <div class="mistake"><b>重要：</b><code>"25"</code> 和 <code>25</code> 對人看起來很像，但對 Python 完全不同。</div>
+
+  <h3>input() 得到的是什麼？</h3>
+  <pre><code>age = input("你的年齡：")
+print(type(age))</code></pre>
+  <p>即使使用者輸入 <code>15</code>，<code>input()</code> 得到的仍然是 <code>str</code>。要計算時，通常要轉型：</p>
+  <pre><code>age = int(input("你的年齡："))
+height = float(input("你的身高："))</code></pre>
+
+  <h3>資料型別轉換</h3>
+  <table>
+    <tr><th>寫法</th><th>作用</th><th>例子</th></tr>
+    <tr><td><code>int(x)</code></td><td>轉成整數</td><td><code>int("12") → 12</code></td></tr>
+    <tr><td><code>float(x)</code></td><td>轉成小數</td><td><code>float("12.5") → 12.5</code></td></tr>
+    <tr><td><code>str(x)</code></td><td>轉成文字</td><td><code>str(25) → "25"</code></td></tr>
+    <tr><td><code>bool(x)</code></td><td>轉成真假值</td><td>初學階段先知道有這種型別即可</td></tr>
+  </table>
+
+  <div class="think"><b>想一想：</b>「座號」雖然看起來是數字，但如果只是拿來辨識學生、不做數學運算，它一定非得用 int 嗎？資料類型要看「用途」，不是只看外表。</div>
+</section>
+
+<section class="topic" id="p3">
+  <h2>💰 P3｜變數運算：加、減、乘、除到底怎麼用？</h2>
+  <span class="tag">變數</span><span class="tag">運算子</span><span class="tag">int()</span><span class="tag">運算優先順序</span>
+  <div class="why"><b>核心觀念：</b>變數不只是「保存資料」，還可以拿來計算。程式會先取得變數目前保存的值，再依照運算符號計算。</div>
+
+  <h3>先從變數算式看起</h3>
+  <pre><code>price = 30
+count = 4
+total = price * count
+print(total)</code></pre>
+  <div class="trace"><b>電腦實際做的事：</b><ol class="steps">
+    <li>把 30 放進 <code>price</code>。</li>
+    <li>把 4 放進 <code>count</code>。</li>
+    <li>看到 <code>price * count</code>，先取出 30 和 4。</li>
+    <li>計算 30 × 4 = 120。</li>
+    <li>把 120 存進 <code>total</code>。</li>
+  </ol></div>
+
+  <h3>Python 常用數學運算符號</h3>
+  <table>
+    <tr><th>符號</th><th>意思</th><th>例子</th><th>結果</th></tr>
+    <tr><td><code>+</code></td><td>加法</td><td><code>8 + 3</code></td><td>11</td></tr>
+    <tr><td><code>-</code></td><td>減法</td><td><code>8 - 3</code></td><td>5</td></tr>
+    <tr><td><code>*</code></td><td>乘法</td><td><code>8 * 3</code></td><td>24</td></tr>
+    <tr><td><code>/</code></td><td>一般除法</td><td><code>8 / 3</code></td><td>2.666...</td></tr>
+    <tr><td><code>//</code></td><td>整除，只取完整份數</td><td><code>8 // 3</code></td><td>2</td></tr>
+    <tr><td><code>%</code></td><td>餘數</td><td><code>8 % 3</code></td><td>2</td></tr>
+    <tr><td><code>**</code></td><td>次方</td><td><code>2 ** 3</code></td><td>8</td></tr>
+  </table>
+
+  <h3>生活情境 1：總價</h3>
+  <pre><code>price = 45
+count = 3
+total = price * count
+print(total)</code></pre>
+  <p>單價 × 數量 = 總價，所以使用乘法。</p>
+
+  <h3>生活情境 2：平均分組</h3>
+  <pre><code>students = 31
+group_size = 4
+
+full_groups = students // group_size
+left = students % group_size
+
+print(full_groups)
+print(left)</code></pre>
+  <p><code>//</code> 回答「可以完整分成幾組」，<code>%</code> 回答「還剩幾個」。這兩個符號常一起使用。</p>
+
+  <h3>生活情境 3：折扣後價格</h3>
+  <pre><code>price = 500
+discount = 0.8
+final_price = price * discount
+print(final_price)</code></pre>
+  <p>八折代表原價的 80%，所以是乘以 0.8。</p>
+
+  <h3>運算優先順序</h3>
+  <pre><code>answer1 = 2 + 3 * 4
+answer2 = (2 + 3) * 4</code></pre>
+  <p><code>answer1</code> 是 14，因為先乘除、後加減；<code>answer2</code> 是 20，因為括號優先。</p>
+  <div class="why"><b>建議：</b>如果你自己看算式時會猶豫，就加括號。讓程式「清楚」比省掉兩個括號更重要。</div>
+
+  <h3>= 不是「答案等於」而已</h3>
+  <pre><code>score = 60
+score = score + 10</code></pre>
+  <p>第二行不是數學上的「60 = 70」。程式中的 <code>=</code> 是<strong>指定／賦值</strong>：先算右邊 <code>score + 10</code> 得到 70，再把 70 放回左邊的 <code>score</code>。</p>
+
+  <h3>簡寫運算</h3>
+  <table>
+    <tr><th>寫法</th><th>等同於</th><th>意思</th></tr>
+    <tr><td><code>x += 1</code></td><td><code>x = x + 1</code></td><td>x 增加 1</td></tr>
+    <tr><td><code>x -= 1</code></td><td><code>x = x - 1</code></td><td>x 減少 1</td></tr>
+    <tr><td><code>x *= 2</code></td><td><code>x = x * 2</code></td><td>x 變成原本 2 倍</td></tr>
+    <tr><td><code>x /= 2</code></td><td><code>x = x / 2</code></td><td>x 除以 2</td></tr>
+  </table>
+
+  <div class="mistake"><b>常見錯誤：</b>
+    <ul>
+      <li>把乘法寫成 <code>×</code>，Python 要用 <code>*</code>。</li>
+      <li>把除法寫成 <code>÷</code>，Python 要用 <code>/</code>。</li>
+      <li>忘記 input() 得到的是文字，直接拿去做數學。</li>
+      <li>把 <code>/</code>、<code>//</code>、<code>%</code> 混在一起。</li>
+      <li>不理解 <code>x = x + 1</code> 是「更新變數」。</li>
+    </ul>
+  </div>
+
+  <div class="think"><b>想一想：</b>有 23 顆球，每盒裝 5 顆。要知道「裝滿幾盒」和「剩幾顆」，你會分別使用哪兩個符號？</div>
+  <div class="links"><a href="python-guide.html#operator" target="_blank">📘 查運算符號</a><a href="python-guide.html#int" target="_blank">📘 查 int()</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p4">
+  <h2>📐 P4｜float()、**、round()：小數怎麼處理？</h2>
+  <span class="tag">float()</span><span class="tag">次方</span><span class="tag">round()</span>
+  <div class="why"><b>核心觀念：</b>不是所有數字都是整數。身高、時間、距離等常有小數，此時使用 <code>float()</code>。<code>round()</code> 是整理顯示結果，不是替代計算。</div>
+  <pre><code>radius = float(input("半徑："))
+area_like = radius ** 2
+print(round(area_like, 2))</code></pre>
+  <div class="trace"><b>看懂符號：</b><code>** 2</code> 表示平方；<code>round(數值, 2)</code> 表示整理到小數第 2 位。</div>
+  <h3>先算，再整理</h3>
+  <p>建議把問題拆成兩步：先算出真正的數值，再決定畫面要顯示幾位小數。這會比把所有東西塞在一行更容易檢查。</p>
+  <div class="mistake"><b>常見錯誤：</b>把 <code>**</code> 寫成單一 <code>*</code>；或誤以為 <code>round(x, 2)</code> 是把數字除以 2。</div>
+  <div class="think"><b>想一想：</b>如果答案是 12.6789，<code>round(答案, 1)</code> 和 <code>round(答案, 2)</code> 會有什麼差別？</div>
+  <div class="links"><a href="python-guide.html#round" target="_blank">📘 查小數與 round()</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+
+<section class="topic" id="logic">
+  <h2>🧠 程式邏輯｜先想流程，再想指令</h2>
+  <span class="tag">循序</span><span class="tag">選擇</span><span class="tag">重複</span><span class="tag">流程圖思考</span>
+  <div class="why"><b>核心觀念：</b>Python 指令只是工具。真正重要的是：你能不能先把問題拆成「先做什麼、接著判斷什麼、什麼時候重複」。</div>
+
+  <h3>邏輯 1：循序 — 一步一步照順序</h3>
+  <pre><code>name = input("名字：")
+score = int(input("分數："))
+print(name)
+print(score)</code></pre>
+  <p>這類程式沒有分岔，也沒有迴圈，就是「第一步 → 第二步 → 第三步」。</p>
+
+  <h3>邏輯 2：選擇 — 根據情況走不同路</h3>
+  <pre><code>temperature = 31
+
+if temperature >= 30:
+    print("天氣炎熱")
+else:
+    print("沒有超過 30 度")</code></pre>
+  <div class="trace"><b>思考流程：</b>取得溫度 → 比較是否 ≥ 30 → True 走第一條路 → False 走第二條路。</div>
+
+  <h3>邏輯 3：多重選擇 — 不只兩條路</h3>
+  <pre><code>score = 82
+
+if score >= 90:
+    print("A")
+elif score >= 80:
+    print("B")
+elif score >= 70:
+    print("C")
+else:
+    print("再加油")</code></pre>
+  <p>程式由上往下找「第一個成立的條件」。82 不符合 90，但符合 80，所以印出 B，後面就不再檢查。</p>
+
+  <h3>邏輯 4：固定次數重複 — for</h3>
+  <pre><code>for i in range(3):
+    print("練習一次")</code></pre>
+  <p>當你大致知道要重複幾次，常用 <code>for</code>。</p>
+
+  <h3>邏輯 5：條件成立就一直重複 — while</h3>
+  <pre><code>password = ""
+
+while password != "1234":
+    password = input("請輸入密碼：")
+
+print("登入成功")</code></pre>
+  <p>這裡不知道使用者要輸入幾次才會正確，所以用 while：「只要還沒答對，就繼續」。</p>
+
+  <h3>邏輯 6：把選擇放進重複裡</h3>
+  <pre><code>for number in range(1, 6):
+    if number % 2 == 0:
+        print(number, "是偶數")
+    else:
+        print(number, "是奇數")</code></pre>
+  <p>這個程式不是只有「for」或只有「if」，而是每重複一次，都做一次判斷。真正的程式常常是多個觀念組合。</p>
+
+  <h3>如何把中文題目轉成程式邏輯？</h3>
+  <table>
+    <tr><th>題目中的語意</th><th>可能想到的 Python 工具</th></tr>
+    <tr><td>「輸入一個資料」</td><td><code>input()</code></td></tr>
+    <tr><td>「算出結果」</td><td>變數＋算術運算</td></tr>
+    <tr><td>「如果……否則……」</td><td><code>if / else</code></td></tr>
+    <tr><td>「分成三種以上情況」</td><td><code>if / elif / else</code></td></tr>
+    <tr><td>「重複 10 次」</td><td><code>for</code></td></tr>
+    <tr><td>「一直做到某條件成立」</td><td><code>while</code></td></tr>
+  </table>
+
+  <div class="think"><b>解題習慣：</b>先不要急著打程式。先用一句一句中文寫出流程，例如：「輸入金額 → 判斷是否滿 500 → 滿 500 打九折 → 顯示結果」。寫得出流程，程式通常就容易很多。</div>
+</section>
+
+<section class="topic" id="p5">
+  <h2>🎢 P5｜if / else：讓程式做選擇</h2>
+  <span class="tag">比較</span><span class="tag">True / False</span><span class="tag">if / else</span>
+  <div class="why"><b>核心觀念：</b>條件判斷不是「猜答案」，而是先產生 True 或 False。<code>if</code> 走條件成立的路；<code>else</code> 走其他情況。</div>
+  <pre><code>height = 150
+
+if height >= 140:
+    print("可以搭乘")
+else:
+    print("目前不能搭乘")</code></pre>
+  <div class="trace"><b>電腦怎麼走：</b><ol class="steps"><li>先算 <code>height >= 140</code>。</li><li>如果結果是 True，只執行 if 底下縮排的區塊。</li><li>如果是 False，改執行 else 區塊。</li></ol></div>
+  <h3>比較符號要看清楚</h3>
+  <p><code>&gt;</code> 大於、<code>&lt;</code> 小於、<code>&gt;=</code> 大於等於、<code>&lt;=</code> 小於等於、<code>==</code> 是否相等、<code>!=</code> 是否不相等。</p>
+  <div class="mistake"><b>常見錯誤：</b>把「比較是否相等」寫成單一 <code>=</code>；忘了冒號；if 區塊沒有縮排。</div>
+  <div class="think"><b>想一想：</b>門檻剛好等於 140 時，<code>&gt; 140</code> 和 <code>&gt;= 140</code> 的結果一樣嗎？</div>
+  <div class="links"><a href="python-guide.html#if" target="_blank">📘 查 if / else</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p6">
+  <h2>🎫 P6｜if / elif / else：超過兩種結果怎麼辦？</h2>
+  <span class="tag">elif</span><span class="tag">條件順序</span><span class="tag">分類</span>
+  <div class="why"><b>核心觀念：</b>當結果不只兩種，就需要多條路。Python 會由上往下檢查，遇到第一個成立的分支後就停止往下比。</div>
+  <pre><code>age = 12
+
+if age < 7:
+    print("幼兒")
+elif age < 13:
+    print("兒童")
+else:
+    print("青少年以上")</code></pre>
+  <div class="trace"><b>為什麼順序重要？</b>當 age 是 5，第一個條件就成立，因此後面的 elif 不再執行。多重條件不是每一條都跑。</div>
+  <h3>用區間想，不要只背格式</h3>
+  <p>上面的三條路其實對應三個區間：小於 7、7 到 12、13 以上。先在紙上畫出區間，再寫程式會比較穩。</p>
+  <div class="mistake"><b>常見錯誤：</b>把多個 <code>if</code> 當成 <code>if / elif / else</code> 使用；或條件順序排錯，讓前面的條件把後面的範圍全部吃掉。</div>
+  <div class="think"><b>想一想：</b>如果第一條就寫 <code>age &lt; 100</code>，後面再寫 <code>age &lt; 13</code>，對 12 歲的人會發生什麼事？</div>
+  <div class="links"><a href="python-guide.html#elif" target="_blank">📘 查 elif</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p7">
+  <h2>🏎️ P7｜and / or：一次判斷兩件事</h2>
+  <span class="tag">and</span><span class="tag">or</span><span class="tag">邏輯</span>
+  <div class="why"><b>核心觀念：</b><code>and</code> 表示「兩邊都要成立」；<code>or</code> 表示「至少一邊成立」。不要只背英文，要先看題目的語意是「都要」還是「其中一個即可」。</div>
+  <pre><code>has_ticket = True
+on_time = True
+
+if has_ticket and on_time:
+    print("可以進場")</code></pre>
+  <h3>用表格看邏輯</h3>
+  <table><tr><th>A</th><th>B</th><th>A and B</th><th>A or B</th></tr>
+  <tr><td>True</td><td>True</td><td>True</td><td>True</td></tr>
+  <tr><td>True</td><td>False</td><td>False</td><td>True</td></tr>
+  <tr><td>False</td><td>True</td><td>False</td><td>True</td></tr>
+  <tr><td>False</td><td>False</td><td>False</td><td>False</td></tr></table>
+  <div class="mistake"><b>常見錯誤：</b>題目寫「都要」卻使用 or；或者只比較第一個變數，第二個變數根本沒有放進條件。</div>
+  <div class="think"><b>想一想：</b>「有雨傘或有雨衣就可以出門」應該使用 and 還是 or？為什麼？</div>
+  <div class="links"><a href="python-guide.html#logic" target="_blank">📘 查 and / or</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p8">
+  <h2>🚌 P8｜for + range()：有規律地重複</h2>
+  <span class="tag">for</span><span class="tag">range()</span><span class="tag">計數</span>
+  <div class="why"><b>核心觀念：</b>當你已經知道要重複哪些數字或幾次時，<code>for</code> 很適合。<code>range()</code> 會產生一串有規律的整數。</div>
+  <pre><code>for n in range(2, 9, 2):
+    print(n)</code></pre>
+  <div class="trace"><b>拆開 range(開始, 停止前, 步進)：</b>從 2 開始，每次 +2，在到達 9 之前停止，所以 n 依序是 2、4、6、8。</div>
+  <h3>最重要：停止值不包含</h3>
+  <p><code>range(1, 4)</code> 產生的是 1、2、3，不會包含 4。這是初學者最常出錯的地方之一。</p>
+  <div class="mistake"><b>常見錯誤：</b>以為 stop 會被包含；倒數時忘了把 step 設成負數；迴圈內的程式沒有縮排。</div>
+  <div class="think"><b>想一想：</b>若要得到 3、6、9、12，開始值、停止值、步進可能怎麼設定？先不要寫完整程式，只寫 range()。</div>
+  <div class="links"><a href="python-guide.html#for" target="_blank">📘 查 for / range()</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p9">
+  <h2>🔐 P9｜while：不知道要重複幾次時</h2>
+  <span class="tag">while</span><span class="tag">條件</span><span class="tag">更新變數</span>
+  <div class="why"><b>核心觀念：</b><code>while</code> 的意思是「只要條件仍然成立，就繼續」。它不像 for 一開始就一定知道要跑幾次。</div>
+  <pre><code>energy = 3
+
+while energy > 0:
+    print("前進一步")
+    energy = energy - 1
+
+print("休息")</code></pre>
+  <div class="trace"><b>三個必要零件：</b><ol class="steps"><li>迴圈開始前有一個狀態。</li><li>while 有一個「還要不要繼續」的條件。</li><li>迴圈裡必須讓狀態改變，否則可能永遠停不下來。</li></ol></div>
+  <h3>for 和 while 怎麼選？</h3>
+  <p>「重複 10 次」通常先想到 for；「一直問到答對」通常先想到 while。真正的差別是：你是在依序走一串值，還是在等待某個條件改變？</p>
+  <div class="mistake"><b>常見錯誤：</b>while 條件永遠為 True，卻忘記更新變數，造成無限迴圈。</div>
+  <div class="think"><b>想一想：</b>「使用者還沒輸入 q 就繼續問」裡，while 的「繼續條件」可能是什麼意思？</div>
+  <div class="links"><a href="python-guide.html#while" target="_blank">📘 查 while</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="topic" id="p10">
+  <h2>🐉 P10｜random＋while＋if：把工具組成完整程式</h2>
+  <span class="tag">random</span><span class="tag">分解問題</span><span class="tag">整合</span>
+  <div class="why"><b>核心觀念：</b>真正寫程式時，不會有人告訴你「這題只用 if」。你要先把大問題拆成小功能，再決定每一塊需要哪個工具。</div>
+  <pre><code>import random
+
+target = random.randint(1, 6)
+guess = 0
+
+while guess != target:
+    guess = int(input("猜 1～6："))
+
+    if guess > target:
+        print("高了一點")
+    elif guess < target:
+        print("低了一點")
+
+print("答對了")</code></pre>
+  <div class="trace"><b>這段程式其實是 4 個小問題：</b><ol class="steps"><li>random：先產生一個答案。</li><li>變數：保存答案與目前猜測。</li><li>while：猜錯時繼續。</li><li>if / elif：告訴玩家目前太高還是太低。</li></ol></div>
+  <h3>寫大程式的方法：先讓核心能跑，再加功能</h3>
+  <p>不要一開始就一次寫完整遊戲。先測試「隨機數有沒有產生」；再測試「能不能一直輸入」；再加入大小提示；最後才加次數、訊息等功能。</p>
+  <div class="mistake"><b>常見錯誤：</b>一口氣寫十幾行，出錯時不知道是哪一段；或把隨機答案放在 while 裡，每猜一次答案就跟著改掉。</div>
+  <div class="think"><b>想一想：</b>如果答案每一輪都重新 random，玩家還是在猜「同一個答案」嗎？為什麼 random 通常要放在迴圈外？</div>
+  <div class="links"><a href="python-guide.html#random" target="_blank">📘 查 random</a><a href="python-guide.html#while" target="_blank">📘 查 while</a><a href="python-guide.html#if" target="_blank">📘 查 if</a><a href="python.html">🚀 回闖關</a></div>
+</section>
+
+<section class="hero">
+  <h2>🧠 最後提醒：你真的理解了嗎？</h2>
+  <p>能看懂別人的程式只是第一步。真正理解通常代表你可以：</p>
+  <ol>
+    <li>不用看範例，用自己的話解釋「每一行在做什麼」。</li>
+    <li>預測程式執行後會出現什麼。</li>
+    <li>把同一個觀念換到另一個生活情境。</li>
+    <li>程式錯誤時，知道先檢查哪一部分，而不是整段重抄。</li>
+  </ol>
+</section>
+</main>
+</body>
+</html>

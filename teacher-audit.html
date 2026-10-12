@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 學習冒險｜教師異常檢查</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#24324a}
+header{background:#fff;border-bottom:1px solid #e2e6eb;padding:16px max(18px,calc((100vw - 1280px)/2));display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+main{max-width:1280px;margin:auto;padding:20px}
+.card{background:white;border-radius:18px;padding:20px;box-shadow:0 8px 28px #34475b10;margin-bottom:16px}
+.login{max-width:480px;margin:50px auto}
+.field{display:block;margin:12px 0}.field input{width:100%;padding:11px;border:1px solid #ccd4de;border-radius:10px}
+button,select{font:inherit}
+button{border:0;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}
+.primary{background:#4f59c7;color:white}.soft{background:#e9ecf2;color:#475466}
+.back{display:inline-flex;align-items:center;text-decoration:none;background:#e9ecf2;color:#475466;border-radius:11px;padding:10px 14px;font-weight:900}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.toolbar select{padding:9px 12px;border:1px solid #ccd4de;border-radius:10px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.metric{background:#f7f8fb;border-radius:14px;padding:14px}.metric b{display:block;font-size:25px}
+.tableWrap{overflow:auto;max-height:70vh}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #e8ebef;text-align:left;font-size:14px;vertical-align:top;white-space:nowrap}
+th{background:#f7f8fb;position:sticky;top:0;z-index:2}
+.hidden{display:none!important}.error{color:#b43b3b;font-weight:800}.status{font-size:13px;color:#687385}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef1f5;margin:2px}
+.badge.bad{background:#fdebec;color:#a12f35}.badge.warn{background:#fff3d6;color:#805d0d}.badge.ok{background:#e4f7eb;color:#267148}
+.issueList{white-space:normal;min-width:260px;line-height:1.5}
+.reason{display:block;margin:2px 0}
+.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f5f6f8;padding:2px 5px;border-radius:5px}
+.note{background:#fff8e8;border-radius:14px;padding:13px 15px;line-height:1.6;color:#694f20}
+@media(max-width:800px){.summary{grid-template-columns:repeat(2,1fr)}}
+</style>
+<script src="shared/firebase-config.js?v=15"></script>
+</head>
+<body>
+<header>
+  <div>
+    <b>🔎 Python 學習冒險｜教師異常檢查</b>
+    <div class="status">自動比對關卡紀錄、星星、評分與目前位置</div>
+  </div>
+  <a class="back" href="teacher.html">← 回教師端</a>
+</header>
+
+<main>
+<section id="loginCard" class="card login">
+  <h1>教師登入</h1>
+  <p>使用原本教師端 Firebase Authentication 帳號。</p>
+  <label class="field">Email<input id="email" type="email"></label>
+  <label class="field">密碼<input id="password" type="password"></label>
+  <div id="loginError" class="error"></div>
+  <button id="loginBtn" class="primary">登入並檢查</button>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="card">
+    <div class="toolbar">
+      <b id="teacherIdentity">教師</b>
+      <select id="classFilter"><option value="">全部授權班級</option></select>
+      <select id="issueFilter">
+        <option value="issues">只看異常</option>
+        <option value="all">全部學生</option>
+        <option value="stars">只看星星不符</option>
+        <option value="gap">只看跳關</option>
+        <option value="duplicate">只看重複紀錄</option>
+      </select>
+      <button id="refreshBtn" class="soft">重新檢查</button>
+    </div>
+
+    <div class="summary">
+      <div class="metric">原始紀錄<b id="mRecords">0</b></div>
+      <div class="metric">學生數<b id="mStudents">0</b></div>
+      <div class="metric">異常學生<b id="mIssues">0</b></div>
+      <div class="metric">星星不符<b id="mStarMismatch">0</b></div>
+    </div>
+
+    <div class="note">
+      <b>判定原則：</b>Python 主線共有 26 個挑戰。教師端會以 <span class="code">progress</span> 各關完成數重新計算應有星星，
+      再比對資料庫中的 <span class="code">stars</span>、<span class="code">score</span>、<span class="code">completed</span>、
+      <span class="code">currentStation/currentChallenge</span>。也會檢查「前一關尚未完成，後面卻已有進度」的跳關情形。
+    </div>
+    <div id="dbStatus" class="status" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>班級</th><th>座號</th><th>姓名</th>
+          <th>資料庫星星</th><th>依關卡重算</th><th>評分</th>
+          <th>目前位置</th><th>異常原因</th><th>更新時間</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+</main>
+<script src="shared/teacher-audit.js?v=15"></script>
+</body>
+</html>

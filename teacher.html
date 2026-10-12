@@ -6,7 +6,7 @@
 header{background:#fff;border-bottom:1px solid #e2e6eb;padding:16px max(18px,calc((100vw - 1180px)/2));display:flex;justify-content:space-between;align-items:center}
 main{max-width:1180px;margin:auto;padding:20px}.card{background:white;border-radius:18px;padding:20px;box-shadow:0 8px 28px #34475b10;margin-bottom:16px}
 .login{max-width:480px;margin:50px auto}.field{display:block;margin:12px 0}.field input{width:100%;padding:11px;border:1px solid #ccd4de;border-radius:10px}
-button,select{font:inherit}button{border:0;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}.primary{background:#4f59c7;color:white}.soft{background:#e9ecf2;color:#475466}.export{background:#e4f7eb;color:#267148}
+button,select{font:inherit}button{border:0;border-radius:11px;padding:10px 14px;font-weight:900;cursor:pointer}.primary{background:#4f59c7;color:white}.soft{background:#e9ecf2;color:#475466}.export{background:#e4f7eb;color:#267148}.auditLink{display:inline-flex;align-items:center;text-decoration:none;background:#fff3d6;color:#805d0d;border-radius:11px;padding:10px 14px;font-weight:900}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.toolbar select{padding:9px 12px;border:1px solid #ccd4de;border-radius:10px}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.metric{background:#f7f8fb;border-radius:14px;padding:14px}.metric b{display:block;font-size:25px}
 table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #e8ebef;text-align:left;font-size:14px}th{background:#f7f8fb;position:sticky;top:0}.tableWrap{overflow:auto;max-height:65vh}
@@ -64,7 +64,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v15 完整帳號刪除版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v15 教師異常檢查版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -75,7 +75,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <section id="dashboard" class="hidden">
 <div class="card">
 <div class="toolbar"><b>授權班級：</b><select id="classFilter"><option value="">全部班級</option></select>
-<button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><span id="dbStatus" class="status"></span></div>
+<button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><a class="auditLink" href="teacher-audit.html">🔎 異常檢查</a><span id="dbStatus" class="status"></span></div>
 <div class="summary"><div class="metric">學生人數<b id="studentCount">0</b></div><div class="metric">平均星星<b id="avgStars">0</b></div><div class="metric">平均評分<b id="avgScore">0</b></div><div class="metric">完成人數<b id="doneCount">0</b></div></div>
 </div>
 <div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
@@ -135,7 +135,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
   </div>
   <div class="manageBody">
     <p id="manageStudentNote" class="status"></p>
-    <div class="warn">⚠️ 「刪除全部資料與帳號」會永久刪除 Firestore 學習資料與 Firebase Authentication 登入帳號，無法復原。</div>
+    <div class="warn">⚠️ 請只刪除確認輸入錯誤或重複的紀錄。刪除 Firestore 學習紀錄不會自動刪除 Firebase Authentication 的登入帳號。</div>
     <div id="manageRecordList" class="recordList"></div>
   </div>
   <div class="manageFooter">
@@ -143,7 +143,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
     <button id="closeManageBtn" class="soft" type="button">關閉</button>
   </div>
 </dialog>
-<script src="shared/firebase-config.js?v=15"></script>
+<script src="shared/firebase-config.js?v=14"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="shared/teacher-dashboard.js?v=15"></script>
+<script src="shared/teacher-dashboard.js?v=16.2"></script>
 </body></html>

@@ -3,8 +3,8 @@
   let auth,db,mods,teacherProfile=null,records=[],audited=[];
   const $=s=>document.querySelector(s);
 
-  const NEEDS={p1:2,p2:3,p3:3,p4:2,p5:3,p6:2,p7:2,p8:3,p9:3,p10:3};
-  const TOTAL=26;
+  const NEEDS={p1:3,p2:3,p3:3,p4:3,p5:3,p6:3,p7:3,p8:3,p9:3,p10:3};
+  const TOTAL=30;
 
   function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
   function fmtTime(v){try{return v&&typeof v.toDate==="function"?v.toDate().toLocaleString("zh-TW"):""}catch(e){return ""}}

@@ -19,7 +19,7 @@
 <header class="top">
   <a href="hub.html">← 116-1 闖關地圖</a>
   <b>🐍 Python 畢旅冒險</b>
-  <span>⭐ <strong id="stars">0</strong>/26</span>
+  <span>⭐ <strong id="stars">0</strong>/30</span>
 </header>
 <main>
   <section class="tools">
@@ -135,17 +135,34 @@
 </dialog>
 
 
-<dialog id="reviewDialog" class="reviewDialog">
+
+
+
+<dialog id="completedExamplesDialog" class="reviewDialog">
   <div class="reviewTop">
-    <div>
-      <h2>📚 我的闖關回顧</h2>
-      <p>選擇已完成的挑戰，查看題目與自己當時闖關成功的程式。</p>
-    </div>
-    <button id="closeReviewBtn" type="button" class="reviewClose">✕ 關閉</button>
+    <div><h2>📚 已完成範例回顧</h2><p>只會顯示你已經闖關成功的題目與正確參考範例。</p></div>
+    <button id="closeCompletedExamplesBtn" type="button" class="reviewClose">✕ 關閉</button>
   </div>
   <div class="reviewLayout">
-    <aside id="reviewList" class="reviewList"></aside>
-    <section id="reviewDetail" class="reviewDetail"></section>
+    <aside id="completedExampleList" class="reviewList"></aside>
+    <section id="completedExampleDetail" class="reviewDetail"></section>
+  </div>
+</dialog>
+
+<dialog id="prevExampleDialog" class="reviewDialog">
+  <div class="reviewTop">
+    <div>
+      <h2>⬅️ 前一關範例解答</h2>
+      <p id="prevExampleTitle"></p>
+    </div>
+    <button id="closePrevExampleBtn" type="button" class="reviewClose">✕ 關閉</button>
+  </div>
+  <div class="prevExampleBody">
+    <div id="prevExampleTask" class="task"></div>
+    <div id="prevExampleRequirements" class="criteria"></div>
+    <div class="savedAnswerTitle">💡 一個可行的範例解答</div>
+    <pre class="savedAnswerCode"><code id="prevExampleCode"></code></pre>
+    <div id="prevExampleNote" class="reviewTip"></div>
   </div>
 </dialog>
 
@@ -157,9 +174,9 @@
     <h1>Python 畢旅冒險完成證書</h1>
     <p>恭喜</p>
     <div id="certName" class="name">Python 冒險家</div>
-    <p>完成 10 個冒險站、26 個 Python 挑戰，展現從 Scratch 概念轉換到 Python、查找指令、除錯與解決問題的能力。</p>
+    <p>完成 10 個冒險站、30 個 Python 基礎挑戰，展現從 Scratch 概念轉換到 Python、查找指令、除錯與解決問題的能力。</p>
     <div class="badges">print・變數・input・運算・條件判斷・and/or・for・while・random・綜合應用</div>
-    <h3>⭐ 26 顆星</h3>
+    <h3>⭐ 30 顆星</h3>
     <footer><span id="date"></span><b>🏅 Python 冒險家</b></footer>
   </div>
   <div class="certActions no-print">
@@ -174,7 +191,7 @@
 <script src="../shared/pyrunner.js"></script>
 <script src="../shared/firebase-config.js"></script>
 <script src="../shared/firebase-sync.js?v=16.11"></script>
-<script src="content/python-journey.js?v=16.11"></script>
+<script src="content/python-journey.js?v=16.13"></script>
 <script>
 document.getElementById("closeVar").onclick=()=>document.getElementById("varDialog").close();
 document.getElementById("varSearchBtn").onclick=searchVar;
@@ -188,6 +205,8 @@ document.getElementById("saveProfileBtn").onclick=saveStudentProfile;
 document.getElementById("cloudStatus").onclick=openFirebaseDiagnostic;
 document.getElementById("closeFirebaseDiag").onclick=()=>document.getElementById("firebaseDiagDialog").close();
 document.getElementById("retryFirebaseBtn").onclick=retryFirebaseConnection;
+document.getElementById("closePrevExampleBtn").onclick=()=>document.getElementById("prevExampleDialog").close();
+document.getElementById("closeCompletedExamplesBtn").onclick=()=>document.getElementById("completedExamplesDialog").close();
 document.getElementById("forcePasswordSaveBtn").onclick=saveForcedPasswordChange;
 document.getElementById("forcePasswordDialog").addEventListener("cancel",e=>e.preventDefault());
 </script></body></html>

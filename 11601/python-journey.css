@@ -260,3 +260,11 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
 .reviewTip{background:#eaf7ef;color:#315f42;border-radius:12px;padding:11px 13px}
 .legacyNotice{margin-top:18px;background:#fff7df;border:1px solid #ecd48a;border-radius:14px;padding:15px;line-height:1.7;color:#72591e}
 @media(max-width:760px){.reviewLayout{grid-template-columns:1fr;height:auto}.reviewList{max-height:260px;border-right:0;border-bottom:1px solid #e2e8f0}.reviewDialog{height:92vh}.reviewDetail{min-height:380px}}
+
+/* v16.12 前一關範例解答 */
+.prevExampleBody{padding:22px;overflow:auto;max-height:calc(90vh - 95px)}
+.prevExampleBody .task,.prevExampleBody .criteria{margin-bottom:14px}
+
+/* v16.13 三段式鷹架 */
+.copyDemo{border:0;border-radius:11px;padding:9px 13px;margin:8px 0;background:#dff2ff;color:#285b79;font-weight:900;cursor:pointer}
+.copyDemo:hover{filter:brightness(.98)}

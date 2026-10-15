@@ -58,7 +58,7 @@
         seatNo:String(r.seatNo||""),
         name:String(r.name||""),
         stars:Number(r.stars||0),
-        totalStars:Number(r.totalStars||26),
+        totalStars:Number(r.totalStars||30),
         score:Number(r.score||0),
         progress:r.progress||{},
         currentStation:String(r.currentStation||""),
@@ -122,7 +122,7 @@
       <td>${esc(r.seatNo)}</td>
       <td>${esc(r.name)}</td>
       <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-      <td>⭐ ${Number(r.stars||0)}/${Number(r.totalStars||26)}</td>
+      <td>⭐ ${Number(r.stars||0)}/${Number(r.totalStars||30)}</td>
       <td>${Number(r.score||0)}</td>
       <td>${esc(r.currentStation||"")} ${r.currentChallenge?`・第 ${r.currentChallenge} 題`:""}</td>
       <td><span class="badge ${r.completed?"done":""}">${r.completed?"已完成":"進行中"}</span></td>
@@ -168,7 +168,7 @@
       <div class="recordCard" data-record="${esc(rec.id)}">
         <div class="recordInfo">
           <b>紀錄 ${index+1}</b>
-          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}</span>
+          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}</span>
           <span>${esc(rec.currentStation||"尚未開始")}${rec.currentChallenge?`・第 ${esc(rec.currentChallenge)} 題`:""}</span>
           <span>${rec.completed?"已完成":"進行中"}</span>
           <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
@@ -334,7 +334,7 @@
       </tr>
     `).join("");
     $("#progressDetailSummary").textContent=
-      `總星星 ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}｜評分 ${Number(rec.score||0)}｜${rec.completed?"全部完成":"尚未全部完成"}`;
+      `總星星 ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}｜評分 ${Number(rec.score||0)}｜${rec.completed?"全部完成":"尚未全部完成"}`;
     $("#progressDetailDialog").showModal();
   }
 
@@ -580,7 +580,7 @@
       "座號":Number(r.seatNo||0),
       "姓名":r.name||"",
       "星星":Number(r.stars||0),
-      "滿星數":Number(r.totalStars||26),
+      "滿星數":Number(r.totalStars||30),
       "評分":Number(r.score||0),
       "完成狀態":r.completed?"已完成":"進行中",
       "目前進度":`${r.currentStation||""}${r.currentChallenge?` 第${r.currentChallenge}題`:""}`,

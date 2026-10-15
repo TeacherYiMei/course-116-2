@@ -235,3 +235,28 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
   background:#fff8e8;
   color:#5f4a25;
 }
+
+
+/* v16.10 成功答案回顧 */
+.reviewDialog{width:min(1100px,95vw);height:min(760px,90vh);padding:0;border:0;border-radius:20px;box-shadow:0 24px 80px #16243b55;overflow:hidden}
+.reviewDialog::backdrop{background:#17223688}
+.reviewTop{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:18px 20px;background:#f7f9fc;border-bottom:1px solid #e2e8f0}
+.reviewTop h2{margin:0 0 5px}.reviewTop p{margin:0;color:#66758a}
+.reviewClose{white-space:nowrap}
+.reviewLayout{display:grid;grid-template-columns:350px 1fr;height:calc(100% - 92px);min-height:480px}
+.reviewList{padding:12px;overflow:auto;background:#f7f9fc;border-right:1px solid #e2e8f0}
+.reviewItem{width:100%;display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;text-align:left;border:1px solid #dfe6ee;background:#fff;border-radius:13px;padding:11px;margin-bottom:8px;cursor:pointer}
+.reviewItem:hover{border-color:#9cc9e9;box-shadow:0 3px 12px #31506f14}
+.reviewItem small{display:block;color:#66758a;margin-top:3px}
+.reviewState{font-size:.82rem;font-weight:800;color:#397351}
+.legacyAnswer .reviewState{color:#927329}
+.reviewDetail{padding:22px;overflow:auto}
+.reviewWelcome,.reviewEmpty{padding:22px;border-radius:16px;background:#f4f7fa;color:#627086;line-height:1.7}
+.reviewHeader{display:flex;gap:12px;align-items:center}
+.reviewHeader h2{margin:4px 0}.reviewHeader small{color:#66758a}
+.savedAnswerTitle{font-weight:900;margin:18px 0 8px}.savedAnswerTitle small{font-weight:500;color:#748096;margin-left:8px}
+.savedAnswerCode,.savedOutput pre{background:#16202b;color:#f4f7fa;border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;line-height:1.55}
+.savedOutput{margin-top:10px}
+.reviewTip{background:#eaf7ef;color:#315f42;border-radius:12px;padding:11px 13px}
+.legacyNotice{margin-top:18px;background:#fff7df;border:1px solid #ecd48a;border-radius:14px;padding:15px;line-height:1.7;color:#72591e}
+@media(max-width:760px){.reviewLayout{grid-template-columns:1fr;height:auto}.reviewList{max-height:260px;border-right:0;border-bottom:1px solid #e2e8f0}.reviewDialog{height:92vh}.reviewDetail{min-height:380px}}

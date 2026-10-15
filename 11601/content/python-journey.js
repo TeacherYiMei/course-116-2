@@ -3,7 +3,9 @@ const TOTAL_CHALLENGES=26;
 
 const KEY="course115_v3_progress", NAMEKEY="course115_v3_name";
 const PROFILE_KEY="course115_student_profile_v6";
+const ANSWER_KEY="course115_v3_success_answers";
 let state=JSON.parse(localStorage.getItem(KEY)||"{}"), engine="loading", hintN=0;
+let successAnswers=JSON.parse(localStorage.getItem(ANSWER_KEY)||"{}");
 const $=s=>document.querySelector(s);
 const stepsOf=l=>l.steps.length;
 const done=id=>{
@@ -18,6 +20,29 @@ function pos(){
   }
   return {i:LEVELS.length,j:0};
 }
+
+function answerId(levelId,stepIndex){
+  return `${levelId}-${stepIndex}`;
+}
+function saveSuccessAnswer(levelId,stepIndex,code,outputText=""){
+  const id=answerId(levelId,stepIndex);
+  successAnswers[id]={
+    code:String(code||""),
+    output:String(outputText||""),
+    savedAt:new Date().toISOString()
+  };
+  localStorage.setItem(ANSWER_KEY,JSON.stringify(successAnswers));
+}
+function mergeSuccessAnswers(localAnswers,remoteAnswers){
+  const out={...(localAnswers||{})};
+  Object.entries(remoteAnswers||{}).forEach(([k,v])=>{
+    if(!out[k] || String(v?.savedAt||"")>String(out[k]?.savedAt||"")){
+      out[k]=v;
+    }
+  });
+  return out;
+}
+
 function syncCourse116HubProgress(){
   if(!(window.STORE&&typeof STORE.saveLevel==="function"&&STORE.me&&STORE.me()))return;
   for(const l of LEVELS){
@@ -832,6 +857,10 @@ async function adoptRemoteAndLocalProgress(){
   }else{
     state=localProgress;
   }
+  if(remote?.successfulAnswers){
+    successAnswers=mergeSuccessAnswers(successAnswers,remote.successfulAnswers);
+    localStorage.setItem(ANSWER_KEY,JSON.stringify(successAnswers));
+  }
   localStorage.setItem(KEY,JSON.stringify(state));
 
   if(remote?.name&&remote?.className&&remote?.seatNo){
@@ -1035,6 +1064,7 @@ async function syncCloudProgress(){
       ...profile,
       courseId:"python",
       progress:{...state},
+      successfulAnswers:{...successAnswers},
       stars,
       totalStars:TOTAL_CHALLENGES,
       score:Math.round(stars/TOTAL_CHALLENGES*100),
@@ -1115,8 +1145,12 @@ async function restoreCloudState(){
       if(remote.progress){
         state=mergeProgress(state,remote.progress);
         localStorage.setItem(KEY,JSON.stringify(state));
-        render();
       }
+      if(remote.successfulAnswers){
+        successAnswers=mergeSuccessAnswers(successAnswers,remote.successfulAnswers);
+        localStorage.setItem(ANSWER_KEY,JSON.stringify(successAnswers));
+      }
+      render();
     }
     updateProfileStrip();
     updateAccountButton();
@@ -1150,8 +1184,9 @@ function render(){
   $("#map").innerHTML=LEVELS.map((l,i)=>`<div class="node ${done(l.id)>=stepsOf(l)?"done":i===p.i?"now":""}">${done(l.id)>=stepsOf(l)?"⭐":i===p.i?l.icon:"☁️"}</div>`).join("");
 
   if(p.i>=LEVELS.length){
-    $("#mission").innerHTML=`<article class="card final"><div class="pop">🏆</div><h1>Python 冒險完成！</h1><p>你已完成全部 ${TOTAL_CHALLENGES} 個挑戰。</p><button id="certBtn">🏅 領取完成證書</button></article>`;
+    $("#mission").innerHTML=`<article class="card final"><div class="pop">🏆</div><h1>Python 冒險完成！</h1><p>你已完成全部 ${TOTAL_CHALLENGES} 個挑戰。</p><div class="actions" style="justify-content:center"><button id="reviewBtn" class="book" type="button">📚 回顧已完成挑戰</button><button id="certBtn">🏅 領取完成證書</button></div></article>`;
     $("#certBtn").onclick=openCert;
+    $("#reviewBtn").onclick=openReviewDialog;
     return;
   }
 
@@ -1167,6 +1202,7 @@ function render(){
     <div class="head"><div class="ico">${l.icon}</div><div><small>${l.title}・挑戰 ${p.j+1}/${stepsOf(l)}</small><h1>${s.title}</h1><div>${l.concept}</div></div></div>
     <div class="scratch"><b>${l.scratch}</b></div>
     <div class="actions">
+      <button id="reviewBtn" class="book" type="button">📚 回顧已完成挑戰</button>
       <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 先理解這一關</a>
       <a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 只查指令寫法</a>
     </div>
@@ -1192,6 +1228,7 @@ function render(){
   </article>`;
   $("#tryRun").onclick=()=>tryRunOnly();
   $("#checkChallenge").onclick=()=>checkChallenge(l,p.j,s);
+  $("#reviewBtn").onclick=openReviewDialog;
   $("#clearOutput").onclick=()=>{
     $("#out").textContent="執行結果已清除。";
     $("#runInputArea").innerHTML="";
@@ -1570,7 +1607,9 @@ async function checkChallenge(l,j,s){
       return;
     }
 
+    saveSuccessAnswer(l.id,j,c,result.text||"");
     if(done(l.id)<j+1){state[l.id]=j+1;save()}
+    else{syncCloudProgress()}
     let stationDone=(j+1===stepsOf(l));
     let allDone=(pos().i>=LEVELS.length);
     reward(stationDone,allDone);
@@ -1590,6 +1629,68 @@ function reward(stationDone,allDone){
   $("#reward").showModal();
   $("#next").onclick=()=>{$("#reward").close();render();if(allDone)openCert()};
 }
+
+function completedChallenges(){
+  const out=[];
+  LEVELS.forEach((l,li)=>{
+    const count=done(l.id);
+    for(let j=0;j<count;j++){
+      out.push({level:l,levelIndex:li,step:l.steps[j],stepIndex:j,id:answerId(l.id,j)});
+    }
+  });
+  return out;
+}
+function reviewListHTML(items){
+  if(!items.length){
+    return `<div class="reviewEmpty">目前還沒有已完成的挑戰。完成第一題後，就能從這裡回顧。</div>`;
+  }
+  return items.map((x,i)=>{
+    const has=!!successAnswers[x.id]?.code;
+    return `<button class="reviewItem ${has?"hasAnswer":"legacyAnswer"}" data-review="${i}" type="button">
+      <span class="reviewCheck">${has?"✅":"🕘"}</span>
+      <span><b>${esc(x.level.title)}</b><small>挑戰 ${x.stepIndex+1}/${stepsOf(x.level)}｜${esc(x.step.title)}</small></span>
+      <span class="reviewState">${has?"查看成功答案":"舊進度"}</span>
+    </button>`;
+  }).join("");
+}
+function openReviewDialog(){
+  const items=completedChallenges();
+  const list=document.getElementById("reviewList");
+  list.innerHTML=reviewListHTML(items);
+  document.getElementById("reviewDetail").innerHTML=
+    items.length
+      ? `<div class="reviewWelcome">👈 選一個已完成的挑戰，就能查看題目與當時成功的程式。</div>`
+      : `<div class="reviewWelcome">完成挑戰後，成功答案會自動保存在這裡。</div>`;
+  list.querySelectorAll("[data-review]").forEach(btn=>{
+    btn.onclick=()=>showReviewDetail(items[Number(btn.dataset.review)]);
+  });
+  document.getElementById("reviewDialog").showModal();
+}
+function showReviewDetail(item){
+  const saved=successAnswers[item.id];
+  const code=saved?.code;
+  const when=saved?.savedAt ? new Date(saved.savedAt).toLocaleString("zh-TW") : "";
+  document.getElementById("reviewDetail").innerHTML=`
+    <div class="reviewHeader">
+      <div class="ico">${item.level.icon}</div>
+      <div><small>${esc(item.level.title)}・挑戰 ${item.stepIndex+1}/${stepsOf(item.level)}</small><h2>${esc(item.step.title)}</h2></div>
+    </div>
+    <div class="task"><b>🎯 當時的任務</b><br>${item.step.prompt}</div>
+    <div class="criteria"><b>✅ 任務完成條件</b><ul>${item.step.requirements.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    ${code ? `
+      <div class="savedAnswerTitle">💾 我的闖關成功答案 ${when?`<small>保存於 ${esc(when)}</small>`:""}</div>
+      <pre class="savedAnswerCode"><code>${esc(code)}</code></pre>
+      ${saved.output?`<details class="savedOutput"><summary>🖥️ 查看當時檢查輸出</summary><pre>${esc(saved.output)}</pre></details>`:""}
+      <p class="reviewTip">這是你自己當時通過檢查的程式，可以拿來複習「我是怎麼解決這題的」。</p>
+    ` : `
+      <div class="legacyNotice">
+        🕘 <b>這題有完成紀錄，但沒有保存當時的程式碼。</b><br>
+        這通常代表你是在「成功答案回顧」功能啟用以前完成這題。系統不能猜出你當時寫的內容；之後重新完成的題目就會保存成功答案。
+      </div>
+    `}
+  `;
+}
+
 function openCert(){
   let profile=getStudentProfile(); let n=(profile&&profile.name)||localStorage.getItem(NAMEKEY)||"Python 冒險家";
   $("#certName").textContent=n;
@@ -1598,6 +1699,7 @@ function openCert(){
   $("#cert").showModal();
 }
 $("#closeCert").onclick=()=>$("#cert").close();
+$("#closeReviewBtn").onclick=()=>$("#reviewDialog").close();
 $("#applyName").onclick=()=>{
   let n=$("#studentName").value.trim()||"Python 冒險家";
   localStorage.setItem(NAMEKEY,n);$("#certName").textContent=n;

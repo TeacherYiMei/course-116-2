@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 進階挑戰島</title>
+<link rel="stylesheet" href="python-bonus.css?v=16.8">
+</head><body>
+<header><div class="head">
+  <a href="python.html">← 回 Python 學習冒險</a>
+  <b>🏝️ Python 進階挑戰島</b>
+  <div><a href="python-topics.html" target="_blank">📖 主題學習</a>　<a href="python-guide.html" target="_blank">📘 指令小百科</a></div>
+</div></header>
+<main>
+<section class="hero">
+  <h1>🏝️ 主線之外的秘密挑戰</h1>
+  <p>這裡不增加主線星星，也不影響原本證書。8 個進階任務全部開放，可以依興趣自由選關、自由重做；每完成一題就收集一枚「挑戰徽章」。</p>
+  <div id="unlockInfo" class="lock">正在開啟自由選關模式…</div>
+  <div id="badges" class="progress"></div>
+</section>
+<section id="app" class="grid" hidden>
+  <aside id="questList" class="side"></aside>
+  <article class="card">
+    <div id="questTag"></div>
+    <h2 id="questTitle"></h2>
+    <div id="questConcept" class="concept"></div>
+    <div id="questTask" class="task"></div>
+    <div id="questReq" class="req"></div>
+    <details class="hint"><summary><b>💡 需要線索時再打開</b></summary><div id="questHint"></div></details>
+    <textarea id="code" spellcheck="false"></textarea>
+    <div class="actions">
+      <button id="runBtn" class="run">▶ 執行看看</button>
+      <button id="checkBtn" class="check">✅ 檢查挑戰</button>
+      <button id="resetBtn" class="soft">↩ 還原起始區</button>
+    </div>
+    <h3>執行結果</h3><div id="output" class="output">尚未執行</div>
+    <div id="feedback" class="feedback">先自己思考，再執行測試。</div>
+  </article>
+</section>
+</main>
+<script src="config.js"></script>
+<script src="../shared/pyrunner.js"></script>
+<script src="../shared/firebase-config.js"></script>
+<script src="../shared/firebase-sync.js"></script>
+<script src="content/python-bonus.js?v=16.8"></script>
+</body></html>

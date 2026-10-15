@@ -27,6 +27,7 @@
     <div class="topTools">
       <button id="persistentVarBtn" class="translate">🌐 變數英文小幫手</button>
       <a href="python-topics.html" target="_blank">📖 Python 主題學習站</a>
+      <a href="python-bonus.html">🏝️ 進階挑戰島・自由選關</a>
       <a href="python-guide.html" target="_blank">📘 Python 指令小百科</a>
     </div>
   </section>
@@ -112,6 +113,21 @@
     <button id="varSearchBtn">找英文名稱</button>
   </div>
   <div id="varResult"></div>
+</dialog>
+
+
+<dialog id="reviewDialog" class="reviewDialog">
+  <div class="reviewTop">
+    <div>
+      <h2>📚 我的闖關回顧</h2>
+      <p>選擇已完成的挑戰，查看題目與自己當時闖關成功的程式。</p>
+    </div>
+    <button id="closeReviewBtn" type="button" class="reviewClose">✕ 關閉</button>
+  </div>
+  <div class="reviewLayout">
+    <aside id="reviewList" class="reviewList"></aside>
+    <section id="reviewDetail" class="reviewDetail"></section>
+  </div>
 </dialog>
 
 <dialog id="cert">

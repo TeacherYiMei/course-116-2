@@ -62,9 +62,21 @@ dialog.manageDialog::backdrop{background:#22314a80}
   @media(max-width:650px){.adminForm{grid-template-columns:1fr}.adminForm .full{grid-column:auto}.recordActions{justify-content:stretch}.recordActions button{flex:1 1 45%}}
 </style>
 
+
+<style>
+.accountGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.accountBox{background:#f6f8fb;border-radius:12px;padding:12px}
+.accountBox b{display:block;margin-bottom:5px}
+.copyBtn{background:#e9eef8;color:#3e5271}
+.disabledBtn{background:#eef0f3;color:#929aa5;cursor:not-allowed}
+.accountNote{background:#fff8e8;color:#6e531f;border-radius:12px;padding:12px;line-height:1.55;margin-top:12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}
+@media(max-width:650px){.accountGrid{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v15 教師異常檢查版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.9 教師帳號／密碼維護介面版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -143,7 +155,49 @@ dialog.manageDialog::backdrop{background:#22314a80}
     <button id="closeManageBtn" class="soft" type="button">關閉</button>
   </div>
 </dialog>
+
+<dialog id="accountDialog" class="manageDialog">
+  <div class="manageHead">
+    <h2 style="margin:0 0 6px">🔑 學習帳號／密碼維護</h2>
+    <div id="accountStudentTitle" class="status"></div>
+  </div>
+  <div class="manageBody">
+    <div class="accountGrid">
+      <div class="accountBox">
+        <b>Firebase UID</b>
+        <div id="accountUid" class="mono"></div>
+        <button id="copyUidBtn" class="copyBtn" type="button" style="margin-top:8px">複製 UID</button>
+      </div>
+      <div class="accountBox">
+        <b>依目前班級／座號推算的學習帳號</b>
+        <div id="accountEmail" class="mono"></div>
+        <button id="copyEmailBtn" class="copyBtn" type="button" style="margin-top:8px">複製帳號</button>
+      </div>
+    </div>
+
+    <div class="accountNote">
+      <b>重要：</b>這個 Email 是依目前 Firestore 的班級與座號推算，不代表 Firebase Authentication 中一定就是這個帳號。
+      如果老師曾經更正過學生班級或座號，舊登入帳號可能仍維持原值。
+    </div>
+
+    <h3>密碼維護</h3>
+    <label class="field">新密碼
+      <input id="accountNewPassword" type="password" minlength="6" placeholder="至少 6 個字元" disabled>
+    </label>
+    <button id="resetPasswordBtn" class="disabledBtn" type="button" disabled>🔒 重設學生密碼（尚未啟用後端）</button>
+
+    <div class="accountNote">
+      目前這個專案是「免 Functions」版本。GitHub Pages 前端不能安全地修改別人的 Firebase Authentication 密碼。
+      因此此頁先提供帳號識別與 UID；真正的密碼重設仍需要 Firebase Admin／Cloud Function 後端。
+    </div>
+  </div>
+  <div class="manageFooter">
+    <span id="accountStatus" class="status"></span>
+    <button id="closeAccountBtn" class="soft" type="button">關閉</button>
+  </div>
+</dialog>
+
 <script src="shared/firebase-config.js?v=14"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="shared/teacher-dashboard.js?v=16.2"></script>
+<script src="shared/teacher-dashboard.js?v=16.9"></script>
 </body></html>

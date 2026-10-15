@@ -5,6 +5,7 @@
   let teacherProfile=null;
   let currentRows=[];
   let manageRow=null;
+  let currentAccountRecord=null;
   const $=s=>document.querySelector(s);
 
   const configured=()=>!!(
@@ -175,6 +176,7 @@
         <div class="recordActions">
           <button class="detailRecordBtn soft" type="button" data-docid="${esc(rec.id)}">📊 關卡明細</button>
           <button class="editRecordBtn soft" type="button" data-docid="${esc(rec.id)}">✏️ 更正資料</button>
+          <button class="accountRecordBtn soft" type="button" data-docid="${esc(rec.id)}">🔑 帳號／密碼</button>
           <button class="resetRecordBtn warningBtn" type="button" data-docid="${esc(rec.id)}">↺ 重設進度</button>
           <button class="deleteRecordBtn danger" type="button"
             data-docid="${esc(rec.id)}"
@@ -196,11 +198,51 @@
     list.querySelectorAll(".editRecordBtn").forEach(btn=>{
       btn.addEventListener("click",()=>openEditRecord(records.find(r=>String(r.id)===String(btn.dataset.docid))));
     });
+    list.querySelectorAll(".accountRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>openAccountDialog(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
     list.querySelectorAll(".resetRecordBtn").forEach(btn=>{
       btn.addEventListener("click",()=>resetStudentProgress(records.find(r=>String(r.id)===String(btn.dataset.docid))));
     });
 
     dlg.showModal();
+  }
+
+
+  function normalizedSeat(seatNo){
+    return String(Number(String(seatNo||"").trim())).padStart(2,"0");
+  }
+
+  function expectedStudentEmail(className,seatNo){
+    return `python1151-${String(className||"").trim()}-${normalizedSeat(seatNo)}@student.course115.local`;
+  }
+
+  function openAccountDialog(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有維護此班級學生帳號的權限。");
+      return;
+    }
+
+    currentAccountRecord=rec;
+    $("#accountStudentTitle").textContent=
+      `${rec.className} 班｜${rec.seatNo} 號｜${rec.name}`;
+
+    $("#accountUid").textContent=rec.id||"";
+    $("#accountEmail").textContent=expectedStudentEmail(rec.className,rec.seatNo);
+    $("#accountNewPassword").value="";
+    $("#accountStatus").textContent="";
+
+    $("#accountDialog").showModal();
+  }
+
+  async function copyText(text,label){
+    try{
+      await navigator.clipboard.writeText(text);
+      $("#accountStatus").textContent=`已複製${label}。`;
+    }catch(e){
+      $("#accountStatus").textContent=`無法自動複製，請手動選取${label}。`;
+    }
   }
 
 
@@ -567,6 +609,9 @@
   $("#closeDetailBtn").onclick=()=>$("#progressDetailDialog").close();
   $("#closeEditBtn").onclick=()=>$("#editRecordDialog").close();
   $("#saveEditBtn").onclick=saveEditedRecord;
+  $("#closeAccountBtn").onclick=()=>$("#accountDialog").close();
+  $("#copyUidBtn").onclick=()=>copyText($("#accountUid").textContent," UID");
+  $("#copyEmailBtn").onclick=()=>copyText($("#accountEmail").textContent,"學習帳號");
 
   init();
 })();

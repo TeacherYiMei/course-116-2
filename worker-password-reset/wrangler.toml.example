@@ -1,0 +1,12 @@
+name = "course116-password-reset"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+FIREBASE_PROJECT_ID = "course115-python"
+FIREBASE_WEB_API_KEY = "填入 Firebase Web API Key"
+SERVICE_ACCOUNT_EMAIL = "填入 service account client_email"
+ALLOWED_ORIGIN = "https://teacheryimei.github.io"
+
+# SERVICE_ACCOUNT_PRIVATE_KEY 請設成 Cloudflare Secret。
+# 不要放進這個檔案，不要上傳 GitHub。

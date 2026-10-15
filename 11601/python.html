@@ -104,6 +104,25 @@
   </div>
 </dialog>
 
+
+<dialog id="forcePasswordDialog" class="profileDialog accountDialog">
+  <div class="profileHero">🔑</div>
+  <h2>請先設定自己的新密碼</h2>
+  <p>你目前使用的是老師提供的臨時密碼。請設定一組只有你自己知道的新密碼，再繼續闖關。</p>
+
+  <label class="fieldLabel">新密碼 <span>*</span></label>
+  <input id="forceNewPassword" class="profileInput" type="password" minlength="6" maxlength="40"
+         placeholder="至少 6 個字元" autocomplete="new-password">
+
+  <label class="fieldLabel">再次輸入新密碼 <span>*</span></label>
+  <input id="forceNewPassword2" class="profileInput" type="password" minlength="6" maxlength="40"
+         placeholder="再輸入一次" autocomplete="new-password">
+
+  <div class="fieldHelp">請不要使用其他網站的重要密碼。</div>
+  <div id="forcePasswordError" class="profileError"></div>
+  <button id="forcePasswordSaveBtn" class="startAdventureBtn" type="button">✅ 儲存新密碼並繼續</button>
+</dialog>
+
 <dialog id="varDialog" class="varDialog">
   <button id="closeVar" class="close">×</button>
   <h2>🌐 變數英文小幫手</h2>
@@ -154,8 +173,8 @@
 <script src="../shared/store.js"></script>
 <script src="../shared/pyrunner.js"></script>
 <script src="../shared/firebase-config.js"></script>
-<script src="../shared/firebase-sync.js"></script>
-<script src="content/python-journey.js"></script>
+<script src="../shared/firebase-sync.js?v=16.11"></script>
+<script src="content/python-journey.js?v=16.11"></script>
 <script>
 document.getElementById("closeVar").onclick=()=>document.getElementById("varDialog").close();
 document.getElementById("varSearchBtn").onclick=searchVar;
@@ -169,4 +188,6 @@ document.getElementById("saveProfileBtn").onclick=saveStudentProfile;
 document.getElementById("cloudStatus").onclick=openFirebaseDiagnostic;
 document.getElementById("closeFirebaseDiag").onclick=()=>document.getElementById("firebaseDiagDialog").close();
 document.getElementById("retryFirebaseBtn").onclick=retryFirebaseConnection;
+document.getElementById("forcePasswordSaveBtn").onclick=saveForcedPasswordChange;
+document.getElementById("forcePasswordDialog").addEventListener("cancel",e=>e.preventDefault());
 </script></body></html>

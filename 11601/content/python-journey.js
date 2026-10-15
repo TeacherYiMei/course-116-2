@@ -938,6 +938,7 @@ async function loginLearningAccount(){
     updateProfileStrip();
     document.getElementById("accountDialog").close();
     updateCloudStatus("☁️ 已登入學習帳號，進度已合併","ok");
+    await enforceTemporaryPasswordChange();
   }catch(e){
     if(e?.code==="auth/invalid-credential"||e?.code==="auth/wrong-password"||e?.code==="auth/user-not-found"){
       err.textContent="學習密碼不正確，或這個班級座號尚未建立帳號。";
@@ -1116,6 +1117,54 @@ function ensureStudentProfile(){
   if(!profileIsValid(getStudentProfile()))openProfileDialog(true);
 }
 
+
+async function enforceTemporaryPasswordChange(){
+  try{
+    if(!window.CourseDB)return;
+    await CourseDB.ready;
+    if(CourseDB.state!=="ready"||CourseDB.isAnonymous())return;
+    const remote=await CourseDB.loadStudent();
+    if(remote?.mustChangePassword){
+      const dlg=document.getElementById("forcePasswordDialog");
+      if(dlg&&!dlg.open)dlg.showModal();
+    }
+  }catch(e){
+    console.warn("temporary password check failed",e);
+  }
+}
+
+async function saveForcedPasswordChange(){
+  const p1=document.getElementById("forceNewPassword").value;
+  const p2=document.getElementById("forceNewPassword2").value;
+  const err=document.getElementById("forcePasswordError");
+  err.textContent="";
+
+  if(p1.length<6){
+    err.textContent="新密碼至少需要 6 個字元。";
+    return;
+  }
+  if(p1!==p2){
+    err.textContent="兩次輸入的密碼不一致。";
+    return;
+  }
+
+  const btn=document.getElementById("forcePasswordSaveBtn");
+  btn.disabled=true;
+  btn.textContent="儲存中…";
+  try{
+    await CourseDB.changeOwnPassword(p1);
+    document.getElementById("forceNewPassword").value="";
+    document.getElementById("forceNewPassword2").value="";
+    document.getElementById("forcePasswordDialog").close();
+    alert("✅ 新密碼設定完成，請記住這組密碼。");
+  }catch(e){
+    err.textContent="修改失敗："+(e?.message||String(e));
+  }finally{
+    btn.disabled=false;
+    btn.textContent="✅ 儲存新密碼並繼續";
+  }
+}
+
 async function restoreCloudState(){
   updateProfileStrip();
   if(!window.CourseDB){
@@ -1161,6 +1210,7 @@ async function restoreCloudState(){
       await syncCloudProgress();
       ensureStableStudentAccount();
     }
+    await enforceTemporaryPasswordChange();
   }catch(e){
     updateCloudStatus("⚠️ 資料庫連線失敗（點此查看原因）","error");
     ensureStudentProfile();

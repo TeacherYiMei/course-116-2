@@ -29,6 +29,18 @@
       currentUser=result.user;api.uid=currentUser.uid;api.stage="學生學習帳號登入完成";
       return {ok:true,uid:currentUser.uid,email};
     },
+    async changeOwnPassword(newPassword){
+      await api.ready;
+      if(!currentUser||!authMod)throw Error("AUTH_NOT_READY");
+      const pwd=String(newPassword||"");
+      if(pwd.length<6)throw Error("密碼至少需要 6 個字元");
+      await authMod.updatePassword(currentUser,pwd);
+      await api.saveStudent({
+        mustChangePassword:false,
+        passwordChangedAt:fs.serverTimestamp()
+      });
+      return {ok:true};
+    },
     async saveStudent(payload){
       await api.ready;
       if(!api.configured||!currentUser||!db)return {ok:false};

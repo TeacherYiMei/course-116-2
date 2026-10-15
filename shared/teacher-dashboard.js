@@ -230,8 +230,15 @@
 
     $("#accountUid").textContent=rec.id||"";
     $("#accountEmail").textContent=expectedStudentEmail(rec.className,rec.seatNo);
-    $("#accountNewPassword").value="";
     $("#accountStatus").textContent="";
+    $("#tempPasswordBox").hidden=true;
+    $("#tempPasswordValue").textContent="";
+
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    $("#resetPasswordBtn").disabled=!endpoint;
+    $("#resetPasswordBtn").textContent=endpoint
+      ? "🔑 一鍵重設學生密碼"
+      : "🔒 尚未設定密碼重設後端";
 
     $("#accountDialog").showModal();
   }
@@ -242,6 +249,67 @@
       $("#accountStatus").textContent=`已複製${label}。`;
     }catch(e){
       $("#accountStatus").textContent=`無法自動複製，請手動選取${label}。`;
+    }
+  }
+
+
+  function temporaryPasswordMessage(name,className,seatNo){
+    return `確定要重設「${className} 班 ${seatNo} 號 ${name}」的登入密碼嗎？
+
+重設後原密碼會立即失效，系統會產生一次性臨時密碼。`;
+  }
+
+  async function resetStudentPassword(){
+    const rec=currentAccountRecord;
+    if(!rec)return;
+
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    if(!endpoint){
+      $("#accountStatus").textContent="尚未設定密碼重設後端網址。";
+      return;
+    }
+    if(!canManageClass(rec.className)){
+      $("#accountStatus").textContent="你沒有維護此班級學生帳號的權限。";
+      return;
+    }
+    if(!confirm(temporaryPasswordMessage(rec.name,rec.className,rec.seatNo)))return;
+
+    const btn=$("#resetPasswordBtn");
+    btn.disabled=true;
+    btn.textContent="⏳ 正在重設…";
+    $("#accountStatus").textContent="正在驗證教師權限並重設密碼…";
+    $("#tempPasswordBox").hidden=true;
+
+    try{
+      const user=auth?.currentUser;
+      if(!user)throw Error("教師登入已失效，請重新登入教師端。");
+      const idToken=await user.getIdToken(true);
+
+      const res=await fetch(endpoint.replace(/\/$/,"")+"/reset-student-password",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+idToken
+        },
+        body:JSON.stringify({studentUid:String(rec.id||"")})
+      });
+
+      let data={};
+      try{data=await res.json();}catch(e){}
+
+      if(!res.ok||!data.ok){
+        throw Error(data.message||data.error||`後端回應 ${res.status}`);
+      }
+
+      $("#tempPasswordValue").textContent=data.temporaryPassword||"";
+      $("#tempPasswordBox").hidden=false;
+      $("#accountStatus").textContent="✅ 密碼已重設。請把臨時密碼交給該學生。";
+    }catch(e){
+      console.error(e);
+      $("#accountStatus").textContent="重設失敗："+(e?.message||String(e));
+    }finally{
+      btn.disabled=false;
+      btn.textContent="🔑 一鍵重設學生密碼";
     }
   }
 
@@ -612,6 +680,8 @@
   $("#closeAccountBtn").onclick=()=>$("#accountDialog").close();
   $("#copyUidBtn").onclick=()=>copyText($("#accountUid").textContent," UID");
   $("#copyEmailBtn").onclick=()=>copyText($("#accountEmail").textContent,"學習帳號");
+  $("#copyTempPasswordBtn").onclick=()=>copyText($("#tempPasswordValue").textContent,"臨時密碼");
+  $("#resetPasswordBtn").onclick=resetStudentPassword;
 
   init();
 })();

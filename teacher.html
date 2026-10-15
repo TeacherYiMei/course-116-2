@@ -74,9 +74,18 @@ dialog.manageDialog::backdrop{background:#22314a80}
 @media(max-width:650px){.accountGrid{grid-template-columns:1fr}}
 </style>
 
+
+<style>
+.tempPasswordBox{margin-top:14px;background:#eaf8ee;border:1px solid #b9dfc4;border-radius:14px;padding:14px;color:#245d36}
+.tempPasswordLine{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.tempPasswordLine code{font-size:1.3rem;font-weight:900;letter-spacing:.08em;background:#fff;border-radius:10px;padding:10px 12px}
+.dangerBtn{background:#b93b3b;color:#fff}
+.dangerBtn:disabled{background:#d9dde3;color:#8892a0;cursor:not-allowed}
+</style>
+
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.9 教師帳號／密碼維護介面版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.11 教師一鍵重設學生密碼版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -181,14 +190,24 @@ dialog.manageDialog::backdrop{background:#22314a80}
     </div>
 
     <h3>密碼維護</h3>
-    <label class="field">新密碼
-      <input id="accountNewPassword" type="password" minlength="6" placeholder="至少 6 個字元" disabled>
-    </label>
-    <button id="resetPasswordBtn" class="disabledBtn" type="button" disabled>🔒 重設學生密碼（尚未啟用後端）</button>
+    <button id="resetPasswordBtn" class="dangerBtn" type="button">🔑 一鍵重設學生密碼</button>
 
     <div class="accountNote">
-      目前這個專案是「免 Functions」版本。GitHub Pages 前端不能安全地修改別人的 Firebase Authentication 密碼。
-      因此此頁先提供帳號識別與 UID；真正的密碼重設仍需要 Firebase Admin／Cloud Function 後端。
+      系統會產生一組一次性臨時密碼。學生使用臨時密碼登入後，會被要求立刻設定自己的新密碼。
+      老師不會知道學生最後設定的新密碼。
+    </div>
+
+    <div id="tempPasswordBox" class="tempPasswordBox" hidden>
+      <b>✅ 臨時密碼已產生</b>
+      <div class="tempPasswordLine">
+        <code id="tempPasswordValue"></code>
+        <button id="copyTempPasswordBtn" class="copyBtn" type="button">複製臨時密碼</button>
+      </div>
+      <p>請把這組臨時密碼交給該學生。學生登入並改成自己的密碼後，就不再使用這組臨時密碼。</p>
+    </div>
+
+    <div id="passwordBackendNote" class="accountNote">
+      若按鈕顯示「尚未設定後端」，請先完成專案內 <b>worker-password-reset/SETUP.md</b> 的設定。
     </div>
   </div>
   <div class="manageFooter">
@@ -199,5 +218,6 @@ dialog.manageDialog::backdrop{background:#22314a80}
 
 <script src="shared/firebase-config.js?v=14"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="shared/teacher-dashboard.js?v=16.9"></script>
+<script src="shared/password-reset-config.js?v=16.11"></script>
+<script src="shared/teacher-dashboard.js?v=16.11"></script>
 </body></html>

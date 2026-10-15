@@ -1730,23 +1730,35 @@ function openCompletedExamples(){
     list.querySelectorAll("[data-example-i]").forEach(btn=>{
       btn.onclick=()=>showCompletedExample(items[Number(btn.dataset.exampleI)]);
     });
-    document.getElementById("completedExampleDetail").innerHTML='<div class="reviewWelcome">👈 選一個已完成的挑戰，查看標準參考解法。</div>';
+    document.getElementById("completedExampleDetail").innerHTML='<div class="reviewWelcome">👈 選一個已完成的挑戰，就會直接顯示正確參考答案。</div>';
   }
   document.getElementById("completedExamplesDialog").showModal();
 }
 function showCompletedExample(item){
   const ex=feedbackExample(item.step.rule,"");
+  const code=String(ex.code||"");
   document.getElementById("completedExampleDetail").innerHTML=`
-    <div class="reviewHeader"><div class="ico">${item.level.icon}</div><div>
-      <small>${esc(item.level.title)}・挑戰 ${item.stepIndex+1}/3</small>
-      <h2>${esc(item.step.title)}</h2>
-    </div></div>
-    <div class="task"><b>🎯 題目</b><br>${item.step.prompt}</div>
-    <div class="criteria"><b>✅ 任務完成條件</b><ul>${item.step.requirements.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
-    <div class="savedAnswerTitle">💡 正確參考範例</div>
-    <pre class="savedAnswerCode"><code>${esc(ex.code||"")}</code></pre>
-    <div class="reviewTip"><b>🧠 重點</b><br>${esc(ex.note||"")}<br><small>參考解法不是唯一答案；重點是看懂指令結構。</small></div>
+    <div class="answerOnlyBox">
+      <div class="answerOnlyTitle">✅ 正確參考答案</div>
+      <pre class="savedAnswerCode"><code id="completedAnswerCode">${esc(code)}</code></pre>
+      <button id="copyCompletedAnswerBtn" class="copyDemo" type="button">📋 複製答案</button>
+      <div id="copyCompletedAnswerStatus" class="copyAnswerStatus"></div>
+    </div>
   `;
+  document.getElementById("copyCompletedAnswerBtn").onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(code);
+      document.getElementById("copyCompletedAnswerStatus").textContent="✅ 已複製，可以貼到編輯區參考。";
+    }catch(e){
+      const range=document.createRange();
+      const el=document.getElementById("completedAnswerCode");
+      range.selectNodeContents(el);
+      const sel=window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.getElementById("copyCompletedAnswerStatus").textContent="請按 Ctrl+C 複製已選取的答案。";
+    }
+  };
 }
 
 function openCert(){

@@ -268,3 +268,9 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
 /* v16.13 三段式鷹架 */
 .copyDemo{border:0;border-radius:11px;padding:9px 13px;margin:8px 0;background:#dff2ff;color:#285b79;font-weight:900;cursor:pointer}
 .copyDemo:hover{filter:brightness(.98)}
+
+/* v16.14 已完成關卡：只顯示正確答案 */
+.answerOnlyBox{padding:8px 0}
+.answerOnlyTitle{font-size:1.18rem;font-weight:900;margin-bottom:10px;color:#2d5e3d}
+.answerOnlyBox .savedAnswerCode{margin:0 0 12px;background:#16202b;color:#f5f8fb;border-radius:14px;padding:16px;overflow:auto;white-space:pre-wrap}
+.copyAnswerStatus{margin-top:8px;color:#3b6a4a;font-weight:750;min-height:1.4em}

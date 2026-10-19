@@ -1245,42 +1245,58 @@ function openPreviousExample(){
 }
 
 function render(){
-  let p=pos();
+  const p=pos();
+  const l=LEVELS[p.i];
+  const step=l.steps[p.j];
   $("#stars").textContent=total();
-  {let l=LEVELS[p.i];$("#place").innerHTML=`🧭 <b>自由選關</b>｜${l.title}・第 ${p.j+1} 題｜${isChallengeDone(l.id,p.j)?"⭐ 已闖關成功":"○ 尚未完成"}｜⭐ 總星星 ${total()}/${TOTAL_CHALLENGES}`;}
-  $("#map").innerHTML=`
-    <div class="freeChoiceSummary">
-      <div class="starTotal">⭐ 已獲得 <strong>${total()}</strong> / ${TOTAL_CHALLENGES} 顆星</div>
-      <div class="statusLegend">
-        <span><b class="legendStar">⭐</b> 已闖關成功</span>
-        <span><b class="legendOpen">○</b> 尚未完成</span>
-        <span><b class="legendCurrent">▶</b> 目前選擇</span>
+  $("#place").innerHTML=`🧭 <b>自由選關</b>｜${l.title}・第 ${p.j+1} 題｜${isChallengeDone(l.id,p.j)?"⭐ 已闖關成功":"○ 尚未完成"}｜⭐ ${total()}/${TOTAL_CHALLENGES}`;
+
+  $("#map").innerHTML=LEVELS.map((level,i)=>`
+    <div class="freeStation ${i===p.i?"currentStation":""}">
+      <div class="freeStationTitle"><span>${level.icon} P${i+1}</span><small>⭐ ${done(level.id)}/3</small></div>
+      <div class="freeChallengeRow">
+        ${level.steps.map((st,j)=>{
+          const complete=isChallengeDone(level.id,j);
+          const active=i===p.i&&j===p.j;
+          return `<button type="button" class="freeChallengeBtn ${complete?"done":""} ${active?"active":""}" data-level="${i}" data-step="${j}" title="${esc(st.title)}" aria-label="P${i+1} 第 ${j+1} 題">${complete?"⭐":j+1}</button>`;
+        }).join("")}
       </div>
-    </div>
-    ${LEVELS.map((l,i)=>`
-      <div class="freeStation ${i===p.i?"currentStation":""}">
-        <div class="freeStationTitle">
-          <span>${l.icon} P${i+1}</span>
-          <small>${done(l.id)}/${stepsOf(l)} 顆星</small>
-        </div>
-        <div class="freeChallengeRow">
-          ${l.steps.map((st,j)=>{
-            const complete=isChallengeDone(l.id,j);
-            const active=i===p.i&&j===p.j;
-            return `<button type="button"
-              class="freeChallengeBtn ${complete?"done":""} ${active?"active":""}"
-              data-level="${i}" data-step="${j}"
-              title="${esc(st.title)}">
-                <span class="challengeStatusIcon">${active?"▶":complete?"⭐":"○"}</span>
-                <span class="challengeNumber">第 ${j+1} 題</span>
-                <span class="challengeState">${complete?"已成功":"尚未完成"}</span>
-              </button>`;
-          }).join("")}
-        </div>
-      </div>`).join("")}`;
-  document.querySelectorAll(".freeChallengeBtn").forEach(btn=>{
+    </div>`).join("");
+  document.querySelectorAll('.freeChallengeBtn').forEach(btn=>{
     btn.onclick=()=>setSelected(Number(btn.dataset.level),Number(btn.dataset.step));
   });
+
+  hintN=0;
+  const demo=step.mode==="copy" && step.demo
+    ? `<div class="demoLabel">👀 先看懂，再複製修改</div><pre class="demo">${esc(step.demo)}</pre><button id="copyDemoBtn" class="copyDemo" type="button">📋 複製範例到編輯區</button><div class="demoNote">前兩題可以複製。複製後一定要依「🎯 任務」修改；完全不改不能過關。</div>`
+    : "";
+  const label=step.mode==="copy"?"先複製、再修改":"第 3 題：自己輸入，不提供可複製程式";
+  const criteria=`<div class="criteria"><b>✅ 任務完成條件</b><ul>${step.requirements.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+
+  $("#mission").innerHTML=`<article class="card">
+    <div class="head"><div class="ico">${l.icon}</div><div><small>${l.title}・第 ${p.j+1}/3 題</small><h1>${step.title}</h1><div>${l.concept}</div><div class="challengeCurrentState">${isChallengeDone(l.id,p.j)?"⭐ 這一題已闖關成功，可以再練一次。":"○ 這一題尚未完成。"}</div></div></div>
+    <div class="scratch"><b>${l.scratch}</b></div>
+    <div class="actions"><button id="completedExamplesBtn" class="book" type="button">📚 已完成範例回顧</button>${previousChallengeInfo()?`<button id="prevExampleBtn" class="book" type="button">⬅️ 前一關範例解答</button>`:""}<a class="book" href="python-topics.html#${l.id}" target="_blank">📖 先理解這一關</a><a class="book" href="python-guide.html#${step.ref}" target="_blank">📘 只查指令寫法</a></div>
+    ${demo}
+    <div class="task"><b>🎯 任務</b><br>${step.prompt}</div>${criteria}
+    <div class="editorLabel">⌨️ ${label}</div><textarea id="code" class="editor" spellcheck="false">${esc(step.starter)}</textarea>
+    <div class="actions primaryActions"><button id="tryRun" class="run tryRun" ${engine==="loading"?"disabled":""}>${engine==="ready"?"▶ 執行看看":"⏳ Python 準備中…"}</button><button id="checkChallenge" class="checkChallenge" ${engine==="loading"?"disabled":""}>✅ 檢查挑戰</button></div>
+    <div class="actions"><button id="hintBtn" class="help">💡 我需要線索</button><button id="varBtn" class="translate">🌐 變數英文小幫手</button><a class="book" href="python-topics.html#${l.id}" target="_blank">📖 我想先弄懂觀念</a><a class="book" href="python-guide.html#${step.ref}" target="_blank">📘 我只想查寫法</a></div>
+    <div class="runNote">「執行看看」只看自己的程式結果，不會判定闖關；覺得完成後再按「檢查挑戰」。</div><div class="consoleLabel">🖥️ 執行結果</div><pre id="out" class="output">按「▶ 執行看看」看看你的程式會輸出什麼。</pre><div id="runInputArea" class="runInputArea" aria-live="polite"></div><div class="consoleActions"><button id="clearOutput" type="button" class="clearOutput">🧹 清除結果</button></div><div id="hint"></div><div id="fb"></div>
+  </article>`;
+
+  $("#tryRun").onclick=()=>tryRunOnly();
+  $("#checkChallenge").onclick=()=>checkChallenge(l,p.j,step);
+  if($("#copyDemoBtn")) $("#copyDemoBtn").onclick=()=>{$("#code").value=step.demo;$("#code").focus();$("#fb").innerHTML=`<div class="feedback runOnly">📋 已複製範例。現在請依題目修改後再檢查。</div>`;};
+  $("#completedExamplesBtn").onclick=openCompletedExamples;
+  if($("#prevExampleBtn")) $("#prevExampleBtn").onclick=openPreviousExample;
+  $("#clearOutput").onclick=()=>{$("#out").textContent="執行結果已清除。";$("#runInputArea").innerHTML="";$("#fb").innerHTML="";};
+  $("#hintBtn").onclick=()=>showHint(step);
+  $("#varBtn").onclick=openVarHelper;
+}
+function showHint(step){
+  hintN=Math.min(hintN+1,step.hints.length);
+  $("#hint").innerHTML=`<div class="hint"><b>💡 線索 ${hintN}/${step.hints.length}</b><br>${step.hints[hintN-1]}${hintN<step.hints.length?"<br><small>還需要時，可以再按一次。</small>":""}</div>`;
 }
 
 async function executeInteractive(c,isChecking=false){

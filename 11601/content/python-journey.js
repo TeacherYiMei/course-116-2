@@ -5,21 +5,39 @@ const SAMPLE_SOLUTIONS={"p1_greeting": {"title": "自己的招呼語", "code": "
 
 const KEY="course115_v3_progress", NAMEKEY="course115_v3_name";
 const PROFILE_KEY="course115_student_profile_v6";
+const FREE_DONE_KEY="course115_v3_free_done";
+const SELECT_KEY="course115_v3_selected";
 let state=JSON.parse(localStorage.getItem(KEY)||"{}"), engine="loading", hintN=0;
+let freeDone=JSON.parse(localStorage.getItem(FREE_DONE_KEY)||"{}");
+let selected=JSON.parse(localStorage.getItem(SELECT_KEY)||"null");
 const $=s=>document.querySelector(s);
 const stepsOf=l=>l.steps.length;
-const done=id=>{
-  let l=LEVELS.find(x=>x.id===id);
-  return Math.min(stepsOf(l), Number(state[id]||0));
-};
-const total=()=>LEVELS.reduce((n,l)=>n+done(l.id),0);
-function pos(){
-  for(let i=0;i<LEVELS.length;i++){
-    let n=done(LEVELS[i].id);
-    if(n<stepsOf(LEVELS[i])) return {i,j:n};
+const challengeKey=(levelId,stepIndex)=>`${levelId}_${stepIndex}`;
+function seedFreeDoneFromProgress(progress,target=freeDone){
+  for(const l of LEVELS){
+    const n=Math.max(0,Math.min(stepsOf(l),Number(progress?.[l.id]||0)));
+    for(let j=0;j<n;j++)target[challengeKey(l.id,j)]=true;
   }
-  return {i:LEVELS.length,j:0};
+  return target;
 }
+function fillFlagsToStars(stars,target=freeDone){
+  let need=Math.max(0,Math.min(TOTAL_CHALLENGES,Number(stars||0)));
+  let have=Object.values(target).filter(Boolean).length;
+  if(have>=need)return target;
+  outer: for(const l of LEVELS){for(let j=0;j<stepsOf(l);j++){const k=challengeKey(l.id,j);if(!target[k]){target[k]=true;have++;if(have>=need)break outer;}}}
+  return target;
+}
+function mergeFreeDone(a,b){const out={...(a||{})};Object.entries(b||{}).forEach(([k,v])=>{if(v)out[k]=true});return out;}
+function isChallengeDone(levelId,stepIndex){return !!freeDone[challengeKey(levelId,stepIndex)];}
+function done(id){const l=LEVELS.find(x=>x.id===id);if(!l)return 0;return l.steps.reduce((n,_,j)=>n+(isChallengeDone(id,j)?1:0),0);}
+const total=()=>LEVELS.reduce((n,l)=>n+done(l.id),0);
+seedFreeDoneFromProgress(state,freeDone);
+localStorage.setItem(FREE_DONE_KEY,JSON.stringify(freeDone));
+function firstIncomplete(){for(let i=0;i<LEVELS.length;i++){for(let j=0;j<stepsOf(LEVELS[i]);j++){if(!isChallengeDone(LEVELS[i].id,j))return {i,j};}}return {i:0,j:0};}
+function validSelection(p){return p&&Number.isInteger(p.i)&&Number.isInteger(p.j)&&p.i>=0&&p.i<LEVELS.length&&p.j>=0&&p.j<stepsOf(LEVELS[p.i]);}
+if(!validSelection(selected))selected=firstIncomplete();
+function setSelected(i,j){selected={i:Number(i),j:Number(j)};localStorage.setItem(SELECT_KEY,JSON.stringify(selected));render();}
+function pos(){return validSelection(selected)?selected:firstIncomplete();}
 
 
 function syncCourse116HubProgress(){
@@ -40,11 +58,8 @@ function syncCourse116HubProgress(){
     }
   }
 }
-function save(){
-  localStorage.setItem(KEY,JSON.stringify(state));
-  syncCourse116HubProgress();
-  syncCloudProgress();
-}
+function rebuildProgressCounts(){const out={};for(const l of LEVELS)out[l.id]=done(l.id);state=out;localStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(FREE_DONE_KEY,JSON.stringify(freeDone));}
+function save(){rebuildProgressCounts();syncCourse116HubProgress();syncCloudProgress();}
 function esc(s){return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
 function norm(s){return String(s||"").replace(/\s+/g," ").trim()}
 function countRx(code,rx){return (code.match(rx)||[]).length}
@@ -831,12 +846,11 @@ async function adoptRemoteAndLocalProgress(){
   const localProfile=getStudentProfile();
   const remote=await CourseDB.loadStudent();
 
-  if(remote?.progress){
-    state=mergeProgress(localProgress,remote.progress);
-  }else{
-    state=localProgress;
-  }
-  localStorage.setItem(KEY,JSON.stringify(state));
+  if(remote?.progress){state=mergeProgress(localProgress,remote.progress);}else{state=localProgress;}
+  freeDone=seedFreeDoneFromProgress(state,freeDone);
+  if(remote?.challengeDone)freeDone=mergeFreeDone(freeDone,remote.challengeDone);
+  fillFlagsToStars(Math.max(localStars,Number(remote?.stars||0)),freeDone);
+  rebuildProgressCounts();
 
   if(remote?.name&&remote?.className&&remote?.seatNo){
     const sameSeat=String(remote.className)===String(localProfile.className)
@@ -1040,6 +1054,7 @@ async function syncCloudProgress(){
       ...profile,
       courseId:"python",
       progress:{...state},
+      challengeDone:{...freeDone},
       stars,
       totalStars:TOTAL_CHALLENGES,
       score:Math.round(stars/TOTAL_CHALLENGES*100),
@@ -1165,10 +1180,11 @@ async function restoreCloudState(){
           localStorage.setItem(NAMEKEY,restored.name);
         }
       }
-      if(remote.progress){
-        state=mergeProgress(state,remote.progress);
-        localStorage.setItem(KEY,JSON.stringify(state));
-      }
+      if(remote.progress){state=mergeProgress(state,remote.progress);}
+      freeDone=seedFreeDoneFromProgress(state,freeDone);
+      if(remote.challengeDone)freeDone=mergeFreeDone(freeDone,remote.challengeDone);
+      fillFlagsToStars(Number(remote.stars||0),freeDone);
+      rebuildProgressCounts();
       render();
     }
     updateProfileStrip();
@@ -1209,11 +1225,7 @@ function currentFlatIndex(){
   for(let i=0;i<p.i;i++)n+=stepsOf(LEVELS[i]);
   return n+p.j;
 }
-function previousChallengeInfo(){
-  const all=flattenedChallenges();
-  const idx=currentFlatIndex()-1;
-  return idx>=0 ? all[idx] : null;
-}
+function previousChallengeInfo(){const all=flattenedChallenges();const idx=currentFlatIndex()-1;if(idx<0)return null;const item=all[idx];return isChallengeDone(item.level.id,item.stepIndex)?item:null;}
 function openPreviousExample(){
   const item=previousChallengeInfo();
   if(!item)return;
@@ -1235,20 +1247,9 @@ function openPreviousExample(){
 function render(){
   let p=pos();
   $("#stars").textContent=total();
-  if(p.i>=LEVELS.length){
-    $("#place").innerHTML=`🏆 <b>全部完成</b>・${TOTAL_CHALLENGES}/${TOTAL_CHALLENGES}`;
-  }else{
-    let l=LEVELS[p.i];
-    $("#place").innerHTML=`📍 <b>${l.title}</b>・挑戰 ${p.j+1}/${stepsOf(l)}`;
-  }
-  $("#map").innerHTML=LEVELS.map((l,i)=>`<div class="node ${done(l.id)>=stepsOf(l)?"done":i===p.i?"now":""}">${done(l.id)>=stepsOf(l)?"⭐":i===p.i?l.icon:"☁️"}</div>`).join("");
-
-  if(p.i>=LEVELS.length){
-    $("#mission").innerHTML=`<article class="card final"><div class="pop">🏆</div><h1>Python 冒險完成！</h1><p>你已完成全部 ${TOTAL_CHALLENGES} 個挑戰。</p><div class="actions" style="justify-content:center"><button id="prevExampleBtn" class="book" type="button">⬅️ 查看最後一關範例解答</button><button id="certBtn">🏅 領取完成證書</button></div></article>`;
-    $("#certBtn").onclick=openCert;
-    $("#prevExampleBtn").onclick=openPreviousExample;
-    return;
-  }
+  {let l=LEVELS[p.i];$("#place").innerHTML=`🧭 <b>自由選關</b>｜${l.title}・挑戰 ${p.j+1}/${stepsOf(l)}｜⭐ ${total()}/${TOTAL_CHALLENGES}`;}
+  $("#map").innerHTML=LEVELS.map((l,i)=>`<div class="freeStation ${i===p.i?"currentStation":""}"><div class="freeStationTitle">${l.icon} P${i+1}</div><div class="freeChallengeRow">${l.steps.map((st,j)=>`<button type="button" class="freeChallengeBtn ${isChallengeDone(l.id,j)?"done":""} ${i===p.i&&j===p.j?"active":""}" data-level="${i}" data-step="${j}" title="${esc(st.title)}">${isChallengeDone(l.id,j)?"⭐":j+1}</button>`).join("")}</div></div>`).join("");
+  document.querySelectorAll(".freeChallengeBtn").forEach(btn=>{btn.onclick=()=>setSelected(Number(btn.dataset.level),Number(btn.dataset.step));});
 
   let l=LEVELS[p.i], s=l.steps[p.j];
   hintN=0;
@@ -1683,10 +1684,11 @@ async function checkChallenge(l,j,s){
       </div>`;
       return;
     }
-    if(done(l.id)<j+1){state[l.id]=j+1;save()}
-    else{syncCloudProgress()}
-    let stationDone=(j+1===stepsOf(l));
-    let allDone=(pos().i>=LEVELS.length);
+    const wasDone=isChallengeDone(l.id,j);
+    freeDone[challengeKey(l.id,j)]=true;
+    if(!wasDone)save();else syncCloudProgress();
+    let stationDone=done(l.id)>=stepsOf(l);
+    let allDone=total()>=TOTAL_CHALLENGES;
     reward(stationDone,allDone);
   }catch(e){
     showRunError(e,c,o,f);
@@ -1699,8 +1701,8 @@ async function checkChallenge(l,j,s){
 function reward(stationDone,allDone){
   $("#rewardBody").innerHTML=`<div class="pop">${allDone?"🏆":stationDone?"🎁":"⭐"}</div>
   <h2>${allDone?"全部完成！":stationDone?"寶箱打開了！":"挑戰成功！"}</h2>
-  <p>${allDone?"所有 Python 挑戰完成，證書解鎖。":stationDone?"這一關真正需要的挑戰已完成，新區域解鎖！":"得到一顆星，下一個挑戰解鎖！"}</p>
-  <button id="next">${allDone?"🏅 領證書":"繼續冒險 →"}</button>`;
+  <p>${allDone?"所有 Python 挑戰完成，證書解鎖。":stationDone?"這一站的 3 個挑戰都完成了！":"完成一個挑戰！你可以自由選擇下一題。"}</p>
+  <button id="next">${allDone?"🏅 領證書":"回到自由選關 →"}</button>`;
   $("#reward").showModal();
   $("#next").onclick=()=>{$("#reward").close();render();if(allDone)openCert()};
 }
@@ -1708,12 +1710,7 @@ function reward(stationDone,allDone){
 
 function completedItemsForReview(){
   const out=[];
-  LEVELS.forEach((level,levelIndex)=>{
-    const n=Math.min(done(level.id),stepsOf(level));
-    for(let stepIndex=0;stepIndex<n;stepIndex++){
-      out.push({level,levelIndex,step:level.steps[stepIndex],stepIndex});
-    }
-  });
+  LEVELS.forEach((level,levelIndex)=>{for(let stepIndex=0;stepIndex<stepsOf(level);stepIndex++){if(isChallengeDone(level.id,stepIndex))out.push({level,levelIndex,step:level.steps[stepIndex],stepIndex});}});
   return out;
 }
 function openCompletedExamples(){

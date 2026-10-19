@@ -70,9 +70,9 @@
   }
 
   function auditRecord(r,duplicateCount){
-    const expectedStars=sumProgress(r.progress);
+    const flagStars=r.challengeDone&&typeof r.challengeDone==="object"?Object.values(r.challengeDone).filter(Boolean).length:0;
+    const expectedStars=Math.max(sumProgress(r.progress),flagStars);
     const expectedScore=Math.round(expectedStars/TOTAL*100);
-    const pos=expectedPosition(r.progress);
     const issues=[];
     const types=new Set();
 
@@ -102,20 +102,6 @@
       types.add("completed");
     }
 
-    if(hasGap(r.progress)){
-      issues.push("疑似跳關：前面關卡尚未完成，但後面關卡已有完成紀錄");
-      types.add("gap");
-    }
-
-    if(!stationMatches(r.currentStation,pos.station,pos.done)){
-      issues.push(`目前關卡不符：顯示「${String(r.currentStation||"空白")}」，依紀錄應在 ${pos.done?"全部完成":`P${pos.station}`}`);
-      types.add("position");
-    }
-
-    if(!pos.done && Number(r.currentChallenge||0)!==pos.challenge){
-      issues.push(`目前挑戰不符：顯示第 ${Number(r.currentChallenge||0)} 題，依紀錄應為第 ${pos.challenge} 題`);
-      types.add("position");
-    }
 
     if(duplicateCount>1){
       issues.push(`同班同座號有 ${duplicateCount} 筆原始紀錄`);

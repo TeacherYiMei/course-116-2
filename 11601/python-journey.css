@@ -278,3 +278,12 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
 /* v16.15 主線自由選關 */
 #map{display:grid!important;grid-template-columns:repeat(5,minmax(105px,1fr));gap:8px!important;align-items:stretch!important}
 .freeStation{background:#f5f8fb;border:1px solid #dce5ee;border-radius:13px;padding:8px}.freeStation.currentStation{outline:2px solid #9cc9ee;background:#f7fbff}.freeStationTitle{font-weight:900;margin-bottom:6px;text-align:center}.freeChallengeRow{display:flex;gap:5px;justify-content:center}.freeChallengeBtn{width:34px;height:34px;border:1px solid #cdd9e5;border-radius:50%;background:white;font-weight:900;cursor:pointer;color:#47617d}.freeChallengeBtn.active{outline:3px solid #9fcdf2;background:#e8f5ff}.freeChallengeBtn.done{background:#e8f8ed;border-color:#aad5b8;color:#267247}@media(max-width:850px){#map{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+
+/* v16.16 自由選關星星狀態 */
+#map{grid-template-columns:repeat(2,minmax(260px,1fr))!important}
+.freeChoiceSummary{grid-column:1/-1;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-radius:14px;background:#fff7dc;border:1px solid #efd28a}
+.starTotal{font-size:1.05rem;font-weight:850;color:#6c5313}.starTotal strong{font-size:1.35rem}
+.statusLegend{display:flex;gap:12px;flex-wrap:wrap;font-size:.9rem;color:#59697b}.legendStar{color:#b57b00}.legendOpen{color:#69788b}.legendCurrent{color:#2e6eac}
+.freeStation{padding:10px 12px!important}.freeStationTitle{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left!important}.freeStationTitle small{color:#6d7c8f;font-weight:800}
+.freeChallengeRow{display:grid!important;grid-template-columns:repeat(3,1fr);gap:7px!important}.freeChallengeBtn{width:auto!important;height:auto!important;min-height:68px;border-radius:12px!important;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:7px 5px}.challengeStatusIcon{font-size:1.15rem;line-height:1}.challengeNumber{font-weight:900;font-size:.9rem}.challengeState{font-size:.74rem;font-weight:750;color:#778496}.freeChallengeBtn.done .challengeState{color:#2f7548}.freeChallengeBtn.active .challengeState{color:#2e6594}
+@media(max-width:760px){#map{grid-template-columns:1fr!important}.freeChoiceSummary{align-items:flex-start;flex-direction:column}}

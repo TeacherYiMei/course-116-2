@@ -1247,327 +1247,39 @@ function openPreviousExample(){
 function render(){
   let p=pos();
   $("#stars").textContent=total();
-  {let l=LEVELS[p.i];$("#place").innerHTML=`🧭 <b>自由選關</b>｜${l.title}・挑戰 ${p.j+1}/${stepsOf(l)}｜⭐ ${total()}/${TOTAL_CHALLENGES}`;}
-  $("#map").innerHTML=LEVELS.map((l,i)=>`<div class="freeStation ${i===p.i?"currentStation":""}"><div class="freeStationTitle">${l.icon} P${i+1}</div><div class="freeChallengeRow">${l.steps.map((st,j)=>`<button type="button" class="freeChallengeBtn ${isChallengeDone(l.id,j)?"done":""} ${i===p.i&&j===p.j?"active":""}" data-level="${i}" data-step="${j}" title="${esc(st.title)}">${isChallengeDone(l.id,j)?"⭐":j+1}</button>`).join("")}</div></div>`).join("");
-  document.querySelectorAll(".freeChallengeBtn").forEach(btn=>{btn.onclick=()=>setSelected(Number(btn.dataset.level),Number(btn.dataset.step));});
-
-  let l=LEVELS[p.i], s=l.steps[p.j];
-  hintN=0;
-  let demo=s.mode==="copy" && s.demo
-    ? `<div class="demoLabel">👀 先看懂，再複製修改</div>
-       <pre class="demo">${esc(s.demo)}</pre>
-       <button id="copyDemoBtn" class="copyDemo" type="button">📋 複製範例到編輯區</button>
-       <div class="demoNote">前兩題可以複製。複製後一定要依「🎯 任務」修改；完全不改不能過關。</div>`
-    : "";
-  let label=s.mode==="copy"?"先複製、再修改":"第 3 題：自己輸入，不提供可複製程式";
-  let criteria=`<div class="criteria"><b>✅ 任務完成條件</b><ul>${s.requirements.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
-
-  $("#mission").innerHTML=`<article class="card">
-    <div class="head"><div class="ico">${l.icon}</div><div><small>${l.title}・挑戰 ${p.j+1}/${stepsOf(l)}</small><h1>${s.title}</h1><div>${l.concept}</div></div></div>
-    <div class="scratch"><b>${l.scratch}</b></div>
-    <div class="actions">
-      <button id="completedExamplesBtn" class="book" type="button">📚 已完成範例回顧</button>
-      ${previousChallengeInfo()?`<button id="prevExampleBtn" class="book" type="button">⬅️ 前一關範例解答</button>`:""}
-      <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 先理解這一關</a>
-      <a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 只查指令寫法</a>
+  {let l=LEVELS[p.i];$("#place").innerHTML=`🧭 <b>自由選關</b>｜${l.title}・第 ${p.j+1} 題｜${isChallengeDone(l.id,p.j)?"⭐ 已闖關成功":"○ 尚未完成"}｜⭐ 總星星 ${total()}/${TOTAL_CHALLENGES}`;}
+  $("#map").innerHTML=`
+    <div class="freeChoiceSummary">
+      <div class="starTotal">⭐ 已獲得 <strong>${total()}</strong> / ${TOTAL_CHALLENGES} 顆星</div>
+      <div class="statusLegend">
+        <span><b class="legendStar">⭐</b> 已闖關成功</span>
+        <span><b class="legendOpen">○</b> 尚未完成</span>
+        <span><b class="legendCurrent">▶</b> 目前選擇</span>
+      </div>
     </div>
-    ${demo}
-    <div class="task"><b>🎯 任務</b><br>${s.prompt}</div>
-    ${criteria}
-    <div class="editorLabel">⌨️ ${label}</div>
-    <textarea id="code" class="editor" spellcheck="false">${esc(s.starter)}</textarea>
-    <div class="actions primaryActions">
-      <button id="tryRun" class="run tryRun" ${engine==="loading"?"disabled":""}>${engine==="ready"?"▶ 執行看看":"⏳ Python 準備中…"}</button>
-      <button id="checkChallenge" class="checkChallenge" ${engine==="loading"?"disabled":""}>✅ 檢查挑戰</button>
-    </div>
-    <div class="actions">
-      <button id="hintBtn" class="help">💡 我需要線索</button><button id="varBtn" class="translate">🌐 變數英文小幫手</button>
-      <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 我想先弄懂觀念</a><a class="book" href="python-guide.html#${s.ref}" target="_blank">📘 我只想查寫法</a>
-    </div>
-    <div class="runNote">「執行看看」只看自己的程式結果，不會判定闖關；覺得完成後再按「檢查挑戰」。</div>
-    <div class="consoleLabel">🖥️ 執行結果</div>
-    <pre id="out" class="output">按「▶ 執行看看」看看你的程式會輸出什麼。</pre>
-    <div id="runInputArea" class="runInputArea" aria-live="polite"></div>
-    <div class="consoleActions"><button id="clearOutput" type="button" class="clearOutput">🧹 清除結果</button></div>
-    <div id="hint"></div><div id="fb"></div>
-  </article>`;
-  $("#tryRun").onclick=()=>tryRunOnly();
-  $("#checkChallenge").onclick=()=>checkChallenge(l,p.j,s);
-  if($("#copyDemoBtn")) $("#copyDemoBtn").onclick=()=>{
-    $("#code").value=s.demo;
-    $("#code").focus();
-    $("#fb").innerHTML=`<div class="feedback runOnly">📋 已複製範例。現在請依題目修改後再檢查。</div>`;
-  };
-  $("#completedExamplesBtn").onclick=openCompletedExamples;
-  if($("#prevExampleBtn")) $("#prevExampleBtn").onclick=openPreviousExample;
-  $("#clearOutput").onclick=()=>{
-    $("#out").textContent="執行結果已清除。";
-    $("#runInputArea").innerHTML="";
-    $("#fb").innerHTML="";
-  };
-  $("#hintBtn").onclick=()=>showHint(s); $("#varBtn").onclick=openVarHelper;
-}
-function showHint(s){
-  hintN=Math.min(hintN+1,s.hints.length);
-  $("#hint").innerHTML=`<div class="hint"><b>💡 線索 ${hintN}/${s.hints.length}</b><br>${s.hints[hintN-1]}${hintN<s.hints.length?"<br><small>還需要時，可以再按一次。</small>":""}</div>`;
-}
-
-const PLACE_WORDS=[
-  "台北","臺北","新北","桃園","台中","臺中","台南","臺南","高雄","基隆","新竹","苗栗",
-  "彰化","南投","雲林","嘉義","屏東","宜蘭","花蓮","台東","臺東","澎湖","金門","馬祖",
-  "東京","大阪","京都","北海道","沖繩","首爾","釜山","巴黎","倫敦","紐約","洛杉磯",
-  "新加坡","曼谷","雪梨","墨爾本","香港","澳門","上海","北京","福岡","名古屋","神戶",
-  "Tokyo","Osaka","Kyoto","Seoul","Busan","Paris","London","New York","Singapore","Bangkok",
-  "Sydney","Melbourne","Hong Kong","Macau","Shanghai","Beijing","Taipei","Kaohsiung"
-];
-const ACTIVITY_WORDS=[
-  "拍照","攝影","逛街","逛夜市","購物","吃美食","吃東西","看風景","看夜景","看海","爬山",
-  "登山","散步","騎車","騎腳踏車","游泳","泡溫泉","參觀","遊覽","玩水","搭船","搭纜車",
-  "看展","看電影","唱歌","露營","野餐","滑雪","浮潛","潛水","衝浪","賞花","賞雪","看日出",
-  "看夕陽","逛博物館","逛園區","坐摩天輪","玩遊樂設施","吃小吃","旅遊","旅行"
-];
-const ENGLISH_ACTIVITY_WORDS=[
-  "take photos","take pictures","shopping","swimming","hiking","camping","sightseeing",
-  "eat food","visit museum","visit museums","cycling","skiing","surfing","snorkeling"
-];
-const OBVIOUS_NON_PLACE=[
-  "香蕉","蘋果","西瓜","橘子","芒果","葡萄","便當","雞排","珍珠奶茶","漢堡","薯條",
-  "鉛筆","橡皮擦","桌子","椅子","手機","電腦","作業","數學","英文","哈哈","不知道","隨便"
-];
-
-function cleanAnswer(v){
-  return String(v??"").trim();
-}
-
-// P1～P2 初學階段採寬鬆文字判定：
-// 只排除空白、太短與明顯亂碼，不再要求一定命中地名／活動詞庫。
-function looksLikeUsableText(v){
-  const x=cleanAnswer(v);
-  return x.length>=2 && !looksLikeGibberish(x);
-}
-function inputPromptLiterals(code){
-  const out=[];
-  const rx=/input\s*\(\s*(["'])(.*?)\1\s*\)/g;
-  let m;
-  while((m=rx.exec(String(code||"")))!==null) out.push(m[2].trim());
-  return out;
-}
-function meaningfulPrompt(text,kind){
-  const x=String(text||"").trim();
-  if(x.length<2 || looksLikeGibberish(x)) return false;
-  const groups={
-    place:["城市","地點","地方","目的地","想去","哪裡","where","city","destination"],
-    name:["姓名","名字","name"],
-    className:["班級","class"],
-    days:["天數","幾天","days","day"],
-    activity:["活動","事情","想做","期待","activity"]
-  };
-  const words=groups[kind]||[];
-  const lower=x.toLowerCase();
-  return words.some(w=>lower.includes(String(w).toLowerCase()));
-}
-function looksLikeGibberish(v){
-  const x=cleanAnswer(v);
-  if(!x) return true;
-  if(/^(.)\1{3,}$/i.test(x)) return true; // ddddd、aaaaa
-  if(/^[A-Za-z]{5,}$/.test(x)){
-    const lower=x.toLowerCase();
-    const vowels=(lower.match(/[aeiou]/g)||[]).length;
-    const knownPlace=PLACE_WORDS.some(w=>String(w).toLowerCase()===lower);
-    const knownActivity=ENGLISH_ACTIVITY_WORDS.some(w=>w===lower);
-    if(!knownPlace&&!knownActivity&&(vowels===0 || vowels/x.length<0.18)) return true;
-  }
-  return false;
-}
-function looksLikePlace(v){
-  const x=cleanAnswer(v);
-  if(x.length<2 || looksLikeGibberish(x)) return false;
-  if(OBVIOUS_NON_PLACE.some(w=>x===w||x.includes(w))) return false;
-  if(PLACE_WORDS.some(w=>x.toLowerCase().includes(String(w).toLowerCase()))) return true;
-  if(/[市縣區鄉鎮村國島山湖海港站館園機場樂園景區校園夜市老街]$/.test(x)) return true;
-  return false;
-}
-function looksLikeActivity(v){
-  const x=cleanAnswer(v);
-  if(x.length<2 || looksLikeGibberish(x)) return false;
-  if(OBVIOUS_NON_PLACE.some(w=>x===w)) return false;
-  if(ACTIVITY_WORDS.some(w=>x.includes(w))) return true;
-  if(ENGLISH_ACTIVITY_WORDS.some(w=>x.toLowerCase().includes(w))) return true;
-  // 中文活動通常包含動作詞；避免任意名詞或亂碼直接過關。
-  if(/[去看吃玩逛拍買游泳爬登騎搭坐泡參觀賞唱走跑露營滑潛衝]/.test(x) &&
-     /[\u3400-\u9FFF]/.test(x)) return true;
-  return false;
-}
-function looksLikePersonName(v){
-  const x=cleanAnswer(v);
-  return x.length>=2 && x.length<=20 &&
-    /^[\u3400-\u9FFF A-Za-z·・．'’-]+$/.test(x) &&
-    !OBVIOUS_NON_PLACE.includes(x);
-}
-function validNumber(v,min,max,integer=true){
-  const x=cleanAnswer(v);
-  if(x==="")return false;
-  const n=Number(x);
-  if(!Number.isFinite(n))return false;
-  if(integer&&!Number.isInteger(n))return false;
-  return n>=min&&n<=max;
-}
-function interactionValue(interactions,keywords,fallbackIndex){
-  for(const it of interactions||[]){
-    const p=String(it.prompt||"");
-    if(keywords.some(k=>p.includes(k))) return cleanAnswer(it.value);
-  }
-  return cleanAnswer(interactions?.[fallbackIndex]?.value);
-}
-function semanticValidate(rule,interactions){
-  if(!Array.isArray(interactions)||!interactions.length) return ok();
-
-  if(rule==="p2_one_input_var"){
-    const city=interactionValue(interactions,["城市","地點","目的地"],0);
-    if(!looksLikeUsableText(city))
-      return fail("請輸入至少 2 個字的內容，不要使用 ddddd、aaaaa 這類明顯亂碼。");
-  }
-
-  if(rule==="p2_two_inputs"){
-    const name=interactionValue(interactions,["姓名","名字"],0);
-    const cls=interactionValue(interactions,["班級"],1);
-    if(!looksLikePersonName(name))
-      return fail("姓名欄請輸入合理的姓名文字，不要用食物、數字或無關內容代替。");
-    if(!/^[1-9][0-9]{2}$/.test(cls))
-      return fail("班級請輸入 3 位數，例如 701、802、910。");
-  }
-
-  if(rule==="p2_three_inputs_print"){
-    const destination=interactionValue(interactions,["目的地","城市","地點"],0);
-    const days=interactionValue(interactions,["天數","幾天"],1);
-    const activity=interactionValue(interactions,["活動","期待"],2);
-    if(!looksLikeUsableText(destination))
-      return fail("目的地請輸入至少 2 個字的內容，不要使用明顯亂碼。");
-    if(!validNumber(days,1,30,true))
-      return fail("旅行天數請輸入 1～30 的整數。");
-    if(!looksLikeUsableText(activity))
-      return fail("活動請輸入至少 2 個字的內容，不要使用明顯亂碼。");
-    if(destination===activity)
-      return fail("目的地和活動不能完全相同，請輸入兩個不同內容。");
-  }
-
-  if(rule==="p3_multiply_int"){
-    const price=interactionValue(interactions,["票價","單張","價格"],0);
-    const count=interactionValue(interactions,["張數","幾張","數量"],1);
-    if(!validNumber(price,1,100000,true)) return fail("單張票價要輸入大於 0 的整數。");
-    if(!validNumber(count,1,1000,true)) return fail("張數要輸入大於 0 的整數。");
-  }
-
-  if(rule==="p3_divmod"){
-    const total=interactionValue(interactions,["總數","點心"],0);
-    const people=interactionValue(interactions,["人數","幾人"],1);
-    if(!validNumber(total,0,100000,true)) return fail("點心總數請輸入 0 以上的整數。");
-    if(!validNumber(people,1,10000,true)) return fail("人數必須是大於 0 的整數。");
-  }
-
-  if(rule==="p3_budget"){
-    for(const [idx,label] of [["總預算",0],["交通費",1],["餐費",2]]){
-      const v=interactionValue(interactions,[idx],label);
-      if(!validNumber(v,0,10000000,true)) return fail(`${idx}請輸入 0 以上的整數。`);
-    }
-  }
-
-  if(rule==="p4_square"){
-    const side=interactionValue(interactions,["邊長","長度"],0);
-    if(!validNumber(side,0.01,100000,false)) return fail("邊長要輸入大於 0 的數字。");
-  }
-
-  if(rule==="p4_speed"){
-    const distance=interactionValue(interactions,["距離"],0);
-    const time=interactionValue(interactions,["時間","小時"],1);
-    if(!validNumber(distance,0,1000000,false)) return fail("距離請輸入 0 以上的數字。");
-    if(!validNumber(time,0.01,100000,false)) return fail("時間必須大於 0，否則無法計算平均速度。");
-  }
-
-  if(rule==="p5_pass"){
-    const score=interactionValue(interactions,["分數","成績"],0);
-    if(!validNumber(score,0,100,true)) return fail("分數請輸入 0～100 的整數。");
-  }
-
-  if(rule==="p5_rain"){
-    const rain=interactionValue(interactions,["降雨","機率"],0);
-    if(!validNumber(rain,0,100,true)) return fail("降雨機率請輸入 0～100 的整數。");
-  }
-
-  if(rule==="p6_age3"){
-    const age=interactionValue(interactions,["年齡","歲"],0);
-    if(!validNumber(age,0,120,true)) return fail("年齡請輸入 0～120 的整數。");
-  }
-
-  if(rule==="p6_temp4"){
-    const temp=interactionValue(interactions,["氣溫","溫度"],0);
-    if(!validNumber(temp,-50,60,true)) return fail("氣溫請輸入合理範圍內的整數，例如 -10～40。");
-  }
-
-  if(rule==="p7_and"||rule==="p7_or"){
-    for(let i=0;i<Math.min(2,interactions.length);i++){
-      const v=cleanAnswer(interactions[i].value);
-      if(v!=="0"&&v!=="1") return fail("這一題指定使用 1／0 回答，請只輸入 1 或 0。");
-    }
-  }
-
-  return ok();
-}
-
-function askInlineInput(promptText, partialText, isChecking=false){
-  return new Promise(resolve=>{
-    const area=$("#runInputArea");
-    const out=$("#out");
-    const checkBtn=$("#checkChallenge");
-    if(isChecking&&checkBtn) checkBtn.textContent="⌨️ 等待你輸入…";
-    if(out && partialText!==undefined){
-      out.textContent=partialText||"程式正在等待輸入…";
-    }
-    if(!area){ resolve(null); return; }
-
-    area.innerHTML=`
-      <div class="inputPrompt">
-        <div class="inputPromptText">⌨️ ${esc(promptText||"請輸入資料：")}</div>
-        <form id="runtimeInputForm" class="runtimeInputForm">
-          <input id="runtimeInput" class="runtimeInput" autocomplete="off"
-                 aria-label="${esc(promptText||"請輸入資料")}" placeholder="在這裡輸入…" />
-          <button type="submit" class="sendInput">送出</button>
-          <button type="button" id="cancelRuntimeInput" class="cancelInput">取消執行</button>
-        </form>
-      </div>`;
-
-    const form=$("#runtimeInputForm");
-    const input=$("#runtimeInput");
-    const cancel=$("#cancelRuntimeInput");
-    input.focus();
-
-    let finished=false;
-    let timer=null;
-    const finish=value=>{
-      if(finished)return;
-      finished=true;
-      if(timer) clearTimeout(timer);
-      if(isChecking&&checkBtn) checkBtn.textContent="🔎 檢查中…";
-      resolve(value);
-    };
-
-    form.addEventListener("submit",e=>{
-      e.preventDefault();
-      const value=input.value;
-      area.innerHTML=`<div class="inputHistory">↳ 你輸入：<b>${esc(value)}</b></div>`;
-      finish(value);
-    },{once:true});
-
-    cancel.addEventListener("click",()=>{
-      area.innerHTML="";
-      finish(null);
-    },{once:true});
-
-    timer=setTimeout(()=>{
-      if(finished)return;
-      area.innerHTML='<div class="feedback wait">⌛ 等待輸入已逾時，這次檢查已取消。請重新按「檢查挑戰」。</div>';
-      finish(null);
-    },90000);
+    ${LEVELS.map((l,i)=>`
+      <div class="freeStation ${i===p.i?"currentStation":""}">
+        <div class="freeStationTitle">
+          <span>${l.icon} P${i+1}</span>
+          <small>${done(l.id)}/${stepsOf(l)} 顆星</small>
+        </div>
+        <div class="freeChallengeRow">
+          ${l.steps.map((st,j)=>{
+            const complete=isChallengeDone(l.id,j);
+            const active=i===p.i&&j===p.j;
+            return `<button type="button"
+              class="freeChallengeBtn ${complete?"done":""} ${active?"active":""}"
+              data-level="${i}" data-step="${j}"
+              title="${esc(st.title)}">
+                <span class="challengeStatusIcon">${active?"▶":complete?"⭐":"○"}</span>
+                <span class="challengeNumber">第 ${j+1} 題</span>
+                <span class="challengeState">${complete?"已成功":"尚未完成"}</span>
+              </button>`;
+          }).join("")}
+        </div>
+      </div>`).join("")}`;
+  document.querySelectorAll(".freeChallengeBtn").forEach(btn=>{
+    btn.onclick=()=>setSelected(Number(btn.dataset.level),Number(btn.dataset.step));
   });
 }
 

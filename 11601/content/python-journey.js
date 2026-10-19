@@ -52,6 +52,24 @@ function setSelected(i,j){
 }
 function pos(){return validSelection(selected)?selected:firstIncomplete();}
 
+function nextIncompleteAfter(levelIndex,stepIndex){
+  const all=[];
+  LEVELS.forEach((level,i)=>{
+    level.steps.forEach((step,j)=>all.push({i,j,level,step}));
+  });
+  const current=all.findIndex(x=>x.i===levelIndex&&x.j===stepIndex);
+  if(current<0)return firstIncomplete();
+  for(let k=current+1;k<all.length;k++){
+    const x=all[k];
+    if(!isChallengeDone(x.level.id,x.j))return {i:x.i,j:x.j};
+  }
+  for(let k=0;k<current;k++){
+    const x=all[k];
+    if(!isChallengeDone(x.level.id,x.j))return {i:x.i,j:x.j};
+  }
+  return null;
+}
+
 
 function syncCourse116HubProgress(){
   if(!(window.STORE&&typeof STORE.saveLevel==="function"&&STORE.me&&STORE.me()))return;
@@ -1449,7 +1467,9 @@ async function checkChallenge(l,j,s){
     if(!wasDone)save();else syncCloudProgress();
     let stationDone=done(l.id)>=stepsOf(l);
     let allDone=total()>=TOTAL_CHALLENGES;
-    reward(stationDone,allDone);
+    const currentLevelIndex=LEVELS.findIndex(x=>x.id===l.id);
+    const nextTarget=allDone?null:nextIncompleteAfter(currentLevelIndex,j);
+    reward(stationDone,allDone,nextTarget);
   }catch(e){
     showRunError(e,c,o,f);
   }finally{
@@ -1458,13 +1478,30 @@ async function checkChallenge(l,j,s){
     b.textContent="✅ 檢查挑戰";
   }
 }
-function reward(stationDone,allDone){
+function reward(stationDone,allDone,nextTarget){
+  const starCount=total();
   $("#rewardBody").innerHTML=`<div class="pop">${allDone?"🏆":stationDone?"🎁":"⭐"}</div>
-  <h2>${allDone?"全部完成！":stationDone?"寶箱打開了！":"挑戰成功！"}</h2>
-  <p>${allDone?"所有 Python 挑戰完成，證書解鎖。":stationDone?"這一站的 3 個挑戰都完成了！":"完成一個挑戰！你可以自由選擇下一題。"}</p>
-  <button id="next">${allDone?"🏅 領證書":"回到自由選關 →"}</button>`;
+  <h2>${allDone?"全部完成！":stationDone?"這一站完成！":"挑戰成功！"}</h2>
+  <p>${allDone
+    ?`🎉 你已收集全部 ${TOTAL_CHALLENGES} 顆星！`
+    :stationDone
+      ?`🌟 很棒！這一站 3 題都完成了，目前共有 ${starCount}/${TOTAL_CHALLENGES} 顆星。`
+      :`⭐ 成功！目前共有 ${starCount}/${TOTAL_CHALLENGES} 顆星。`}</p>
+  <button id="next">${allDone?"🏅 領取證書":"下一題 →"}</button>`;
   $("#reward").showModal();
-  $("#next").onclick=()=>{$("#reward").close();render();if(allDone)openCert()};
+  $("#next").onclick=()=>{
+    $("#reward").close();
+    if(allDone){
+      render();
+      openCert();
+      return;
+    }
+    if(nextTarget){
+      setSelected(nextTarget.i,nextTarget.j);
+    }else{
+      render();
+    }
+  };
 }
 
 

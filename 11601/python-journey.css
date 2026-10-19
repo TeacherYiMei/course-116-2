@@ -299,3 +299,12 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
   35%{filter:drop-shadow(0 0 14px rgba(70,145,210,.35))}
   100%{filter:drop-shadow(0 0 0 rgba(70,145,210,0))}
 }
+
+/* v16.22 input() 互動輸入 */
+.inlineInputCard{margin-top:10px;padding:13px 14px;border:1px solid #b9d7ec;background:#eef8ff;border-radius:14px}
+.inlineInputPrompt{font-weight:900;margin-bottom:9px;color:#294e6d}
+.inlineInputRow{display:flex;gap:8px;flex-wrap:wrap}
+.inlineInputValue{flex:1 1 260px;min-width:180px;border:1px solid #a9bfd3;border-radius:10px;padding:10px 12px;font:inherit;background:#fff}
+.inlineInputSubmit,.inlineInputCancel{border:0;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
+.inlineInputSubmit{background:#3f6fa3;color:#fff}.inlineInputCancel{background:#e8edf2;color:#526174}
+.inlineInputNote{margin-top:7px;font-size:.86rem;color:#657487}

@@ -102,6 +102,27 @@ function hasDistinctBranchStrings(code,min=2){
 function fail(msg){return {ok:false,msg}}
 function ok(){return {ok:true,msg:""}}
 
+// v16.20：文字只擋「非常明顯的亂碼」，不猜測語意。
+// 高雄、義大、看風景、吃拉麵、jim、902 等合理內容都允許。
+function looksLikeUsableText(value){
+  const t=String(value??"").trim();
+  if(t.length<2)return false;
+  const compact=t.replace(/\s+/g,"");
+  // ddddd / aaaaa / 11111 這種明顯重複填塞才擋。
+  if(/^([A-Za-z0-9])\1{2,}$/.test(compact))return false;
+  return true;
+}
+function meaningfulPrompt(value){
+  return looksLikeUsableText(value);
+}
+
+function semanticValidate(rule,interactions){
+  // v16.19：內容語意不再額外攔截。
+  // 題目必要條件由 validate() 檢查；只要 Python 能正常執行即可進入過關判定。
+  // 避免像「高雄／看風景」這類合理文字被錯誤阻擋。
+  return ok();
+}
+
 function validate(code,step){
   const n=code.toLowerCase(), rule=step.rule;
   switch(rule){
@@ -1364,9 +1385,16 @@ function showRunError(e,c,o,f){
     o.textContent="⚠️ Python 尚未準備完成。";
     f.innerHTML='<div class="feedback wait">這不是你的程式錯誤，請稍後再試或重新整理。</div>';
   }else{
-    const info=debugCoach(e.message,c);
-    o.textContent="程式目前還不能正常執行。";
-    f.innerHTML=coachHTML(info)+`<details class="rawError"><summary>🔧 查看 Python 原始錯誤訊息</summary><pre>${esc(e.message)}</pre></details>`;
+    const msg=String(e?.message||"");
+    const looksInternal=/is not defined|Cannot read|undefined|not a function|ReferenceError/i.test(msg);
+    if(looksInternal){
+      o.textContent="⚠️ 網站檢查暫時發生問題。";
+      f.innerHTML='<div class="feedback wait">這不是你的 Python 程式錯誤。請重新整理後再試；如果仍出現，請告訴老師。</div>';
+    }else{
+      const info=debugCoach(msg,c);
+      o.textContent="程式目前還不能正常執行。";
+      f.innerHTML=coachHTML(info);
+    }
   }
 }
 
@@ -1416,15 +1444,6 @@ async function checkChallenge(l,j,s){
     const result=await executeInteractive(c,true);
     o.textContent=result.text||"程式執行完成，但目前沒有輸出內容。";
 
-    const meaning=semanticValidate(s.rule,result.interactions);
-    if(!meaning.ok){
-      const ex=feedbackExample(s.rule,meaning.msg);
-      f.innerHTML=`<div class="feedback meaning">🧭 <b>情境內容還要再確認：</b>${esc(meaning.msg)}
-        <br><small>程式寫法可能已經正確，請看看下面的不同情境例子，再回頭調整自己的內容。</small>
-        ${exampleHTML(ex)}
-      </div>`;
-      return;
-    }
     const wasDone=isChallengeDone(l.id,j);
     freeDone[challengeKey(l.id,j)]=true;
     if(!wasDone)save();else syncCloudProgress();

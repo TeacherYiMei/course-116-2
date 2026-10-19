@@ -36,7 +36,20 @@ localStorage.setItem(FREE_DONE_KEY,JSON.stringify(freeDone));
 function firstIncomplete(){for(let i=0;i<LEVELS.length;i++){for(let j=0;j<stepsOf(LEVELS[i]);j++){if(!isChallengeDone(LEVELS[i].id,j))return {i,j};}}return {i:0,j:0};}
 function validSelection(p){return p&&Number.isInteger(p.i)&&Number.isInteger(p.j)&&p.i>=0&&p.i<LEVELS.length&&p.j>=0&&p.j<stepsOf(LEVELS[p.i]);}
 if(!validSelection(selected))selected=firstIncomplete();
-function setSelected(i,j){selected={i:Number(i),j:Number(j)};localStorage.setItem(SELECT_KEY,JSON.stringify(selected));render();}
+function setSelected(i,j){
+  selected={i:Number(i),j:Number(j)};
+  localStorage.setItem(SELECT_KEY,JSON.stringify(selected));
+  render();
+  requestAnimationFrame(()=>{
+    const mission=document.getElementById("mission");
+    if(mission){
+      mission.scrollIntoView({behavior:"smooth",block:"start"});
+      mission.classList.remove("missionFlash");
+      void mission.offsetWidth;
+      mission.classList.add("missionFlash");
+    }
+  });
+}
 function pos(){return validSelection(selected)?selected:firstIncomplete();}
 
 
@@ -1258,7 +1271,7 @@ function render(){
         ${level.steps.map((st,j)=>{
           const complete=isChallengeDone(level.id,j);
           const active=i===p.i&&j===p.j;
-          return `<button type="button" class="freeChallengeBtn ${complete?"done":""} ${active?"active":""}" data-level="${i}" data-step="${j}" title="${esc(st.title)}" aria-label="P${i+1} 第 ${j+1} 題">${complete?"⭐":j+1}</button>`;
+          return `<button type="button" class="freeChallengeBtn ${complete?"done":""} ${active?"active":""}" data-level="${i}" data-step="${j}" title="${esc(st.title)}" aria-label="進入 P${i+1} 第 ${j+1} 題">${complete?"⭐":j+1}</button>`;
         }).join("")}
       </div>
     </div>`).join("");

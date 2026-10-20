@@ -1,3 +1,4 @@
+window.COURSE116_BUILD="v16.26";
 const LEVELS=[{"id":"p1","icon":"👋","title":"第 1 關｜哈囉，旅伴！","concept":"print()：讓 Python 把文字顯示出來。","scratch":"🐱 Scratch 的「說 ___」積木 → Python 的 print()","steps":[{"title":"① 複製範例，再改一小部分","prompt":"先看黑框學會 print() 的寫法，再自己寫一句不同的招呼語。","demo":"print(\"哈囉，旅伴！\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 print()","招呼語要有內容","不能和黑框示範完全相同"],"rule":"p1_greeting","mode":"copy","ref":"print","hints":["先保留 print() 的外形，只思考引號裡要換成什麼。","🐱 想想 Scratch「說 ___」積木：你會把積木裡的文字換掉。","忘記 print() 的格式時，再開「📘 我想查指令」。"]},{"title":"② 再複製一次，改更多地方","prompt":"讓 Python 顯示兩行：第一行是「你想去的地方」，第二行是「你想做的事情」。兩行內容要不同。","demo":"print(\"台北\")\nprint(\"吃美食\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 2 次 print()","顯示 2 行有內容的文字","兩行文字不能完全相同"],"rule":"p1_two_distinct","mode":"copy","ref":"print","hints":["題目要求兩行，所以想想需要幾次 print()。","每個 print() 負責一行；兩行要表達不同資訊。","忘記寫法時，再查 print()。"]},{"title":"🚀 第 3 題：自己輸入兩行文字","prompt":"不複製範例，自己輸入兩個 print()。第一行寫一個地點，第二行寫一個活動，兩行內容要不同。","demo":"","starter":"# 這次自己輸入，不提供可複製程式\n","requirements":["使用 2 次 print()","兩行都有實際內容","兩行內容不同"],"rule":"p1_two_distinct","mode":"independent","ref":"print","hints":["想想前兩題的 print() 外形。","一個 print() 負責一行。","忘記格式時可以回顧已完成範例。"]}]},{"id":"p2","icon":"🚌","title":"第 2 關｜畢旅報名表","concept":"變數 + input()：讓電腦詢問資料，並把回答記住。","scratch":"🐱 Scratch 的「詢問並等待」＋變數 → Python 的 input()＋變數","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範詢問食物。你的任務改成：詢問「最想去的城市」，把回答存進變數，再顯示那個變數。","demo":"food = input(\"你喜歡什麼食物？\")\nprint(food)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 input() 詢問 1 次","把回答存進變數","使用 print() 顯示該變數"],"rule":"p2_one_input_var","mode":"copy","ref":"input","hints":["input() 的回答通常先放進一個變數。","🐱 Scratch「詢問並等待」得到回答；Python 可以直接把回答放進變數。","到小百科查 input() 與變數的範例。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問「姓名」和「班級」兩項資料，分別存進兩個不同變數，最後把兩項資料都顯示出來。","demo":"food = input(\"喜歡的食物：\")\ndrink = input(\"喜歡的飲料：\")\nprint(food, drink)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 input() 詢問 2 次","使用 2 個不同變數保存回答","最後顯示兩項資料"],"rule":"p2_two_inputs","mode":"copy","ref":"input","hints":["先想好兩個盒子的名字，再分別把 input() 放進去。","兩個問題不要放進同一個變數，否則前一個回答會被蓋掉。","查 input() 與變數。"]},{"title":"🚀 自己完成：迷你旅行報名表","prompt":"詢問「目的地、天數、最期待的活動」三項資料，分別記住，最後至少用一個 print() 把三項資料一起顯示。","demo":"","starter":"# 自己設計三個變數完成報名表\n","requirements":["使用 input() 詢問 3 次","使用 3 個不同變數保存回答","輸出時使用到這 3 個變數"],"rule":"p2_three_inputs_print","mode":"independent","ref":"variable","hints":["把任務拆成三個問題，每個問題配一個變數。","最後的 print() 可以一次放進多個變數。","如果忘記變數與 input()，再查小百科。"]}]},{"id":"p3","icon":"💰","title":"第 3 關｜旅費計算器","concept":"int() + 運算：把輸入的文字轉成整數，再讓 Python 幫你算。","scratch":"🐱 Scratch 的運算積木 → Python 的 +、-、*、//、%","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範兩個整數相加。你的任務是詢問「單張票價」和「張數」，用乘法算出總額並顯示。","demo":"a = int(input(\"第一個整數：\"))\nb = int(input(\"第二個整數：\"))\nprint(a + b)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["兩次輸入都用 int() 轉成整數","使用乘法 *","顯示計算結果"],"rule":"p3_multiply_int","mode":"copy","ref":"int","hints":["input() 得到文字；要做整數計算要先轉型。","總額是「單價 × 數量」。","查 int() 和運算。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問「點心總數」和「人數」，算出每人可以拿幾個，以及最後剩幾個。","demo":"balls = int(input(\"球的總數：\"))\nboxes = int(input(\"盒子數：\"))\nprint(balls // boxes)\nprint(balls % boxes)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 2 次 int(input())","使用 // 算每人幾個","使用 % 算剩幾個","把兩個結果都顯示"],"rule":"p3_divmod","mode":"copy","ref":"operator","hints":["「平均每人幾個整數」需要整除。","「分完還剩多少」需要餘數。","查 // 和 %。"]},{"title":"🚀 自己完成：旅行預算","prompt":"詢問「總預算、交通費、餐費」，算出扣掉交通費和餐費後還剩多少錢。","demo":"","starter":"# 剩餘預算 = 總預算 - 交通費 - 餐費\n","requirements":["使用 3 次 int(input())","使用減法 - 計算","顯示剩餘預算"],"rule":"p3_budget","mode":"independent","ref":"operator","hints":["先用三個變數把三筆金額記住。","算式可以連續減兩次。","忘記 int() 時再查小百科。"]}]},{"id":"p4","icon":"📐","title":"第 4 關｜旅行數字工具","concept":"float()、**、round()：處理小數、次方與整理小數位數。","scratch":"🐱 Scratch 的數學運算 → Python 可以組合小數、次方和四捨五入","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範小數乘法。你的任務是詢問正方形邊長（可有小數），用 ** 2 算面積，再用 round(..., 2) 顯示到小數第 2 位。","demo":"length = float(input(\"長度：\"))\nprint(round(length * 2, 2))","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 float(input())","使用 ** 2","使用 round(..., 2)","顯示結果"],"rule":"p4_square","mode":"copy","ref":"round","hints":["小數輸入要用 float()。","平方可以寫成 ** 2。","round(數字, 2) 表示整理到小數第 2 位。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問「距離（公里）」和「時間（小時）」，計算平均速度＝距離 ÷ 時間，最後四捨五入到小數第 1 位。","demo":"pages = float(input(\"閱讀頁數：\"))\nhours = float(input(\"閱讀時間：\"))\nrate = pages / hours\nprint(round(rate, 1))","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["兩次輸入都使用 float()","使用除法 /","使用 round(..., 1)","顯示平均速度"],"rule":"p4_speed","mode":"copy","ref":"round","hints":["距離和時間都可能有小數。","先算距離 / 時間，再交給 round()。","查 float()、/、round()。"]},{"title":"🚀 第 3 題：自己完成平均速度","prompt":"不複製範例，自己詢問距離和時間，算出平均速度，並四捨五入到小數第 1 位。","demo":"","starter":"# 這次自己輸入完整程式\n","requirements":["兩次輸入都使用 float()","使用除法 /","使用 round(..., 1)","顯示結果"],"rule":"p4_speed","mode":"independent","ref":"round","hints":["先取得距離與時間。","平均速度＝距離 / 時間。","最後再使用 round(..., 1)。"]}]},{"id":"p5","icon":"🎢","title":"第 5 關｜條件判斷","concept":"比較 + if / else：讓程式依條件走不同路。","scratch":"🐱 Scratch 的「如果／否則」→ Python 的 if / else","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範溫度判斷。你的任務是詢問一個分數：60 分以上顯示「通過」，否則顯示「再挑戰」。","demo":"temp = 30\nif temp >= 28:\n    print(\"很熱\")\nelse:\n    print(\"還好\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 int(input()) 取得分數","使用 if 和 else","條件中比較 60","兩個分支都要有輸出"],"rule":"p5_pass","mode":"copy","ref":"if","hints":["先取得分數，再判斷是否 >= 60。","if 後面的條件要加冒號；else 也要加冒號。","查 if / else 與縮排。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問降雨機率（0～100）。如果大於等於 50，顯示「帶傘」；否則顯示「不用帶傘」。","demo":"battery = int(input(\"電量：\"))\nif battery >= 20:\n    print(\"可以繼續使用\")\nelse:\n    print(\"需要充電\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 int(input())","使用 if / else","使用 >= 50 的比較","兩個分支都輸出"],"rule":"p5_rain","mode":"copy","ref":"if","hints":["條件的分界數字是 50。","兩種結果剛好適合 if / else。","需要時再查比較與 if。"]},{"title":"🚀 自己完成：自訂門檻","prompt":"自己選一個「數字門檻」情境，例如剩餘電量、作業完成數等。程式要詢問一個整數，並用 if / else 顯示兩種不同結果。","demo":"","starter":"# 自己決定情境與門檻\n","requirements":["使用 int(input())","使用 if / else","至少使用一個比較運算","兩個分支的輸出文字要不同"],"rule":"p5_custom_threshold","mode":"independent","ref":"if","hints":["先決定要問什麼數字，以及門檻是多少。","想清楚達到門檻和沒達到時要各說什麼。","查比較運算和 if / else。"]}]},{"id":"p6","icon":"🎫","title":"第 6 關｜多重選擇","concept":"if / elif / else：不只兩種情況時，用 elif 增加分支。","scratch":"🐱 Scratch 的多層「如果／否則」→ Python 的 if / elif / else","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範三段分數分類。你的任務是詢問年齡：未滿 6 顯示「幼童」、未滿 18 顯示「學生」、其餘顯示「成人」。","demo":"score=75\nif score>=90:\n    print(\"A\")\nelif score>=60:\n    print(\"B\")\nelse:\n    print(\"C\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 int(input())","使用 if、至少 1 個 elif、else","使用 6 和 18 作為分界","三個分支都要有輸出"],"rule":"p6_age3","mode":"copy","ref":"elif","hints":["三種結果需要三條路。","先判斷最小的年齡區間通常比較容易。","查 if / elif / else。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問氣溫：低於 15 顯示「偏冷」、低於 25 顯示「舒適」、低於 32 顯示「偏熱」、其餘顯示「炎熱」。","demo":"score = int(input(\"分數：\"))\nif score < 60:\n    print(\"未通過\")\nelif score < 80:\n    print(\"通過\")\nelif score < 90:\n    print(\"很好\")\nelse:\n    print(\"很棒\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 int(input())","使用 if、至少 2 個 elif、else","條件中使用 15、25、32","四個分支都有輸出"],"rule":"p6_temp4","mode":"copy","ref":"elif","hints":["四種結果會需要 if + 2 個 elif + else。","條件可以由小到大排。","忘記 elif 格式時再查小百科。"]},{"title":"🚀 第 3 題：自己完成三種分類","prompt":"不複製範例，自己詢問年齡：未滿 6 顯示「幼童」、未滿 18 顯示「學生」、其餘顯示「成人」。","demo":"","starter":"# 這次自己輸入 if / elif / else\n","requirements":["使用 int(input())","使用 if、elif、else","使用 6 和 18 作為分界","三個分支都有輸出"],"rule":"p6_age3","mode":"independent","ref":"elif","hints":["三種結果需要三條路。","條件可以由小到大判斷。","可回顧前兩題範例。"]}]},{"id":"p7","icon":"🏎️","title":"第 7 關｜雙重條件","concept":"and / or：把兩個判斷條件組合起來。","scratch":"🐱 Scratch 的「且」「或」→ Python 的 and / or","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範 and。你的任務是詢問「作業是否完成（1/0）」和「用品是否帶齊（1/0）」，兩者都等於 1 才顯示「可以出發」，否則顯示「先完成準備」。","demo":"sunny=True\nfree=True\nif sunny and free:\n    print(\"去公園\")\nelse:\n    print(\"留在家\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["取得 2 個整數輸入","使用 and","使用 if / else","兩個條件都要參與判斷"],"rule":"p7_and","mode":"copy","ref":"logic","hints":["題目說「兩者都」，對應的是 and。","可以用 == 1 比較每個輸入。","查 and。"]},{"title":"② 再複製一次，改更多地方","prompt":"詢問「有學生證（1/0）」和「有活動證（1/0）」。只要其中一個等於 1 就顯示「可以入場」，兩個都沒有才顯示「無法入場」。","demo":"member = int(input(\"有會員卡（1/0）：\"))\ncoupon = int(input(\"有優惠券（1/0）：\"))\nif member == 1 or coupon == 1:\n    print(\"可以折扣\")\nelse:\n    print(\"原價\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["取得 2 個整數輸入","使用 or","使用 if / else","兩個條件都要參與判斷"],"rule":"p7_or","mode":"copy","ref":"logic","hints":["題目說「其中一個即可」，對應 or。","兩個比較式放在 or 的左右兩邊。","需要時查 or。"]},{"title":"🚀 第 3 題：自己完成 and","prompt":"不複製範例，詢問「作業完成（1/0）」和「用品帶齊（1/0）」，兩個都等於 1 才顯示「可以出發」。","demo":"","starter":"# 這次自己輸入 and 判斷\n","requirements":["取得 2 個整數輸入","使用 and","使用 if / else","兩個條件都參與判斷"],"rule":"p7_and","mode":"independent","ref":"logic","hints":["題目說「兩個都」，要使用 and。","每個輸入可以和 1 比較。","可回顧前兩題範例。"]}]},{"id":"p8","icon":"🚌","title":"第 8 關｜規律重複","concept":"for + range()：按照數字規律重複執行。","scratch":"🐱 Scratch 的「重複指定次數」→ Python 的 for / range()","steps":[{"title":"① 複製範例，再改一小部分","prompt":"黑框示範 range(3)。你的任務用 for + range() 顯示 1、2、3、4、5。","demo":"for i in range(3):\n    print(i)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 for","使用 range()","輸出 1～5 的數字"],"rule":"p8_1to5","mode":"copy","ref":"for","hints":["range() 可以設定開始與停止位置。","停止位置本身不會被包含。","查 range(start, stop)。"]},{"title":"② 再複製一次，改更多地方","prompt":"用 for + range() 依序顯示 5、4、3、2、1，最後再顯示一次「出發！」。","demo":"for n in range(3, 0, -1):\n    print(n)\nprint(\"完成！\")","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 for + range()","range() 使用負的步進","倒數 5 到 1","迴圈結束後顯示「出發！」"],"rule":"p8_countdown","mode":"copy","ref":"for","hints":["range() 第三個數字可以決定每次增加或減少多少。","倒數時步進是負數。","「出發！」只出現一次，所以想想它應不應該縮排。"]},{"title":"🚀 自己找規律：偶數","prompt":"用 for + range() 顯示 2、4、6、8、10。不要在程式中寫 5 個 print()。","demo":"","starter":"# 用 range() 的步進完成\n","requirements":["使用 for + range()","range() 的步進為 2","不能使用 5 個獨立 print()"],"rule":"p8_even","mode":"independent","ref":"for","hints":["這串數字每次增加多少？","range() 的第三個參數就是步進。","查 range(start, stop, step)。"]}]},{"id":"p9","icon":"🔐","title":"第 9 關｜while 重複","concept":"while：只練習「條件成立就繼續重複」。","scratch":"🐱 Scratch 的「重複直到」→ Python 常用 while 表達「還要繼續的條件」","steps":[{"title":"① 複製範例，再把 3 改成 5","prompt":"先複製範例。把程式改成依序顯示 1、2、3、4、5。","demo":"count = 1\nwhile count <= 3:\n    print(count)\n    count = count + 1","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 while","計數從 1 開始","讓迴圈執行到 5","每輪更新計數變數"],"rule":"p9_count5","mode":"copy","ref":"while","hints":["先找出範例裡控制結束的數字。","只要讓 5 也能進入迴圈。","注意 count 每次都要增加。"]},{"title":"② 複製另一個範例，再改變數名稱","prompt":"複製範例後，把變數名稱改成你喜歡的英文名稱，但功能仍要顯示 1～5。","demo":"number = 1\nwhile number <= 5:\n    print(number)\n    number = number + 1","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["使用 while","從 1 開始","執行到 5","每輪加 1"],"rule":"p9_count5","mode":"copy","ref":"while","hints":["變數前後要一起改名。","while 條件與更新那一行都要使用同一個變數。","可使用英文小幫手。"]},{"title":"③ 自己輸入 while 數到 5","prompt":"這次不複製。自己寫一個 while，依序顯示 1～5。","demo":"","starter":"# 自己輸入完整 while\n","requirements":["使用 while","從 1 開始","執行到 5","每輪更新計數變數"],"rule":"p9_count5","mode":"independent","ref":"while","hints":["需要一個從 1 開始的變數。","while 條件要讓 5 被執行。","每輪結束前要讓變數加 1。"]}]},{"id":"p10","icon":"🐉","title":"第 10 關｜random 隨機數","concept":"random.randint()：只練習產生指定範圍的隨機整數。","scratch":"🐱 Scratch 的「在 1 到 10 間取亂數」→ Python 的 random.randint(1, 10)","steps":[{"title":"① 複製骰子範例，再改成 1～10","prompt":"複製範例，把骰子的 1～6 改成產生 1～10 的隨機整數並顯示。","demo":"import random\ndice = random.randint(1, 6)\nprint(dice)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["import random","使用 random.randint()","範圍是 1～10","顯示結果"],"rule":"p10_random10","mode":"copy","ref":"random","hints":["只要改 randint() 裡的範圍。","1 和 10 都有可能被抽到。","print() 顯示變數。"]},{"title":"② 複製幸運數字範例，再改變數名稱","prompt":"複製範例後，把變數 lucky 改成另一個英文名稱，仍然產生 1～10 的隨機整數並顯示。","demo":"import random\nlucky = random.randint(1, 10)\nprint(lucky)","starter":"# 可以先按「📋 複製範例」，再依任務修改\n","requirements":["import random","使用 random.randint(1, 10)","變數名稱前後一致","顯示結果"],"rule":"p10_random10","mode":"copy","ref":"random","hints":["變數改名時，print() 裡也要一起改。","範圍維持 1～10。","不要刪掉 import random。"]},{"title":"③ 自己輸入 1～10 隨機數","prompt":"這次不複製。自己寫出完整程式，產生 1～10 的隨機整數並顯示。","demo":"","starter":"# 自己輸入 import、randint 與 print\n","requirements":["import random","使用 random.randint(1, 10)","把結果存進變數","顯示結果"],"rule":"p10_random10","mode":"independent","ref":"random","hints":["第一行先載入 random。","再把 randint() 結果存進變數。","最後 print() 該變數。"]}]}];
 const TOTAL_CHALLENGES=30;
 
@@ -107,6 +108,16 @@ function inputVars(code){
   }
   return [...new Set(out)];
 }
+function inputPromptLiterals(code){
+  const out=[];
+  const rx=/input\s*\(\s*["']([^"']*)["']\s*\)/g;
+  let m;
+  while((m=rx.exec(String(code||"")))!==null){
+    out.push(String(m[1]||"").trim());
+  }
+  return out;
+}
+
 function outputUsesVars(code,vars,min=1){
   const prints=[...code.matchAll(/print\s*\(([^)]*)\)/g)].map(m=>m[1]);
   const used=new Set();
@@ -1351,6 +1362,41 @@ function showHint(step){
   $("#hint").innerHTML=`<div class="hint"><b>💡 線索 ${hintN}/${step.hints.length}</b><br>${step.hints[hintN-1]}${hintN<step.hints.length?"<br><small>還需要時，可以再按一次。</small>":""}</div>`;
 }
 
+function askInlineInput(promptText,partialText,isChecking=false){
+  return new Promise(resolve=>{
+    const area=document.getElementById("runInputArea");
+    const out=document.getElementById("out");
+    if(out && partialText) out.textContent=partialText;
+    if(!area){
+      const v=window.prompt(promptText||"請輸入資料：");
+      resolve(v===null?null:String(v));
+      return;
+    }
+    area.innerHTML=`
+      <div class="inlineInputCard">
+        <div class="inlineInputPrompt">⌨️ ${esc(promptText||"請輸入資料：")}</div>
+        <div class="inlineInputRow">
+          <input id="inlineInputValue" class="inlineInputValue" type="text" autocomplete="off" placeholder="在這裡輸入後按 Enter">
+          <button id="inlineInputSubmit" type="button" class="inlineInputSubmit">送出</button>
+          <button id="inlineInputCancel" type="button" class="inlineInputCancel">取消</button>
+        </div>
+        <div class="inlineInputNote">${isChecking?"這是正式檢查時程式要求的輸入。":"這是你的程式正在等待 input() 資料。"}</div>
+      </div>`;
+    const input=document.getElementById("inlineInputValue");
+    const submit=document.getElementById("inlineInputSubmit");
+    const cancel=document.getElementById("inlineInputCancel");
+    let finished=false;
+    const finish=value=>{ if(finished)return; finished=true; area.innerHTML=""; resolve(value); };
+    submit.onclick=()=>finish(input.value);
+    cancel.onclick=()=>finish(null);
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){e.preventDefault();finish(input.value)}
+      if(e.key==="Escape"){e.preventDefault();finish(null)}
+    });
+    setTimeout(()=>input.focus(),0);
+  });
+}
+
 async function executeInteractive(c,isChecking=false){
   if(!window.PYRUN||engine!=="ready") throw Error("ENGINE");
   const inputs=[];
@@ -1406,6 +1452,7 @@ function showRunError(e,c,o,f){
     const msg=String(e?.message||"");
     const looksInternal=/is not defined|Cannot read|undefined|not a function|ReferenceError/i.test(msg);
     if(looksInternal){
+      console.error("[course116 v16.26 internal]",e);
       o.textContent="⚠️ 網站檢查暫時發生問題。";
       f.innerHTML='<div class="feedback wait">這不是你的 Python 程式錯誤。請重新整理後再試；如果仍出現，請告訴老師。</div>';
     }else{
@@ -1462,9 +1509,12 @@ async function checkChallenge(l,j,s){
     const result=await executeInteractive(c,true);
     o.textContent=result.text||"程式執行完成，但目前沒有輸出內容。";
 
-    const wasDone=isChallengeDone(l.id,j);
+    // v16.26：先完成本機過關，再做同步；同步失敗不能阻擋學生過關。
     freeDone[challengeKey(l.id,j)]=true;
-    if(!wasDone)save();else syncCloudProgress();
+    rebuildProgressCounts();
+    try{ syncCourse116HubProgress(); }catch(syncErr){ console.warn("course116 sync skipped",syncErr); }
+    try{ Promise.resolve(syncCloudProgress()).catch(syncErr=>console.warn("firebase sync skipped",syncErr)); }
+    catch(syncErr){ console.warn("firebase sync skipped",syncErr); }
     let stationDone=done(l.id)>=stepsOf(l);
     let allDone=total()>=TOTAL_CHALLENGES;
     const currentLevelIndex=LEVELS.findIndex(x=>x.id===l.id);

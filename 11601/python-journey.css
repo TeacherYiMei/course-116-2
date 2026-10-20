@@ -308,3 +308,76 @@ dialog{border:0;border-radius:22px;box-shadow:0 30px 90px #1d273d55}dialog::back
 .inlineInputSubmit,.inlineInputCancel{border:0;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
 .inlineInputSubmit{background:#3f6fa3;color:#fff}.inlineInputCancel{background:#e8edf2;color:#526174}
 .inlineInputNote{margin-top:7px;font-size:.86rem;color:#657487}
+
+/* v16.28 版面分類整理：任務 / 找線索 / 程式實作 */
+.missionCard{display:flex;flex-direction:column;gap:18px}
+.missionTaskSection,.supportSection,.practiceSection{
+  border-radius:18px;
+  padding:18px 20px;
+}
+.sectionTitle{
+  font-weight:950;
+  font-size:1.08rem;
+  margin-bottom:10px;
+  letter-spacing:.02em;
+}
+.missionTaskSection{
+  background:#fff8dc;
+  border:2px solid #f1bd45;
+  box-shadow:0 7px 22px rgba(202,145,20,.12);
+}
+.taskTitle{color:#8a5a00}
+.task.taskFocus{
+  margin:0 0 12px;
+  background:#fffdf3;
+  border:0;
+  border-left:7px solid #f0a91c;
+  border-radius:12px;
+  padding:16px 18px;
+  font-size:1.07rem;
+  line-height:1.75;
+  color:#2e3540;
+}
+.missionTaskSection .criteria{
+  margin:0;
+  background:#f1fbf3;
+  border:1px solid #b9dfc3;
+}
+.supportSection{
+  background:#f2f8ff;
+  border:1px solid #c7def3;
+}
+.supportTitle{color:#285f91}
+.supportSection .scratch{
+  margin:0 0 10px;
+  background:#fff8e8;
+  border-left:5px solid #efb837;
+}
+.supportActions{
+  margin-top:0!important;
+  padding:4px 0 0;
+}
+.supportActions button,.supportActions a{
+  border:1px solid #c9dced!important;
+  box-shadow:0 2px 7px rgba(46,88,125,.07);
+}
+.hintArea:empty{display:none}
+.hintArea .hint,.supportSection .hint{
+  margin:12px 0 0;
+  background:#eaf6ff;
+  border:1px solid #aed3ee;
+  border-left:5px solid #4b9bd3;
+}
+.practiceSection{
+  background:#fbfcfe;
+  border:1px solid #dce4ec;
+}
+.practiceTitle{color:#334e68}
+.practiceSection .demoLabel{margin-top:0}
+.practiceSection .primaryActions{margin-top:14px}
+.practiceSection .runNote{margin-top:10px}
+
+@media(max-width:760px){
+  .missionTaskSection,.supportSection,.practiceSection{padding:15px}
+  .task.taskFocus{font-size:1rem;padding:14px}
+}

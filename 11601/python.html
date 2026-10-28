@@ -40,6 +40,7 @@
     </div>
     <div class="studentStripActions">
       <button id="accountBtn" class="profileBtn accountBtn" type="button">🔐 學習帳號</button>
+      <button id="switchStudentBtn" class="profileBtn" type="button">↪ 切換學生</button>
       <button id="editProfileBtn" class="profileBtn" type="button">修改</button>
     </div>
   </section>
@@ -191,8 +192,8 @@
 <script src="../shared/store.js"></script>
 <script src="../shared/pyrunner.js"></script>
 <script src="../shared/firebase-config.js"></script>
-<script src="../shared/firebase-sync.js?v=16.11"></script>
-<script src="content/python-journey-v1628.js?build=20261019-1626"></script>
+<script src="../shared/firebase-sync.js?v=16.30"></script>
+<script src="content/python-journey-v1629.js"></script>
 <script>
 document.getElementById("closeVar").onclick=()=>document.getElementById("varDialog").close();
 document.getElementById("varSearchBtn").onclick=searchVar;
@@ -200,6 +201,7 @@ document.getElementById("varQuery").addEventListener("keydown",e=>{if(e.key==="E
 document.getElementById("persistentVarBtn").onclick=openVarHelper;
 document.getElementById("editProfileBtn").onclick=()=>openProfileDialog(false);
 document.getElementById("accountBtn").onclick=()=>openAccountDialog(false);
+document.getElementById("switchStudentBtn").onclick=switchStudentAccount;
 document.getElementById("linkAccountBtn").onclick=linkLearningAccount;
 document.getElementById("loginAccountBtn").onclick=loginLearningAccount;
 document.getElementById("saveProfileBtn").onclick=saveStudentProfile;

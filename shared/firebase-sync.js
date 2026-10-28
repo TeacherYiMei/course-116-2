@@ -41,6 +41,16 @@
       });
       return {ok:true};
     },
+    async signOutStudentAccount(){
+      await api.ready;
+      if(!auth||!authMod)throw Error("AUTH_NOT_READY");
+      await authMod.signOut(auth);
+      const cred=await authMod.signInAnonymously(auth);
+      currentUser=cred.user;
+      api.uid=currentUser.uid;
+      api.stage="已切換為新學生";
+      return {ok:true,uid:currentUser.uid};
+    },
     async saveStudent(payload){
       await api.ready;
       if(!api.configured||!currentUser||!db)return {ok:false};
@@ -71,7 +81,7 @@
       ]);
       const app=appMod.getApps().length?appMod.getApp():appMod.initializeApp(cfg);
       authMod=authM;auth=authM.getAuth(app);db=fsMod.getFirestore(app);fs=fsMod;
-      await authM.setPersistence(auth,authM.browserLocalPersistence);
+      await authM.setPersistence(auth,authM.browserSessionPersistence);
       if(!auth.currentUser&&!force){const cred=await authM.signInAnonymously(auth);currentUser=cred.user}
       else currentUser=auth.currentUser;
       api.uid=currentUser?.uid||null;api.state="ready";api.stage="Firebase 已連線";

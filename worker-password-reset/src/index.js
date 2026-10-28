@@ -149,7 +149,14 @@ function makeTemporaryPassword(){
   return out;
 }
 
-async function adminSetPassword(env,studentUid,password){
+function normalizedSeat(seatNo){
+  return String(Number(String(seatNo||"").trim())).padStart(2,"0");
+}
+function expectedStudentEmail(className,seatNo){
+  return `python1151-${String(className||"").trim()}-${normalizedSeat(seatNo)}@student.course115.local`;
+}
+
+async function adminRepairLogin(env,studentUid,email,password){
   const accessToken=await googleAccessToken(env);
   const resp=await fetch(
     `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/accounts:update`,
@@ -159,11 +166,12 @@ async function adminSetPassword(env,studentUid,password){
         "Authorization":`Bearer ${accessToken}`,
         "Content-Type":"application/json"
       },
-      body:JSON.stringify({localId:studentUid,password})
+      body:JSON.stringify({localId:studentUid,email,password})
     }
   );
   const data=await resp.json().catch(()=>({}));
-  if(!resp.ok)throw Error(data?.error?.message||"AUTH_PASSWORD_UPDATE_FAILED");
+  if(!resp.ok)throw Error(data?.error?.message||"AUTH_ACCOUNT_REPAIR_FAILED");
+  return data;
 }
 
 export default{
@@ -217,11 +225,18 @@ export default{
         return json({ok:false,error:"CLASS_NOT_AUTHORIZED"},403,cors);
       }
 
+      const expectedEmail=expectedStudentEmail(student.className,student.seatNo);
       const temporaryPassword=makeTemporaryPassword();
-      await adminSetPassword(env,studentUid,temporaryPassword);
+      const repaired=await adminRepairLogin(env,studentUid,expectedEmail,temporaryPassword);
       await markMustChangePassword(env,studentUid,idToken);
 
-      return json({ok:true,temporaryPassword,studentUid},200,cors);
+      return json({
+        ok:true,
+        temporaryPassword,
+        studentUid,
+        loginEmail:repaired.email||expectedEmail,
+        repairedLogin:true
+      },200,cors);
     }catch(e){
       const error=e?.message||String(e);
       let status=500;

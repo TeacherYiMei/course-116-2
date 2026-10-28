@@ -661,64 +661,106 @@ function coachHTML(info){
 }
 
 const VAR_WORDS={
-"姓名":["name","student_name"],
-"名字":["name","student_name"],
-"班級":["class_name","my_class"],
-"座號":["seat_no","student_no"],
-"年齡":["age"],
-"身高":["height"],
-"體重":["weight"],
-"分數":["score"],
-"成績":["score"],
-"目的地":["destination"],
-"城市":["city"],
-"地點":["place"],
-"天數":["days"],
-"活動":["activity"],
-"票價":["ticket_price"],
-"張數":["ticket_count"],
-"數量":["count","quantity"],
-"人數":["people_count"],
-"總數":["total"],
-"總額":["total_amount"],
-"預算":["budget"],
-"總預算":["total_budget"],
-"交通費":["transport_cost"],
-"餐費":["meal_cost"],
-"剩餘預算":["remaining_budget"],
-"距離":["distance"],
-"時間":["time"],
-"速度":["speed"],
-"氣溫":["temperature"],
-"溫度":["temperature"],
-"降雨機率":["rain_chance"],
-"密碼":["password"],
-"答案":["answer"],
-"猜測":["guess"],
-"次數":["attempts","count"],
-"邊長":["side_length"],
-"面積":["area"],
-"電量":["battery_level"]
+"姓名":["name","student_name"],"名字":["name","student_name"],"學生":["student"],"老師":["teacher"],"教師":["teacher"],
+"班級":["class_name","my_class"],"座號":["seat_no","student_no"],"學號":["student_id"],"年級":["grade"],"學校":["school"],
+"年齡":["age"],"身高":["height"],"體重":["weight"],"生日":["birthday"],"性別":["gender"],
+"分數":["score"],"成績":["score"],"平均":["average","avg"],"平均值":["average"],"最高":["highest","max_value"],"最低":["lowest","min_value"],
+"總分":["total_score"],"總數":["total"],"總額":["total_amount"],"總價":["total_price"],"小計":["subtotal"],"剩餘":["remaining"],"剩下":["remaining"],
+"數量":["quantity","count"],"個數":["count"],"次數":["attempts","count"],"張數":["ticket_count","count"],"人數":["people_count"],
+"價格":["price"],"單價":["unit_price"],"票價":["ticket_price"],"費用":["cost"],"金額":["amount"],"預算":["budget"],"總預算":["total_budget"],
+"交通費":["transport_cost"],"餐費":["meal_cost"],"住宿費":["lodging_cost"],"門票費":["ticket_cost"],"剩餘預算":["remaining_budget"],
+"目的地":["destination"],"城市":["city"],"地點":["place"],"國家":["country"],"地址":["address"],"路線":["route"],
+"天數":["days"],"日期":["date"],"時間":["time"],"小時":["hours"],"分鐘":["minutes"],"秒數":["seconds"],"月份":["month"],"星期":["weekday"],
+"距離":["distance"],"速度":["speed"],"平均速度":["average_speed"],"長度":["length"],"寬度":["width"],"高度":["height"],"邊長":["side_length"],"面積":["area"],"周長":["perimeter"],
+"活動":["activity"],"行程":["itinerary"],"旅程":["trip"],"旅行":["trip"],"景點":["attraction"],"餐廳":["restaurant"],"飯店":["hotel"],
+"食物":["food"],"飲料":["drink"],"早餐":["breakfast"],"午餐":["lunch"],"晚餐":["dinner"],
+"氣溫":["temperature"],"溫度":["temperature"],"天氣":["weather"],"降雨機率":["rain_chance"],"濕度":["humidity"],
+"電量":["battery_level"],"密碼":["password"],"答案":["answer"],"猜測":["guess"],"結果":["result"],"狀態":["status"],
+"電話":["phone"],"電話號碼":["phone_number"],"信箱":["email"],"電子郵件":["email"],"網址":["url"],
+"標題":["title"],"內容":["content"],"訊息":["message"],"文字":["text"],"名稱":["name"],"編號":["number","id_number"],
+"是否完成":["is_completed"],"完成":["completed"],"是否通過":["is_passed"],"通過":["passed"],"是否登入":["is_logged_in"],
+"清單":["items","list_items"],"選項":["option"],"選擇":["choice","selection"],"索引":["index"],"目前":["current"],"下一個":["next_item"],"上一個":["previous_item"]
 };
+
+const VAR_PARTS={
+"學生":"student","老師":"teacher","教師":"teacher","姓名":"name","名字":"name","班級":"class_name","座號":"seat_no","學號":"student_id","年級":"grade",
+"總":"total","平均":"average","最高":"highest","最低":"lowest","剩餘":"remaining","剩下":"remaining","目前":"current","下一個":"next","上一個":"previous",
+"預算":"budget","金額":"amount","價格":"price","費用":"cost","分數":"score","成績":"score","數量":"quantity","人數":"people_count","次數":"attempts",
+"旅行":"trip","旅程":"trip","城市":"city","地點":"place","目的地":"destination","活動":"activity","天數":"days","距離":"distance","速度":"speed",
+"時間":"time","日期":"date","氣溫":"temperature","溫度":"temperature","天氣":"weather","答案":"answer","結果":"result","狀態":"status","密碼":"password",
+"電話":"phone","信箱":"email","郵件":"email","名稱":"name","標題":"title","內容":"content","訊息":"message"
+};
+function cleanVarName(x){
+  x=String(x||"").trim().toLowerCase().replace(/[^a-z0-9_]+/g,"_").replace(/^_+|_+$/g,"").replace(/_+/g,"_");
+  if(!x)return "";
+  if(/^\d/.test(x))x="value_"+x;
+  if(PY_RESERVED.has(x))x=x+"_name";
+  return x;
+}
+
+function composeVariableName(q){
+  let rest=String(q||"").replace(/[\s　、，,。\.：:；;／/\-]+/g,"");
+  const parts=[];
+  const keys=Object.keys(VAR_PARTS).sort((a,b)=>b.length-a.length);
+  while(rest){
+    let hit="";
+    for(const k of keys){ if(rest.startsWith(k)){hit=k;break;} }
+    if(!hit)break;
+    parts.push(VAR_PARTS[hit]);
+    rest=rest.slice(hit.length);
+  }
+  if(rest||!parts.length)return "";
+  return cleanVarName(parts.join("_"));
+}
 
 function variableSuggestions(q){
   q=String(q||"").trim();
-  if(!q){
-    return {items:[],note:"先輸入你想命名的中文資料，例如：班級、體重、剩餘預算。"};
+  if(!q)return {items:[],note:"輸入中文，例如：學生姓名、剩餘預算、平均速度、旅行天數。"};
+  // 英文也可以直接整理成 Python 變數格式
+  if(/^[A-Za-z0-9 _-]+$/.test(q)){
+    const v=cleanVarName(q.replace(/[ -]+/g,"_"));
+    return {items:v?[v]:[],note:"已整理成 Python 常用的 snake_case 變數格式。"};
   }
-  let items=VAR_WORDS[q]||[];
+  let items=[...(VAR_WORDS[q]||[])];
+  const composed=composeVariableName(q);
+  if(composed)items.unshift(composed);
+  // 若完整詞沒命中，嘗試找包含的常用詞，提供可用候選
   if(!items.length){
-    return {items:[],note:"目前小字典還沒有這個詞。可以換一個較簡單的中文關鍵字，或自己用小寫英文＋底線命名。"};
+    const found=[];
+    for(const [zh,en] of Object.entries(VAR_WORDS)){
+      if(q.includes(zh)||zh.includes(q))found.push(...en);
+    }
+    items=found;
   }
-  return {
-    items,
-    note:"這些是變數命名建議，不是闖關答案。點一下可以複製名稱，再由你決定放在哪裡。"
-  };
+  items=[...new Set(items.map(cleanVarName).filter(Boolean))].slice(0,6);
+  if(!items.length)return {items:[],note:"目前無法可靠翻譯這個詞。可以換成較短的中文，例如「剩餘預算」「學生姓名」「平均速度」。"};
+  return {items,note:"以下是適合 Python 的英文變數名稱。點一下即可複製。"};
+}
+
+function searchVar(){
+  const r=variableSuggestions($("#varQuery").value);
+  $("#varResult").innerHTML=
+    (r.items.length
+      ? `<div class="translationResult"><div class="translationLabel">🌐 翻譯結果</div><div class="varChoices">${r.items.map(x=>`<button class="varChoice" data-name="${x}"><code>${x}</code></button>`).join("")}</div></div>`
+      : "")
+    + `<p>${esc(r.note)}</p>
+       <div class="namingRules">
+       <b>Python 變數命名提醒</b><br>
+       ✓ 小寫英文　✓ 多個單字用 _ 連接　✓ 名稱要看得懂<br>
+       ✗ 不可有空格　✗ 不可以數字開頭　✗ 不可使用 class、if、for、while 等保留字
+       </div>`;
+  document.querySelectorAll(".varChoice").forEach(b=>{
+    b.onclick=async()=>{
+      const name=b.dataset.name;
+      try{await navigator.clipboard.writeText(name);b.innerHTML=`✓ 已複製 <code>${name}</code>`;}
+      catch(e){b.innerHTML=`<code>${name}</code>`;}
+    };
+  });
 }
 
 function openVarHelper(){
   $("#varQuery").value="";
-  $("#varResult").innerHTML='<p><b>隨時都可以查變數英文名稱。</b><br>例如輸入「班級」，會避開 Python 保留字 <code>class</code>，建議使用 <code>class_name</code>。</p>';
+  $("#varResult").innerHTML='<p><b>把中文翻成適合 Python 的變數名稱。</b><br>可輸入「學生姓名」「剩餘預算」「平均速度」「旅行天數」等詞語。</p>';
   $("#varDialog").showModal();
 }
 
@@ -998,6 +1040,22 @@ async function loginLearningAccount(){
       err.textContent="登入失敗："+(e?.message||"請稍後再試");
     }
   }
+}
+
+async function switchStudentAccount(){
+  const ok=confirm("要切換成另一位學生嗎？\n\n目前帳號若已同步到雲端，進度不會消失。這台電腦上的學生身分與本機暫存會清除。");
+  if(!ok)return;
+  try{
+    if(window.CourseDB&&CourseDB.state==="ready")await CourseDB.signOutStudentAccount();
+  }catch(e){console.warn("sign out failed",e)}
+  try{
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(NAMEKEY);
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(FREE_DONE_KEY);
+    localStorage.removeItem(SELECT_KEY);
+  }catch(e){}
+  location.reload();
 }
 
 function ensureStableStudentAccount(){
@@ -1336,16 +1394,42 @@ function render(){
   const label=step.mode==="copy"?"先複製、再修改":"第 3 題：自己輸入，不提供可複製程式";
   const criteria=`<div class="criteria"><b>✅ 任務完成條件</b><ul>${step.requirements.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
 
-  $("#mission").innerHTML=`<article class="card">
+  $("#mission").innerHTML=`<article class="card missionCard">
     <div class="head"><div class="ico">${l.icon}</div><div><small>${l.title}・第 ${p.j+1}/3 題</small><h1>${step.title}</h1><div>${l.concept}</div><div class="challengeCurrentState">${isChallengeDone(l.id,p.j)?"⭐ 這一題已闖關成功，可以再練一次。":"○ 這一題尚未完成。"}</div></div></div>
-    <div class="scratch"><b>${l.scratch}</b></div>
-    <div class="actions"><button id="completedExamplesBtn" class="book" type="button">📚 已完成範例回顧</button>${previousChallengeInfo()?`<button id="prevExampleBtn" class="book" type="button">⬅️ 前一關範例解答</button>`:""}<a class="book" href="python-topics.html#${l.id}" target="_blank">📖 先理解這一關</a><a class="book" href="python-guide.html#${step.ref}" target="_blank">📘 只查指令寫法</a></div>
-    ${demo}
-    <div class="task"><b>🎯 任務</b><br>${step.prompt}</div>${criteria}
-    <div class="editorLabel">⌨️ ${label}</div><textarea id="code" class="editor" spellcheck="false">${esc(step.starter)}</textarea>
-    <div class="actions primaryActions"><button id="tryRun" class="run tryRun" ${engine==="loading"?"disabled":""}>${engine==="ready"?"▶ 執行看看":"⏳ Python 準備中…"}</button><button id="checkChallenge" class="checkChallenge" ${engine==="loading"?"disabled":""}>✅ 檢查挑戰</button></div>
-    <div class="actions"><button id="hintBtn" class="help">💡 我需要線索</button><button id="varBtn" class="translate">🌐 變數英文小幫手</button><a class="book" href="python-topics.html#${l.id}" target="_blank">📖 我想先弄懂觀念</a><a class="book" href="python-guide.html#${step.ref}" target="_blank">📘 我只想查寫法</a></div>
-    <div class="runNote">「執行看看」只看自己的程式結果，不會判定闖關；覺得完成後再按「檢查挑戰」。</div><div class="consoleLabel">🖥️ 執行結果</div><pre id="out" class="output">按「▶ 執行看看」看看你的程式會輸出什麼。</pre><div id="runInputArea" class="runInputArea" aria-live="polite"></div><div class="consoleActions"><button id="clearOutput" type="button" class="clearOutput">🧹 清除結果</button></div><div id="hint"></div><div id="fb"></div>
+
+    <section class="missionTaskSection">
+      <div class="sectionTitle taskTitle">🎯 今天的任務</div>
+      <div class="task taskFocus">${step.prompt}</div>
+      ${criteria}
+    </section>
+
+    <section class="supportSection">
+      <div class="sectionTitle supportTitle">💡 找線索與學習工具</div>
+      <div class="scratch"><b>${l.scratch}</b></div>
+      <div class="actions supportActions">
+        <button id="hintBtn" class="help">💡 我需要線索</button>
+        <button id="varBtn" class="translate">🌐 變數英文小幫手</button>
+        <a class="book" href="python-topics.html#${l.id}" target="_blank">📖 我想先弄懂觀念</a>
+        <a class="book" href="python-guide.html#${step.ref}" target="_blank">📘 我只想查寫法</a>
+        <button id="completedExamplesBtn" class="book" type="button">📚 已完成範例回顧</button>
+        ${previousChallengeInfo()?`<button id="prevExampleBtn" class="book" type="button">⬅️ 前一關範例解答</button>`:""}
+      </div>
+      <div id="hint" class="hintArea"></div>
+    </section>
+
+    <section class="practiceSection">
+      <div class="sectionTitle practiceTitle">⌨️ 動手寫程式</div>
+      ${demo}
+      <div class="editorLabel">${label}</div>
+      <textarea id="code" class="editor" spellcheck="false">${esc(step.starter)}</textarea>
+      <div class="actions primaryActions"><button id="tryRun" class="run tryRun" ${engine==="loading"?"disabled":""}>${engine==="ready"?"▶ 執行看看":"⏳ Python 準備中…"}</button><button id="checkChallenge" class="checkChallenge" ${engine==="loading"?"disabled":""}>✅ 檢查挑戰</button></div>
+      <div class="runNote">「執行看看」只看自己的程式結果，不會判定闖關；覺得完成後再按「檢查挑戰」。</div>
+      <div class="consoleLabel">🖥️ 執行結果</div>
+      <pre id="out" class="output">按「▶ 執行看看」看看你的程式會輸出什麼。</pre>
+      <div id="runInputArea" class="runInputArea" aria-live="polite"></div>
+      <div class="consoleActions"><button id="clearOutput" type="button" class="clearOutput">🧹 清除結果</button></div>
+      <div id="fb"></div>
+    </section>
   </article>`;
 
   $("#tryRun").onclick=()=>tryRunOnly();

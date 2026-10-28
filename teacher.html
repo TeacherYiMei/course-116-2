@@ -190,11 +190,12 @@ dialog.manageDialog::backdrop{background:#22314a80}
     </div>
 
     <h3>密碼維護</h3>
-    <button id="resetPasswordBtn" class="dangerBtn" type="button">🔑 一鍵重設學生密碼</button>
+    <button id="resetPasswordBtn" class="dangerBtn" type="button">🛠️ 修復登入帳號＋重設密碼</button>
 
     <div class="accountNote">
-      系統會產生一組一次性臨時密碼。學生使用臨時密碼登入後，會被要求立刻設定自己的新密碼。
-      老師不會知道學生最後設定的新密碼。
+      此按鈕會先依目前 Firestore 的班級與座號，校正 Firebase Authentication 的登入帳號，
+      再產生一組一次性臨時密碼。適合處理「更正過班級／座號後無法登入」或「重設密碼仍無效」的學生。
+      學生登入後會被要求設定自己的新密碼。
     </div>
 
     <div id="tempPasswordBox" class="tempPasswordBox" hidden>

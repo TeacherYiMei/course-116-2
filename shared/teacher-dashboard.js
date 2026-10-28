@@ -237,7 +237,7 @@
     const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
     $("#resetPasswordBtn").disabled=!endpoint;
     $("#resetPasswordBtn").textContent=endpoint
-      ? "🔑 一鍵重設學生密碼"
+      ? "🛠️ 修復登入帳號＋重設密碼"
       : "🔒 尚未設定密碼重設後端";
 
     $("#accountDialog").showModal();
@@ -254,9 +254,13 @@
 
 
   function temporaryPasswordMessage(name,className,seatNo){
-    return `確定要重設「${className} 班 ${seatNo} 號 ${name}」的登入密碼嗎？
+    const email=expectedStudentEmail(className,seatNo);
+    return `確定要修復「${className} 班 ${seatNo} 號 ${name}」的登入帳號並重設密碼嗎？
 
-重設後原密碼會立即失效，系統會產生一次性臨時密碼。`;
+系統會把 Firebase Authentication 登入帳號校正為：
+${email}
+
+並產生一次性臨時密碼。`;
   }
 
   async function resetStudentPassword(){
@@ -303,13 +307,14 @@
 
       $("#tempPasswordValue").textContent=data.temporaryPassword||"";
       $("#tempPasswordBox").hidden=false;
-      $("#accountStatus").textContent="✅ 密碼已重設。請把臨時密碼交給該學生。";
+      $("#accountEmail").textContent=data.loginEmail||expectedStudentEmail(rec.className,rec.seatNo);
+      $("#accountStatus").textContent="✅ 登入帳號已校正，密碼也已重設。請把臨時密碼交給該學生。";
     }catch(e){
       console.error(e);
       $("#accountStatus").textContent="重設失敗："+(e?.message||String(e));
     }finally{
       btn.disabled=false;
-      btn.textContent="🔑 一鍵重設學生密碼";
+      btn.textContent="🛠️ 修復登入帳號＋重設密碼";
     }
   }
 

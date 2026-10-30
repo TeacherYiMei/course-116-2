@@ -52,9 +52,13 @@ service cloud.firestore {
           resource.data.className in teacherData().classes
         );
 
-      // 第一次建立自己的紀錄。
+      // 第一次建立自己的紀錄；教師也可從回收桶復原學生。
       allow create: if signedIn() &&
-        request.auth.uid == studentUid;
+        (
+          request.auth.uid == studentUid ||
+          isAdmin() ||
+          (isTeacher() && teachesClass(request.resource.data.className))
+        );
 
       // 學生可以同步自己的學習進度，但不能改班級、座號、姓名。
       // 教師才可以更正身分資料。
@@ -81,6 +85,24 @@ service cloud.firestore {
           isTeacher() &&
           teachesClass(resource.data.className)
         );
+    }
+
+    // ===== 已刪除學生回收桶 =====
+    match /deletedStudents/{studentUid} {
+      allow get, delete: if isAdmin() ||
+        (isTeacher() && teachesClass(resource.data.className));
+
+      allow list: if isAdmin() ||
+        (
+          isTeacher() &&
+          ("classes" in teacherData()) &&
+          resource.data.className in teacherData().classes
+        );
+
+      allow create: if isAdmin() ||
+        (isTeacher() && teachesClass(request.resource.data.className));
+
+      allow update: if false;
     }
 
     // ===== 期中考複習關卡 =====

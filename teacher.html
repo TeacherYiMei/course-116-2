@@ -86,10 +86,11 @@ dialog.manageDialog::backdrop{background:#22314a80}
 
 <style>
 .rescueGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rescueGrid label{font-weight:800}.rescueGrid input{width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #ccd4de;border-radius:10px}.rescueGrid .full{grid-column:1/-1}.rescueResult{margin-top:14px;padding:12px;border-radius:12px;background:#eef8ff;border:1px solid #b9d9f2}.trashList{display:grid;gap:10px;max-height:50vh;overflow:auto}.trashCard{border:1px solid #d9dee6;border-radius:14px;padding:12px;background:#fff}.trashCard .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trashCard .meta{font-size:.92rem;color:#657080;margin-top:6px}.trashCard .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}@media(max-width:640px){.rescueGrid{grid-template-columns:1fr}}
+.rescueHomeCard{border:2px solid #f0b44d;background:#fffaf0}.rescueHomeHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.rescueHomeActions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 </style>
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.31 學生救援與回收桶版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.32 一鍵回收／首頁救援版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -100,8 +101,20 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <section id="dashboard" class="hidden">
 <div class="card">
 <div class="toolbar"><b>授權班級：</b><select id="classFilter"><option value="">全部班級</option></select>
-<button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><button id="rescueStudentBtn" class="warningBtn" type="button">🛟 救援已刪除學生</button><button id="trashStudentBtn" class="soft" type="button">🗃️ 回收桶</button><a class="auditLink" href="teacher-audit.html">🔎 異常檢查</a><span id="dbStatus" class="status"></span></div>
+<button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><button id="trashStudentBtn" class="soft" type="button">🗃️ 回收桶</button><a class="auditLink" href="teacher-audit.html">🔎 異常檢查</a><span id="dbStatus" class="status"></span></div>
 <div class="summary"><div class="metric">學生人數<b id="studentCount">0</b></div><div class="metric">平均星星<b id="avgStars">0</b></div><div class="metric">平均評分<b id="avgScore">0</b></div><div class="metric">完成人數<b id="doneCount">0</b></div></div>
+</div>
+<div class="card rescueHomeCard">
+  <div class="rescueHomeHead">
+    <div><b style="font-size:1.1rem">🛟 救援已刪除學生</b><div class="status">適用於舊版已刪除 Firestore、但 Firebase Authentication 帳號仍存在的學生，例如 905-20。</div></div>
+  </div>
+  <div class="rescueGrid">
+    <label>班級<input id="rescueClass" inputmode="numeric" maxlength="3" placeholder="例如 905"></label>
+    <label>座號<input id="rescueSeat" inputmode="numeric" maxlength="2" placeholder="例如 20"></label>
+    <label class="full">姓名<input id="rescueName" maxlength="20" placeholder="學生姓名"></label>
+  </div>
+  <div class="rescueHomeActions"><button id="runRescueBtn" class="warningBtn" type="button">🛟 開始救援</button><span id="rescueStatus" class="status"></span></div>
+  <div id="rescueResult" class="rescueResult" hidden></div>
 </div>
 <div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section></main>
@@ -222,20 +235,6 @@ dialog.manageDialog::backdrop{background:#22314a80}
 </dialog>
 
 
-<dialog id="rescueStudentDialog" class="manageDialog">
-  <div class="manageHead"><h2 style="margin:0 0 6px">🛟 救援已刪除學生</h2><div class="status">適用於 Firestore 已刪除、但 Firebase Authentication 登入帳號仍存在的學生。</div></div>
-  <div class="manageBody">
-    <div class="rescueGrid">
-      <label>班級<input id="rescueClass" inputmode="numeric" maxlength="3" placeholder="例如 905"></label>
-      <label>座號<input id="rescueSeat" inputmode="numeric" maxlength="2" placeholder="例如 20"></label>
-      <label class="full">姓名<input id="rescueName" maxlength="20" placeholder="學生姓名"></label>
-    </div>
-    <div class="accountNote">救援時會保留原 Firebase UID，重新建立學生資料，並產生一組臨時密碼。若原本電腦仍保有本機進度，學生登入後可再同步回雲端。</div>
-    <div id="rescueResult" class="rescueResult" hidden></div>
-    <div id="rescueStatus" class="status" style="margin-top:10px"></div>
-  </div>
-  <div class="manageFooter"><button id="closeRescueBtn" class="soft" type="button">取消</button><button id="runRescueBtn" type="button">開始救援</button></div>
-</dialog>
 
 <dialog id="trashDialog" class="manageDialog">
   <div class="manageHead"><h2 style="margin:0 0 6px">🗃️ 已刪除學生回收桶</h2><div class="status">可復原完整學生資料；永久刪除才會一併刪除 Firebase Authentication。</div></div>
@@ -245,6 +244,6 @@ dialog.manageDialog::backdrop{background:#22314a80}
 
 <script src="shared/firebase-config.js?v=14"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="shared/password-reset-config.js?v=16.31"></script>
-<script src="shared/teacher-dashboard.js?v=16.31"></script>
+<script src="shared/password-reset-config.js?v=16.32"></script>
+<script src="shared/teacher-dashboard.js?v=16.32"></script>
 </body></html>

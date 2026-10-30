@@ -476,32 +476,32 @@ ${email}
       alert("你沒有刪除此班級資料的權限。");
       return;
     }
-    const typed=prompt(
-      `要把 ${className} 班 ${data.seat} 號 ${data.name} 移到回收桶嗎？
-
-`+
-      `學生登入帳號會保留，完整資料可復原。
-
-請輸入「回收」確認：`
-    );
-    if(typed!=="回收")return;
+    const ok=confirm(`確定要把 ${className} 班 ${data.seat} 號 ${data.name} 移到回收桶嗎？\n\n學生登入帳號會保留，資料之後可以直接復原。`);
+    if(!ok)return;
+    const uid=String(data.docid||"");
     try{
       $("#manageDeleteStatus").textContent="正在移到回收桶…";
-      await apiPost("/archive-student",{studentUid:String(data.docid||"")});
+      const studentRef=mods.fs.doc(db,"students",uid);
+      const snap=await mods.fs.getDoc(studentRef);
+      if(!snap.exists())throw Error("找不到學生資料，可能已被刪除。");
+      const rec=snap.data()||{};
+      if(!canManageClass(rec.className))throw Error("你沒有維護此班級的權限。");
+      await mods.fs.setDoc(mods.fs.doc(db,"deletedStudents",uid),{
+        ...rec,
+        _deletedAt:mods.fs.serverTimestamp(),
+        _deletedBy:auth.currentUser?.uid||"",
+        _deletedUid:uid
+      });
+      await mods.fs.deleteDoc(studentRef);
       $("#studentManageDialog").close();
       await loadRows();
+      alert(`${className} 班 ${data.seat} 號 ${data.name} 已移到回收桶，可隨時復原。`);
     }catch(e){
       $("#manageDeleteStatus").textContent="";
       alert("移到回收桶失敗："+(e?.message||"未知錯誤"));
     }
   }
 
-  async function openRescueDialog(){
-    $("#rescueClass").value=$("#classFilter").value||"";
-    $("#rescueSeat").value="";$("#rescueName").value="";
-    $("#rescueStatus").textContent="";$("#rescueResult").hidden=true;
-    $("#rescueStudentDialog").showModal();
-  }
 
   async function runRescueStudent(){
     const className=$("#rescueClass").value.trim();
@@ -522,14 +522,28 @@ ${email}
     }finally{btn.disabled=false;btn.textContent="開始救援";}
   }
 
+  async function loadTrashRows(){
+    const out=[];
+    if(isAdmin()){
+      const snap=await mods.fs.getDocs(mods.fs.collection(db,"deletedStudents"));
+      snap.forEach(d=>out.push({id:d.id,...d.data()}));
+    }else{
+      for(const cls of allowedClasses()){
+        const q=mods.fs.query(mods.fs.collection(db,"deletedStudents"),mods.fs.where("className","==",String(cls)));
+        const snap=await mods.fs.getDocs(q);
+        snap.forEach(d=>out.push({id:d.id,...d.data()}));
+      }
+    }
+    return out.sort((a,b)=>(String(a.className||"")+String(a.seatNo||"")).localeCompare(String(b.className||"")+String(b.seatNo||""),"zh-Hant"));
+  }
+
   async function openTrash(){
     $("#trashDialog").showModal();
     $("#trashStatus").textContent="讀取回收桶…";$("#trashList").innerHTML="";
     try{
-      const data=await apiPost("/list-deleted-students",{});
-      const rows=data.students||[];
+      const rows=await loadTrashRows();
       $("#trashStatus").textContent=rows.length?`共 ${rows.length} 筆可復原紀錄。`:"回收桶目前是空的。";
-      $("#trashList").innerHTML=rows.map(r=>`<div class="trashCard"><div class="row"><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號｜${esc(r.name)}</b><span>⭐ ${Number(r.stars||0)}</span></div><div class="meta">刪除時間：${esc(r.deletedAt||"—")}｜UID：${esc(r.id||"")}</div><div class="actions"><button class="restoreTrashBtn soft" data-uid="${esc(r.id)}" type="button">↩️ 恢復學生</button><button class="purgeTrashBtn danger" data-uid="${esc(r.id)}" data-label="${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}" type="button">永久刪除</button></div></div>`).join("");
+      $("#trashList").innerHTML=rows.map(r=>`<div class="trashCard"><div class="row"><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號｜${esc(r.name)}</b><span>⭐ ${Number(r.stars||0)}</span></div><div class="meta">刪除時間：${esc(fmtTime(r._deletedAt)||"—")}｜UID：${esc(r.id||"")}</div><div class="actions"><button class="restoreTrashBtn soft" data-uid="${esc(r.id)}" type="button">↩️ 一鍵復原</button><button class="purgeTrashBtn danger" data-uid="${esc(r.id)}" data-label="${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}" type="button">永久刪除</button></div></div>`).join("");
       $("#trashList").querySelectorAll(".restoreTrashBtn").forEach(b=>b.onclick=()=>restoreTrashStudent(b.dataset.uid));
       $("#trashList").querySelectorAll(".purgeTrashBtn").forEach(b=>b.onclick=()=>purgeTrashStudent(b.dataset.uid,b.dataset.label));
     }catch(e){$("#trashStatus").textContent="讀取失敗："+(e?.message||"未知錯誤");}
@@ -537,26 +551,28 @@ ${email}
 
   async function restoreTrashStudent(uid){
     try{
-      $("#trashStatus").textContent="正在恢復學生…";
-      const data=await apiPost("/restore-student",{studentUid:String(uid||"")});
-      alert(`已恢復學生。
-
-登入帳號：${data.loginEmail||""}
-臨時密碼：${data.temporaryPassword||""}`);
+      $("#trashStatus").textContent="正在復原學生…";
+      const trashRef=mods.fs.doc(db,"deletedStudents",String(uid||""));
+      const snap=await mods.fs.getDoc(trashRef);
+      if(!snap.exists())throw Error("回收桶找不到這筆資料。");
+      const rec={...snap.data()};
+      if(!canManageClass(rec.className))throw Error("你沒有維護此班級的權限。");
+      delete rec._deletedAt;delete rec._deletedBy;delete rec._deletedUid;
+      await mods.fs.setDoc(mods.fs.doc(db,"students",String(uid||"")),rec);
+      await mods.fs.deleteDoc(trashRef);
+      $("#trashStatus").textContent="✅ 已復原學生，原登入帳號與原密碼保持不變。";
       await openTrash();await loadRows();
-    }catch(e){$("#trashStatus").textContent="恢復失敗："+(e?.message||"未知錯誤");}
+    }catch(e){$("#trashStatus").textContent="復原失敗："+(e?.message||"未知錯誤");}
   }
 
   async function purgeTrashStudent(uid,label){
-    const typed=prompt(`這會永久刪除 ${label} 的回收桶資料與 Firebase Authentication 登入帳號，之後無法復原。
-
-請輸入「永久刪除」確認：`);
-    if(typed!=="永久刪除")return;
+    const ok=confirm(`確定要永久刪除 ${label} 嗎？\n\n這會刪除回收桶資料與 Firebase Authentication 登入帳號，而且無法復原。`);
+    if(!ok)return;
     try{
       $("#trashStatus").textContent="正在永久刪除…";
       await apiPost("/permanently-delete-student",{studentUid:String(uid||"")});
       await openTrash();
-    }catch(e){$("#trashStatus").textContent="永久刪除失敗："+(e?.message||"未知錯誤");}
+    }catch(e){$("#trashStatus").textContent="永久刪除失敗："+(e?.message||"未知錯誤")+"（若尚未部署新版 Worker，可先保留在回收桶。）";}
   }
 
   function buildClassFilter(){
@@ -766,9 +782,7 @@ ${email}
   $("#copyEmailBtn").onclick=()=>copyText($("#accountEmail").textContent,"學習帳號");
   $("#copyTempPasswordBtn").onclick=()=>copyText($("#tempPasswordValue").textContent,"臨時密碼");
   $("#resetPasswordBtn").onclick=resetStudentPassword;
-  $("#rescueStudentBtn").onclick=openRescueDialog;
   $("#trashStudentBtn").onclick=openTrash;
-  $("#closeRescueBtn").onclick=()=>$("#rescueStudentDialog").close();
   $("#runRescueBtn").onclick=runRescueStudent;
   $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
 

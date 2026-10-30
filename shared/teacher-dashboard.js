@@ -183,7 +183,7 @@
             data-class="${esc(rec.className)}"
             data-seat="${esc(rec.seatNo)}"
             data-name="${esc(rec.name)}">
-            🗑️ 刪除此筆
+            🗃️ 移到回收桶
           </button>
         </div>
       </div>
@@ -454,30 +454,109 @@ ${email}
     }
   }
 
+  async function apiPost(path,payload){
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    if(!endpoint)throw Error("尚未設定後端網址");
+    const user=auth?.currentUser;
+    if(!user)throw Error("教師登入已失效，請重新登入教師端。");
+    const idToken=await user.getIdToken(true);
+    const res=await fetch(endpoint.replace(/\/$/,"")+path,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+idToken},
+      body:JSON.stringify(payload||{})
+    });
+    let data={};try{data=await res.json();}catch(e){}
+    if(!res.ok||!data.ok)throw Error(data.message||data.error||`後端回應 ${res.status}`);
+    return data;
+  }
+
   async function deleteStudentRecord(data){
     const className=String(data.class||"");
     if(!canManageClass(className)){
       alert("你沒有刪除此班級資料的權限。");
       return;
     }
+    const typed=prompt(
+      `要把 ${className} 班 ${data.seat} 號 ${data.name} 移到回收桶嗎？
 
-    const ok=confirm(
-      `確定刪除這筆學生紀錄？\\n\\n`+
-      `${className} 班 ${data.seat} 號 ${data.name}\\n\\n`+
-      `刪除後無法從教師端復原。`
+`+
+      `學生登入帳號會保留，完整資料可復原。
+
+請輸入「回收」確認：`
     );
-    if(!ok)return;
-
+    if(typed!=="回收")return;
     try{
-      $("#manageDeleteStatus").textContent="正在刪除…";
-      await mods.fs.deleteDoc(mods.fs.doc(db,"students",data.docid));
-      $("#manageDeleteStatus").textContent="已刪除。正在重新讀取資料…";
+      $("#manageDeleteStatus").textContent="正在移到回收桶…";
+      await apiPost("/archive-student",{studentUid:String(data.docid||"")});
       $("#studentManageDialog").close();
       await loadRows();
     }catch(e){
       $("#manageDeleteStatus").textContent="";
-      alert("刪除失敗："+(e?.code||e?.message||"未知錯誤"));
+      alert("移到回收桶失敗："+(e?.message||"未知錯誤"));
     }
+  }
+
+  async function openRescueDialog(){
+    $("#rescueClass").value=$("#classFilter").value||"";
+    $("#rescueSeat").value="";$("#rescueName").value="";
+    $("#rescueStatus").textContent="";$("#rescueResult").hidden=true;
+    $("#rescueStudentDialog").showModal();
+  }
+
+  async function runRescueStudent(){
+    const className=$("#rescueClass").value.trim();
+    const seatNo=$("#rescueSeat").value.trim();
+    const name=$("#rescueName").value.trim();
+    if(!className||!seatNo||!name){$("#rescueStatus").textContent="請輸入班級、座號與姓名。";return;}
+    if(!canManageClass(className)){ $("#rescueStatus").textContent="你沒有維護此班級的權限。";return; }
+    const btn=$("#runRescueBtn");btn.disabled=true;btn.textContent="救援中…";
+    $("#rescueStatus").textContent="正在尋找原本 Firebase Authentication 帳號…";
+    try{
+      const data=await apiPost("/rescue-student",{className,seatNo,name});
+      $("#rescueResult").hidden=false;
+      $("#rescueResult").innerHTML=`<b>✅ 救援完成</b><br>登入帳號：<code>${esc(data.loginEmail||"")}</code><br>臨時密碼：<code>${esc(data.temporaryPassword||"")}</code><br>Firebase UID：<code>${esc(data.studentUid||"")}</code><br><span class="status">${data.restoredFromTrash?"已從回收桶恢復原資料。":"已用原 UID 重建學生資料；若原電腦尚有本機進度，登入後可重新同步。"}</span>`;
+      $("#rescueStatus").textContent="請將臨時密碼交給學生登入。";
+      await loadRows();
+    }catch(e){
+      $("#rescueStatus").textContent="救援失敗："+(e?.message||"未知錯誤");
+    }finally{btn.disabled=false;btn.textContent="開始救援";}
+  }
+
+  async function openTrash(){
+    $("#trashDialog").showModal();
+    $("#trashStatus").textContent="讀取回收桶…";$("#trashList").innerHTML="";
+    try{
+      const data=await apiPost("/list-deleted-students",{});
+      const rows=data.students||[];
+      $("#trashStatus").textContent=rows.length?`共 ${rows.length} 筆可復原紀錄。`:"回收桶目前是空的。";
+      $("#trashList").innerHTML=rows.map(r=>`<div class="trashCard"><div class="row"><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號｜${esc(r.name)}</b><span>⭐ ${Number(r.stars||0)}</span></div><div class="meta">刪除時間：${esc(r.deletedAt||"—")}｜UID：${esc(r.id||"")}</div><div class="actions"><button class="restoreTrashBtn soft" data-uid="${esc(r.id)}" type="button">↩️ 恢復學生</button><button class="purgeTrashBtn danger" data-uid="${esc(r.id)}" data-label="${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}" type="button">永久刪除</button></div></div>`).join("");
+      $("#trashList").querySelectorAll(".restoreTrashBtn").forEach(b=>b.onclick=()=>restoreTrashStudent(b.dataset.uid));
+      $("#trashList").querySelectorAll(".purgeTrashBtn").forEach(b=>b.onclick=()=>purgeTrashStudent(b.dataset.uid,b.dataset.label));
+    }catch(e){$("#trashStatus").textContent="讀取失敗："+(e?.message||"未知錯誤");}
+  }
+
+  async function restoreTrashStudent(uid){
+    try{
+      $("#trashStatus").textContent="正在恢復學生…";
+      const data=await apiPost("/restore-student",{studentUid:String(uid||"")});
+      alert(`已恢復學生。
+
+登入帳號：${data.loginEmail||""}
+臨時密碼：${data.temporaryPassword||""}`);
+      await openTrash();await loadRows();
+    }catch(e){$("#trashStatus").textContent="恢復失敗："+(e?.message||"未知錯誤");}
+  }
+
+  async function purgeTrashStudent(uid,label){
+    const typed=prompt(`這會永久刪除 ${label} 的回收桶資料與 Firebase Authentication 登入帳號，之後無法復原。
+
+請輸入「永久刪除」確認：`);
+    if(typed!=="永久刪除")return;
+    try{
+      $("#trashStatus").textContent="正在永久刪除…";
+      await apiPost("/permanently-delete-student",{studentUid:String(uid||"")});
+      await openTrash();
+    }catch(e){$("#trashStatus").textContent="永久刪除失敗："+(e?.message||"未知錯誤");}
   }
 
   function buildClassFilter(){
@@ -687,6 +766,11 @@ ${email}
   $("#copyEmailBtn").onclick=()=>copyText($("#accountEmail").textContent,"學習帳號");
   $("#copyTempPasswordBtn").onclick=()=>copyText($("#tempPasswordValue").textContent,"臨時密碼");
   $("#resetPasswordBtn").onclick=resetStudentPassword;
+  $("#rescueStudentBtn").onclick=openRescueDialog;
+  $("#trashStudentBtn").onclick=openTrash;
+  $("#closeRescueBtn").onclick=()=>$("#rescueStudentDialog").close();
+  $("#runRescueBtn").onclick=runRescueStudent;
+  $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
 
   init();
 })();

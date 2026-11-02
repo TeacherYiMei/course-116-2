@@ -14,7 +14,7 @@
   function pythonJourneyProgress() {
     try {
       var s = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
-      var need = {p1:2,p2:3,p3:3,p4:2,p5:3,p6:2,p7:2,p8:3,p9:3,p10:3};
+      var need = {p1:3,p2:3,p3:3,p4:3,p5:3,p6:3,p7:3,p8:3,p9:3,p10:3};
       var stars = 0, done = 0;
       Object.keys(need).forEach(function (id) {
         var n = Math.max(0, Math.min(need[id], +(s[id] || 0)));
@@ -253,5 +253,15 @@
     }
   };
 
-  window.addEventListener('store:change', function () { if (document.getElementById('hub') && STORE.me()) render(); });
+  function refreshHubFromSavedProgress() {
+    if (!document.getElementById('hub')) return;
+    if (window.STORE && STORE.me()) render();
+  }
+  window.addEventListener('store:change', refreshHubFromSavedProgress);
+  // 回到地圖時，瀏覽器可能從 bfcache 還原舊畫面；重新讀取最新 localStorage/STORE。
+  window.addEventListener('pageshow', refreshHubFromSavedProgress);
+  window.addEventListener('focus', refreshHubFromSavedProgress);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refreshHubFromSavedProgress();
+  });
 })();

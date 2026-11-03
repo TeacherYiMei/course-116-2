@@ -1,3 +1,6 @@
+/**
+ * shared/teacher-dashboard.js (v21 - 多單元智慧聯動與容錯版)
+ */
 (function(){
   const cfg=window.COURSE115_FIREBASE_CONFIG||{};
   let auth,db,mods;
@@ -7,17 +10,15 @@
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
-    all:    { name: "全學期四單元總覽", maxStars: 93, title: "📊 116 資訊科技｜四單元總覽" },
-    unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端" },
-    python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端" },
-    unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端" },
-    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" }
+    all:    { name: "全學期四單元總覽", maxStars: 93, title: "📊 116 資訊科技｜四單元總覽 (v21)" },
+    unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端 (v21)" },
+    python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端 (v21)" },
+    unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端 (v21)" },
+    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端 (v21)" }
   };
 
   const configured=()=>!!(
-    cfg.enabled &&
-    cfg.apiKey &&
-    !String(cfg.apiKey).startsWith("PASTE_")
+    cfg.enabled && cfg.apiKey && !String(cfg.apiKey).startsWith("PASTE_")
   );
 
   function esc(x){
@@ -28,9 +29,7 @@
 
   function fmtTime(v){
     try{
-      return v&&typeof v.toDate==="function"
-        ? v.toDate().toLocaleString("zh-TW")
-        : "";
+      return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : "";
     }catch(e){return ""}
   }
 
@@ -50,91 +49,54 @@
       if(!groups.has(key)) groups.set(key,[]);
       groups.get(key).push(row);
     }
-
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=>
-        Number(b.stars||0)-Number(a.stars||0) ||
-        progressSum(b.progress)-progressSum(a.progress)
-      );
+      group.sort((a,b)=> Number(b.stars||0)-Number(a.stars||0));
       const best={...group[0]};
       best.duplicateCount=group.length;
-      best.sourceRecords=group.map(r=>({
-        id:r.id,
-        className:String(r.className||""),
-        seatNo:String(r.seatNo||""),
-        name:String(r.name||""),
-        stars:Number(r.stars||0),
-        totalStars:Number(r.totalStars||30),
-        score:Number(r.score||0),
-        progress:r.progress||{},
-        modules:r.modules||{},
-        currentStation:String(r.currentStation||""),
-        currentChallenge:r.currentChallenge||"",
-        completed:!!r.completed,
-        updatedAt:r.updatedAt||null
-      }));
+      best.sourceRecords=group;
       return best;
     });
   }
 
-  function isAdmin(){
-    return teacherProfile?.role==="admin";
-  }
-
+  function isAdmin(){ return teacherProfile?.role==="admin"; }
   function allowedClasses(){
     if(isAdmin()) return null;
-    return Array.isArray(teacherProfile?.classes)
-      ? teacherProfile.classes.map(String).filter(Boolean).sort()
-      : [];
+    return Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : [];
   }
 
   function filtered(){
     const cls=$("#classFilter").value;
-    return currentRows
-      .filter(r=>!cls || String(r.className)===cls)
-      .sort(seatSort);
+    return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort);
   }
 
-  // 萬用智慧解析器：自動掃描學生文檔內所有可能存放各單元進度的欄位
   function getStudentUnitData(r, unitKey){
     const cfgUnit = UNIT_CONFIG[unitKey];
     const maxStars = cfgUnit.maxStars;
+    const modsData = r.modules || {};
 
     if(unitKey === "python"){
-      const stars = Number(r.stars || r.modules?.python?.stars || r.python?.stars || progressSum(r.progress) || 0);
-      const score = Number(r.score || r.modules?.python?.score || (maxStars ? Math.round(stars/maxStars*100) : 0));
-      const completed = !!r.completed || !!r.modules?.python?.completed || stars >= maxStars;
-      const station = r.currentStation || r.modules?.python?.currentStation || "P1";
-      const chal = r.currentChallenge || r.modules?.python?.currentChallenge || 1;
+      const stars = Number(r.stars || modsData.python?.stars || progressSum(r.progress) || 0);
+      const score = Number(r.score || modsData.python?.score || (maxStars ? Math.round(stars/maxStars*100) : 0));
+      const completed = !!r.completed || !!modsData.python?.completed || stars >= maxStars;
+      const station = r.currentStation || modsData.python?.currentStation || "P1";
+      const chal = r.currentChallenge || modsData.python?.currentChallenge || 1;
       const currentLevel = `${station}${chal ? `・第 ${chal} 題` : ""}`;
       return { stars: Math.min(maxStars, stars), maxStars, score: Math.min(100, score), completed, currentLevel };
     }
 
-    // 針對其他單元（unit1, unit3, aiot），搜尋所有可能的主鍵、modules 子物件、或獨立欄位
-    let obj = {};
+    let unitObj = {};
     if(unitKey === "unit1") {
-      obj = r.modules?.unit1 || r.unit1 || r.digital || r.ch1 || r.unit_1 || r.modules?.digital || r.modules?.ch1 || {};
+      unitObj = modsData.unit1 || modsData.digital || r.unit1 || r.digital || r.ch1 || {};
     } else if(unitKey === "unit3") {
-      obj = r.modules?.unit3 || r.unit3 || r.system || r.systemPlatform || r.ch3 || r.unit_3 || r.modules?.system || {};
+      unitObj = modsData.unit3 || modsData.system || r.unit3 || r.system || r.systemPlatform || r.ch3 || {};
     } else if(unitKey === "aiot") {
-      obj = r.modules?.aiot || r.aiot || r.project5016B || r.unit4 || r.ch4 || r.unit_4 || r.modules?.project5016B || {};
+      unitObj = modsData.aiot || modsData.project5016B || r.aiot || r.project5016B || r.unit4 || {};
     }
 
-    // 如果物件內有 stars 或 score
-    let stars = Number(obj.stars || obj.score || obj.star || 0);
-    let score = Number(obj.score || Math.round(stars / maxStars * 100));
-    let completed = !!obj.completed || stars >= maxStars;
-    let currentLevel = obj.currentLevel || obj.status || (stars > 0 ? "進行中" : "尚未開始");
-
-    // 如果找不到，但學生端有把資料存在其他地方（例如 r[`${unitKey}Stars`] 等）
-    if(stars === 0) {
-      stars = Number(r[`${unitKey}Stars`] || r[`${unitKey}_stars`] || 0);
-      if(stars > 0) {
-        score = Math.round(stars / maxStars * 100);
-        completed = stars >= maxStars;
-        currentLevel = "進行中";
-      }
-    }
+    const stars = Number(unitObj.stars || unitObj.score || 0);
+    const score = Number(unitObj.score || Math.round(stars / maxStars * 100));
+    const completed = !!unitObj.completed || stars >= maxStars;
+    const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
 
     if(unitKey === "all") {
       const d1 = getStudentUnitData(r, "unit1");
@@ -177,12 +139,8 @@
     });
 
     $("#studentCount").textContent=rows.length;
-    $("#avgStars").textContent=rows.length
-      ? (totalStarsSum/rows.length).toFixed(1)
-      : "0";
-    $("#avgScore").textContent=rows.length
-      ? Math.round(totalScoreSum/rows.length)
-      : "0";
+    $("#avgStars").textContent=rows.length ? (totalStarsSum/rows.length).toFixed(1) : "0";
+    $("#avgScore").textContent=rows.length ? Math.round(totalScoreSum/rows.length) : "0";
     $("#doneCount").textContent=doneCount;
 
     $("#rows").innerHTML=mappedRows.map(r=>`<tr>
@@ -195,50 +153,20 @@
       <td>${esc(r._uLevel)}</td>
       <td><span class="badge ${r._uCompleted?"done":""}">${r._uCompleted?"已完成":"進行中"}</span></td>
       <td>${esc(fmtTime(r.updatedAt))}</td>
-      <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併顯示 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
+      <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
     </tr>`).join("");
 
     document.querySelectorAll(".manageBtn").forEach(btn=>{
       btn.addEventListener("click",()=>{
         const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
-        if(row) openStudentManage(row);
+        if(row) alert(`學生：${row.name} (${row.className}班 ${row.seatNo}號)`);
       });
     });
   }
 
-  function canManageClass(className){
-    return isAdmin() || allowedClasses().includes(String(className));
-  }
-
-  function openStudentManage(row){
-    if(!canManageClass(row.className)){
-      alert("沒有此班級維護權限。");
-      return;
-    }
-    const dlg=$("#studentManageDialog");
-    $("#manageStudentTitle").textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
-    $("#manageStudentNote").textContent="學生資料維護";
-    const records=(row.sourceRecords||[row]);
-    $("#manageRecordList").innerHTML=records.map((rec,i)=>`
-      <div class="recordCard">
-        <div class="recordInfo">
-          <b>紀錄 ${i+1}</b>
-          <span>⭐ ${Number(rec.stars||0)}/30</span>
-          <span>${esc(rec.currentStation||"")}${rec.currentChallenge?`・第 ${rec.currentChallenge} 題`:""}</span>
-        </div>
-      </div>
-    `).join("");
-    dlg.showModal();
-  }
-
   function buildClassFilter(){
     const old=$("#classFilter").value;
-    let classes;
-    if(isAdmin()){
-      classes=[...new Set(currentRows.map(r=>String(r.className||"")).filter(Boolean))].sort();
-    }else{
-      classes=allowedClasses();
-    }
+    let classes = isAdmin() ? [...new Set(currentRows.map(r=>String(r.className||"")).filter(Boolean))].sort() : allowedClasses();
     $("#classFilter").innerHTML='<option value="">全部授權班級</option>'+classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
     if(classes.includes(old)) $("#classFilter").value=old;
   }
@@ -246,43 +174,31 @@
   function renderTeacherIdentity(){
     const label=$("#teacherIdentity");
     if(!label)return;
-    if(isAdmin()){
-      label.textContent=`管理者｜可查看全部班級`;
-      return;
-    }
+    if(isAdmin()){ label.textContent="管理者｜可查看全部班級"; return; }
     const classes=allowedClasses();
-    const name=teacherProfile?.displayName||"教師";
-    label.textContent=`${name}｜授權班級：${classes.join("、")}`;
+    label.textContent=`${teacherProfile?.displayName||"教師"}｜授權班級：${classes.join("、")}`;
   }
 
   async function loadTeacherProfile(uid){
     const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid));
-    if(!snap.exists()) return null;
-    return {uid,...snap.data()};
+    return snap.exists() ? {uid,...snap.data()} : null;
   }
 
   async function queryClass(className){
-    const {collection,query,where,getDocs}=mods.fs;
-    const q=query(collection(db,"students"),where("className","==",String(className)));
-    const snap=await getDocs(q);
+    const q=mods.fs.query(mods.fs.collection(db,"students"),mods.fs.where("className","==",String(className)));
+    const snap=await mods.fs.getDocs(q);
     return snap.docs.map(d=>({id:d.id, ...d.data()}));
   }
 
   async function loadRows(){
-    $("#dbStatus").textContent="讀取資料中…";
+    $("#dbStatus").textContent="讀取資料中 (v21)…";
     try{
       if(isAdmin()){
         const snap=await mods.fs.getDocs(mods.fs.collection(db,"students"));
         currentRows=snap.docs.map(d=>({id:d.id, ...d.data()}));
       }else{
         const classes=allowedClasses();
-        if(!classes.length){
-          currentRows=[];
-          $("#dbStatus").textContent="這個教師帳號尚未分配任何班級";
-          buildClassFilter();
-          render();
-          return;
-        }
+        if(!classes.length){ currentRows=[]; render(); return; }
         const result=await Promise.all(classes.map(queryClass));
         const seen=new Map();
         result.flat().forEach(r=>seen.set(r.id,r));
@@ -299,49 +215,14 @@
     }
   }
 
-  function exportExcel(){
-    const cls=$("#classFilter").value;
-    if(!cls){alert("請先選擇一個班級。");return;}
-    const rows=filtered();
-    if(!rows.length){alert("目前沒有資料。");return;}
-
-    const data=rows.map(r=>{
-      const uData = getStudentUnitData(r, currentUnit);
-      const cfgUnit = UNIT_CONFIG[currentUnit];
-      return {
-        "班級":r.className||"",
-        "座號":Number(r.seatNo||0),
-        "姓名":r.name||"",
-        "單元":cfgUnit.name,
-        "星星":uData.stars,
-        "滿星數":uData.maxStars,
-        "評分":uData.score,
-        "完成狀態":uData.completed?"已完成":"進行中",
-        "目前進度":uData.currentLevel,
-        "最近更新":fmtTime(r.updatedAt)
-      };
-    });
-
-    const ws=XLSX.utils.json_to_sheet(data);
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,`${cls}班_${currentUnit}`);
-    XLSX.writeFile(wb,`學習進度_${cls}班_${currentUnit}.xlsx`);
-  }
-
   async function init(){
-    if(!configured()){
-      $("#loginError").textContent="尚未設定 Firebase。";
-      $("#loginBtn").disabled=true;
-      return;
-    }
-
+    if(!configured()) return;
     try{
       const [appMod,authMod,fsMod]=await Promise.all([
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
       ]);
-
       const app=appMod.initializeApp(cfg);
       auth=authMod.getAuth(app);
       db=fsMod.getFirestore(app);
@@ -360,21 +241,12 @@
       });
 
       authMod.onAuthStateChanged(auth,async user=>{
-        if(!user){
-          teacherProfile=null;
-          currentRows=[];
-          $("#loginCard").classList.remove("hidden");
-          $("#dashboard").classList.add("hidden");
-          $("#logoutBtn").classList.add("hidden");
-          return;
-        }
-
+        if(!user){ $("#loginCard").classList.remove("hidden"); $("#dashboard").classList.add("hidden"); return; }
         const profile=await loadTeacherProfile(user.uid);
         if(profile && (profile.role==="teacher" || profile.role==="admin")){
           teacherProfile=profile;
           $("#loginCard").classList.add("hidden");
           $("#dashboard").classList.remove("hidden");
-          $("#logoutBtn").classList.remove("hidden");
           renderTeacherIdentity();
           await loadRows();
         }else{
@@ -382,31 +254,16 @@
           await authMod.signOut(auth);
         }
       });
-
-    }catch(e){
-      $("#loginError").textContent="Firebase 初始化失敗："+e.message;
-    }
+    }catch(e){ console.error(e); }
   }
 
   $("#loginBtn").onclick=async()=>{
-    $("#loginError").textContent="";
-    try{
-      await mods.auth.signInWithEmailAndPassword(auth,$("#email").value.trim(),$("#password").value);
-    }catch(e){
-      $("#loginError").textContent="登入失敗，請確認 Email、密碼與教師權限。";
-    }
+    try{ await mods.auth.signInWithEmailAndPassword(auth,$("#email").value.trim(),$("#password").value); }
+    catch(e){ $("#loginError").textContent="登入失敗，請確認 Email 與密碼。"; }
   };
-
   $("#logoutBtn").onclick=()=>mods.auth.signOut(auth);
   $("#refreshBtn").onclick=loadRows;
   $("#classFilter").onchange=render;
-  $("#exportBtn").onclick=exportExcel;
-  $("#closeManageBtn").onclick=()=>$("#studentManageDialog").close();
-  $("#closeDetailBtn").onclick=()=>$("#progressDetailDialog").close();
-  $("#closeEditBtn").onclick=()=>$("#editRecordDialog").close();
-  $("#closeAccountBtn").onclick=()=>$("#accountDialog").close();
-  $("#trashStudentBtn").onclick=()=>alert("回收桶功能");
-  $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
 
   init();
 })();

@@ -99,46 +99,37 @@
       .sort(seatSort);
   }
 
-  // 取得指定學生在特定單元的星星、評分與進度
   function getStudentUnitData(r, unitKey){
     const modsData = r.modules || {};
     
     if(unitKey === "python"){
-      const stars = Number(r.stars || modsData.python?.stars || 0);
+      const stars = Number(r.stars || modsData.python?.stars || progressSum(r.progress) || 0);
       const maxStars = 30;
       const score = Number(r.score || (maxStars ? Math.round(stars/maxStars*100) : 0));
-      const completed = !!r.completed || stars >= maxStars;
-      const station = r.currentStation || modsData.python?.currentStation || "";
-      const chal = r.currentChallenge || modsData.python?.currentChallenge || "";
-      const currentLevel = `${station} ${chal ? `・第 ${chal} 題` : ""}`.trim() || "尚未開始";
-      return { stars, maxStars, score, completed, currentLevel };
+      const completed = !!r.completed || !!modsData.python?.completed || stars >= maxStars;
+      const station = r.currentStation || modsData.python?.currentStation || "P1";
+      const chal = r.currentChallenge || modsData.python?.currentChallenge || 1;
+      const currentLevel = `${station}${chal ? `・第 ${chal} 題` : ""}`;
+      return { stars: Math.min(maxStars, stars), maxStars, score: Math.min(100, score), completed, currentLevel };
     }
 
-    if(unitKey === "unit1" || unitKey === "unit3" || unitKey === "aiot"){
-      const unitObj = modsData[unitKey] || {};
-      const cfgUnit = UNIT_CONFIG[unitKey];
-      const maxStars = cfgUnit.maxStars;
-      const stars = Number(unitObj.stars || 0);
-      const score = Math.round(stars / maxStars * 100);
-      const completed = !!unitObj.completed || stars >= maxStars;
-      const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
-      return { stars, maxStars, score, completed, currentLevel };
+    let unitObj = modsData[unitKey] || r[unitKey] || {};
+    if(unitKey === "unit1") {
+      unitObj = modsData.unit1 || r.unit1 || r.digital || r.ch1 || {};
+    } else if(unitKey === "unit3") {
+      unitObj = modsData.unit3 || r.unit3 || r.system || r.systemPlatform || r.ch3 || {};
+    } else if(unitKey === "aiot") {
+      unitObj = modsData.aiot || r.aiot || r.project5016B || r.unit4 || r.ch4 || {};
     }
 
-    if(unitKey === "all"){
-      const d1 = getStudentUnitData(r, "unit1");
-      const d2 = getStudentUnitData(r, "python");
-      const d3 = getStudentUnitData(r, "unit3");
-      const d4 = getStudentUnitData(r, "aiot");
-      const stars = d1.stars + d2.stars + d3.stars + d4.stars;
-      const maxStars = 93;
-      const score = Math.round(stars / maxStars * 100);
-      const completed = d1.completed && d2.completed && d3.completed && d4.completed;
-      const currentLevel = `數位:${d1.stars}★ | Py:${d2.stars}★ | 系統:${d3.stars}★ | AIoT:${d4.stars}★`;
-      return { stars, maxStars, score, completed, currentLevel };
-    }
+    const cfgUnit = UNIT_CONFIG[unitKey];
+    const maxStars = cfgUnit.maxStars;
+    const stars = Number(unitObj.stars || unitObj.score || 0);
+    const score = Number(unitObj.score || Math.round(stars / maxStars * 100));
+    const completed = !!unitObj.completed || stars >= maxStars;
+    const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
 
-    return { stars: 0, maxStars: 30, score: 0, completed: false, currentLevel: "尚未開始" };
+    return { stars: Math.min(maxStars, stars), maxStars, score: Math.min(100, score), completed, currentLevel };
   }
 
   function render(){
@@ -732,7 +723,6 @@
       db=fsMod.getFirestore(app);
       mods={auth:authMod,fs:fsMod};
 
-      // 監聽四大單元切換按鈕事件
       document.querySelectorAll(".unitTabBtn").forEach(btn=>{
         btn.addEventListener("click",()=>{
           document.querySelectorAll(".unitTabBtn").forEach(b=>b.classList.remove("active"));
@@ -801,7 +791,7 @@
   $("#resetPasswordBtn").onclick=resetStudentPassword;
   $("#trashStudentBtn").onclick=openTrash;
   $("#runRescueBtn").onclick=runRescueStudent;
-  $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
+  $("#closeTrashBtn").onclick=()=>$("#trashDialog".close());
 
   init();
 })();

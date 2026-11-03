@@ -1,415 +1,354 @@
+/**
+ * teacher-dashboard.js
+ * 116 資訊科技闖關地圖 - 教師管理後台（支援四大單元切換 + 跨單元匯出 + 詳細登入診斷）
+ */
 
-(function(){
-  const cfg=window.COURSE115_FIREBASE_CONFIG||{};
-  let auth,db,mods;
-  let teacherProfile=null;
-  let currentRows=[];
-  let manageRow=null;
-  const $=s=>document.querySelector(s);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const configured=()=>!!(
-    cfg.enabled &&
-    cfg.apiKey &&
-    !String(cfg.apiKey).startsWith("PASTE_")
-  );
+// ==========================================
+// 1. Firebase 專案設定 (與原本專案相同，若放同一資料夾亦可改為 import)
+// ==========================================
+import { firebaseConfig } from "./firebase-config.js";
 
-  function esc(x){
-    return String(x??"").replace(/[&<>"']/g,m=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ==========================================
+// 2. 116 闖關地圖四大單元設定常數
+// ==========================================
+export const MODULE_CONFIG = {
+  all: {
+    key: "all",
+    title: "全學期四單元總覽",
+    maxStars: 93, // 24 + 30 + 24 + 15
+    totalLevels: 31
+  },
+  digital: {
+    key: "digital",
+    title: "單元一：數位時代 (0與1的藝術)",
+    maxStars: 24,
+    totalLevels: 8,
+    fieldKeys: ["digital", "unit1", "ch1", "digitalEra"]
+  },
+  python: {
+    key: "python",
+    title: "單元二：進入 Python 的世界",
+    maxStars: 30,
+    totalLevels: 10,
+    fieldKeys: ["python", "unit2", "ch2"]
+  },
+  system: {
+    key: "system",
+    title: "單元三：系統平臺大冒險",
+    maxStars: 24,
+    totalLevels: 8,
+    fieldKeys: ["system", "unit3", "ch3", "systemPlatform"]
+  },
+  aiot: {
+    key: "aiot",
+    title: "延伸專題：5016B AIoT 智慧教室守護站",
+    maxStars: 15,
+    totalLevels: 5,
+    fieldKeys: ["aiot", "project5016B", "unit4", "ch4"]
+  }
+};
+
+let currentModule = "python";
+let currentClassId = "911";
+let currentStudents = [];
+
+// ==========================================
+// 3. 解析各單元進度 (向下相容原有的 Python 單一結構)
+// ==========================================
+function extractModuleData(studentDoc, moduleKey) {
+  if (moduleKey === "all") {
+    const d1 = extractModuleData(studentDoc, "digital");
+    const d2 = extractModuleData(studentDoc, "python");
+    const d3 = extractModuleData(studentDoc, "system");
+    const d4 = extractModuleData(studentDoc, "aiot");
+    const totalStars = d1.stars + d2.stars + d3.stars + d4.stars;
+    const maxStars = MODULE_CONFIG.all.maxStars;
+    const score = Math.round((totalStars / maxStars) * 100);
+    const allCompleted = d1.completed && d2.completed && d3.completed && d4.completed;
+    return {
+      stars: totalStars,
+      maxStars,
+      score,
+      currentLevel: `數位:${d1.stars}★ | Py:${d2.stars}★ | 系統:${d3.stars}★ | AIoT:${d4.stars}★`,
+      completed: allCompleted,
+      updatedAt: d2.updatedAt || d1.updatedAt || d3.updatedAt || d4.updatedAt,
+      recordsCount: (d1.recordsCount || 0) + (d2.recordsCount || 0) + (d3.recordsCount || 0) + (d4.recordsCount || 0)
+    };
   }
 
-  function fmtTime(v){
-    try{
-      return v&&typeof v.toDate==="function"
-        ? v.toDate().toLocaleString("zh-TW")
-        : "";
-    }catch(e){return ""}
-  }
+  const cfg = MODULE_CONFIG[moduleKey];
+  let subData = null;
 
-  function seatSort(a,b){
-    return Number(a.seatNo||999)-Number(b.seatNo||999) ||
-      String(a.name||"").localeCompare(String(b.name||""),"zh-Hant");
-  }
-
-  function progressSum(progress){
-    return Object.values(progress||{}).reduce((n,v)=>n+Number(v||0),0);
-  }
-
-  function mergeDuplicateStudents(rows){
-    const groups=new Map();
-    for(const row of rows){
-      const key=`${String(row.className||"").trim()}::${String(row.seatNo||"").trim()}`;
-      if(!groups.has(key)) groups.set(key,[]);
-      groups.get(key).push(row);
-    }
-
-    return [...groups.values()].map(group=>{
-      group.sort((a,b)=>
-        Number(b.stars||0)-Number(a.stars||0) ||
-        progressSum(b.progress)-progressSum(a.progress)
-      );
-      const best={...group[0]};
-      best.duplicateCount=group.length;
-      best.sourceRecords=group.map(r=>({
-        id:r.id,
-        className:String(r.className||""),
-        seatNo:String(r.seatNo||""),
-        name:String(r.name||""),
-        stars:Number(r.stars||0),
-        totalStars:Number(r.totalStars||26),
-        currentStation:String(r.currentStation||""),
-        currentChallenge:r.currentChallenge||"",
-        completed:!!r.completed,
-        updatedAt:r.updatedAt||null
-      }));
-      if(group.length>1){
-        const merged={};
-        for(const r of group){
-          for(const [k,v] of Object.entries(r.progress||{})){
-            merged[k]=Math.max(Number(merged[k]||0),Number(v||0));
-          }
-        }
-        const mergedStars=progressSum(merged);
-        if(mergedStars>Number(best.stars||0)){
-          best.progress=merged;
-          best.stars=mergedStars;
-          best.score=best.totalStars
-            ? Math.round(mergedStars/Number(best.totalStars)*100)
-            : Number(best.score||0);
-        }
+  // 檢查 studentDoc.modules[moduleKey] 或特定欄位名稱
+  if (studentDoc.modules && studentDoc.modules[moduleKey]) {
+    subData = studentDoc.modules[moduleKey];
+  } else {
+    for (const k of cfg.fieldKeys) {
+      if (studentDoc[k] && typeof studentDoc[k] === "object") {
+        subData = studentDoc[k];
+        break;
       }
-      return best;
-    });
-  }
-
-  function isAdmin(){
-    return teacherProfile?.role==="admin";
-  }
-
-  function allowedClasses(){
-    if(isAdmin()) return null;
-    return Array.isArray(teacherProfile?.classes)
-      ? teacherProfile.classes.map(String).filter(Boolean).sort()
-      : [];
-  }
-
-  function filtered(){
-    const cls=$("#classFilter").value;
-    return currentRows
-      .filter(r=>!cls || String(r.className)===cls)
-      .sort(seatSort);
-  }
-
-  function render(){
-    const rows=filtered();
-    $("#studentCount").textContent=rows.length;
-    $("#avgStars").textContent=rows.length
-      ? (rows.reduce((n,r)=>n+Number(r.stars||0),0)/rows.length).toFixed(1)
-      : "0";
-    $("#avgScore").textContent=rows.length
-      ? Math.round(rows.reduce((n,r)=>n+Number(r.score||0),0)/rows.length)
-      : "0";
-    $("#doneCount").textContent=rows.filter(r=>r.completed).length;
-
-    $("#rows").innerHTML=rows.map(r=>`<tr>
-      <td>${esc(r.className)}</td>
-      <td>${esc(r.seatNo)}</td>
-      <td>${esc(r.name)}</td>
-      <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-      <td>⭐ ${Number(r.stars||0)}/${Number(r.totalStars||26)}</td>
-      <td>${Number(r.score||0)}</td>
-      <td>${esc(r.currentStation||"")} ${r.currentChallenge?`・第 ${r.currentChallenge} 題`:""}</td>
-      <td><span class="badge ${r.completed?"done":""}">${r.completed?"已完成":"進行中"}</span></td>
-      <td>${esc(fmtTime(r.updatedAt))}</td>
-      <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併顯示 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
-    </tr>`).join("");
-
-    document.querySelectorAll(".manageBtn").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
-        if(row) openStudentManage(row);
-      });
-    });
-  }
-
-
-  function canManageClass(className){
-    return isAdmin() || allowedClasses().includes(String(className));
-  }
-
-  function openStudentManage(row){
-    if(!canManageClass(row.className)){
-      alert("這個教師帳號沒有維護此班級的權限。");
-      return;
-    }
-
-    manageRow=row;
-    const dlg=$("#studentManageDialog");
-    const title=$("#manageStudentTitle");
-    const list=$("#manageRecordList");
-    const note=$("#manageStudentNote");
-
-    title.textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
-    note.textContent=Number(row.duplicateCount||1)>1
-      ? `目前合併顯示 ${row.duplicateCount} 筆原始紀錄。請只刪除確認錯誤的那一筆。`
-      : "這位學生目前只有 1 筆原始紀錄。";
-
-    const records=(row.sourceRecords||[row]).slice().sort((a,b)=>
-      Number(b.stars||0)-Number(a.stars||0)
-    );
-
-    list.innerHTML=records.map((rec,index)=>`
-      <div class="recordCard">
-        <div class="recordInfo">
-          <b>紀錄 ${index+1}</b>
-          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||26)}</span>
-          <span>${esc(rec.currentStation||"尚未開始")}${rec.currentChallenge?`・第 ${esc(rec.currentChallenge)} 題`:""}</span>
-          <span>${rec.completed?"已完成":"進行中"}</span>
-          <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
-        </div>
-        <button class="deleteRecordBtn danger" type="button"
-          data-docid="${esc(rec.id)}"
-          data-class="${esc(rec.className)}"
-          data-seat="${esc(rec.seatNo)}"
-          data-name="${esc(rec.name)}">
-          🗑️ 刪除此筆
-        </button>
-      </div>
-    `).join("");
-
-    list.querySelectorAll(".deleteRecordBtn").forEach(btn=>{
-      btn.addEventListener("click",()=>deleteStudentRecord(btn.dataset));
-    });
-
-    dlg.showModal();
-  }
-
-  async function deleteStudentRecord(data){
-    const className=String(data.class||"");
-    if(!canManageClass(className)){
-      alert("你沒有刪除此班級資料的權限。");
-      return;
-    }
-
-    const ok=confirm(
-      `確定刪除這筆學生紀錄？\\n\\n`+
-      `${className} 班 ${data.seat} 號 ${data.name}\\n\\n`+
-      `刪除後無法從教師端復原。`
-    );
-    if(!ok)return;
-
-    try{
-      $("#manageDeleteStatus").textContent="正在刪除…";
-      await mods.fs.deleteDoc(mods.fs.doc(db,"students",data.docid));
-      $("#manageDeleteStatus").textContent="已刪除。正在重新讀取資料…";
-      $("#studentManageDialog").close();
-      await loadRows();
-    }catch(e){
-      $("#manageDeleteStatus").textContent="";
-      alert("刪除失敗："+(e?.code||e?.message||"未知錯誤"));
     }
   }
 
-  function buildClassFilter(){
-    const old=$("#classFilter").value;
-    let classes;
-
-    if(isAdmin()){
-      classes=[...new Set(
-        currentRows.map(r=>String(r.className||"")).filter(Boolean)
-      )].sort();
-    }else{
-      classes=allowedClasses();
-    }
-
-    $("#classFilter").innerHTML=
-      '<option value="">全部授權班級</option>'+
-      classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-
-    if(classes.includes(old)) $("#classFilter").value=old;
+  // 相容舊版：如果是 python 模組，且頂層直接存放 stars / currentLevel
+  if (!subData && moduleKey === "python" && (studentDoc.stars !== undefined || studentDoc.currentLevel !== undefined)) {
+    subData = {
+      stars: Number(studentDoc.stars || 0),
+      currentLevel: studentDoc.currentLevel || "第 1 關 | 哈囉，旅伴！",
+      completed: Boolean(studentDoc.completed),
+      updatedAt: studentDoc.updatedAt || null,
+      recordsCount: Number(studentDoc.recordsCount || 1)
+    };
   }
 
-  function renderTeacherIdentity(){
-    const label=$("#teacherIdentity");
-    if(!label)return;
+  const stars = Number(subData?.stars || 0);
+  const maxStars = cfg.maxStars;
+  const score = Math.min(100, Math.round((stars / maxStars) * 100));
+  const completed = Boolean(subData?.completed || stars >= maxStars);
+  const currentLevel = subData?.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
 
-    if(isAdmin()){
-      label.textContent=`管理者｜可查看全部班級`;
-      return;
-    }
-
-    const classes=allowedClasses();
-    const name=teacherProfile?.displayName||"教師";
-    label.textContent=`${name}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
-  }
-
-  async function loadTeacherProfile(uid){
-    const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid));
-    if(!snap.exists()) return null;
-    return {uid,...snap.data()};
-  }
-
-  async function queryClass(className){
-    const {collection,query,where,getDocs}=mods.fs;
-    const q=query(
-      collection(db,"students"),
-      where("className","==",String(className))
-    );
-    const snap=await getDocs(q);
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
-  }
-
-  async function loadRows(){
-    $("#dbStatus").textContent="讀取資料中…";
-    try{
-      if(isAdmin()){
-        const snap=await mods.fs.getDocs(mods.fs.collection(db,"students"));
-        currentRows=snap.docs.map(d=>({id:d.id,...d.data()}));
-      }else{
-        const classes=allowedClasses();
-        if(!classes.length){
-          currentRows=[];
-          $("#dbStatus").textContent="這個教師帳號尚未分配任何班級";
-          buildClassFilter();
-          render();
-          return;
-        }
-
-        const result=await Promise.all(classes.map(queryClass));
-        const seen=new Map();
-        result.flat().forEach(r=>seen.set(r.id,r));
-        currentRows=[...seen.values()];
-      }
-
-      currentRows=mergeDuplicateStudents(currentRows);
-      buildClassFilter();
-      render();
-      $("#dbStatus").textContent=`最後更新：${new Date().toLocaleTimeString("zh-TW")}`;
-    }catch(e){
-      currentRows=[];
-      render();
-      $("#dbStatus").textContent="讀取失敗："+(e?.code||e?.message||"未知錯誤");
-    }
-  }
-
-  function exportExcel(){
-    const cls=$("#classFilter").value;
-    if(!cls){
-      alert("請先選擇一個班級，再下載該班 Excel。");
-      return;
-    }
-
-    if(!isAdmin() && !allowedClasses().includes(cls)){
-      alert("這個教師帳號沒有此班級的匯出權限。");
-      return;
-    }
-
-    const rows=filtered();
-    if(!rows.length){
-      alert("這個班級目前沒有資料。");
-      return;
-    }
-
-    const data=rows.map(r=>({
-      "班級":r.className||"",
-      "座號":Number(r.seatNo||0),
-      "姓名":r.name||"",
-      "星星":Number(r.stars||0),
-      "滿星數":Number(r.totalStars||26),
-      "評分":Number(r.score||0),
-      "完成狀態":r.completed?"已完成":"進行中",
-      "目前進度":`${r.currentStation||""}${r.currentChallenge?` 第${r.currentChallenge}題`:""}`,
-      "最近更新":fmtTime(r.updatedAt),
-      "原始紀錄筆數":Number(r.duplicateCount||1)
-    }));
-
-    const ws=XLSX.utils.json_to_sheet(data);
-    ws["!cols"]=[
-      {wch:8},{wch:7},{wch:12},{wch:7},{wch:8},
-      {wch:7},{wch:10},{wch:28},{wch:20},{wch:12}
-    ];
-
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,`${cls}班`);
-    XLSX.writeFile(wb,`Python學習進度_${cls}班.xlsx`);
-  }
-
-  async function init(){
-    if(!configured()){
-      $("#loginError").textContent="尚未設定 Firebase。";
-      $("#loginBtn").disabled=true;
-      return;
-    }
-
-    try{
-      const [appMod,authMod,fsMod]=await Promise.all([
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
-        import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
-      ]);
-
-      const app=appMod.initializeApp(cfg);
-      auth=authMod.getAuth(app);
-      db=fsMod.getFirestore(app);
-      mods={auth:authMod,fs:fsMod};
-
-      authMod.onAuthStateChanged(auth,async user=>{
-        if(!user){
-          teacherProfile=null;
-          currentRows=[];
-          $("#loginCard").classList.remove("hidden");
-          $("#dashboard").classList.add("hidden");
-          $("#logoutBtn").classList.add("hidden");
-          return;
-        }
-
-        const profile=await loadTeacherProfile(user.uid);
-
-        if(
-          profile &&
-          (profile.role==="teacher" || profile.role==="admin")
-        ){
-          teacherProfile=profile;
-          $("#loginCard").classList.add("hidden");
-          $("#dashboard").classList.remove("hidden");
-          $("#logoutBtn").classList.remove("hidden");
-          renderTeacherIdentity();
-          await loadRows();
-        }else{
-          $("#loginError").textContent=
-            "這個帳號尚未被設定為教師或管理者。";
-          await authMod.signOut(auth);
-        }
-      });
-
-    }catch(e){
-      $("#loginError").textContent="Firebase 初始化失敗："+e.message;
-    }
-  }
-
-  $("#loginBtn").onclick=async()=>{
-    $("#loginError").textContent="";
-    try{
-      await mods.auth.signInWithEmailAndPassword(
-        auth,
-        $("#email").value.trim(),
-        $("#password").value
-      );
-    }catch(e){
-      $("#loginError").textContent=
-        "登入失敗，請確認 Email、密碼與教師權限。";
-    }
+  return {
+    stars,
+    maxStars,
+    score,
+    currentLevel,
+    completed,
+    updatedAt: subData?.updatedAt || studentDoc.updatedAt || "-",
+    recordsCount: Number(subData?.recordsCount || (stars > 0 ? 1 : 0))
   };
+}
 
-  $("#logoutBtn").onclick=()=>mods.auth.signOut(auth);
-  $("#refreshBtn").onclick=loadRows;
-  $("#classFilter").onchange=render;
-  $("#exportBtn").onclick=exportExcel;
-  $("#closeManageBtn").onclick=()=>{
-    $("#manageDeleteStatus").textContent="";
-    $("#studentManageDialog").close();
-  };
+// ==========================================
+// 4. 畫面渲染與統計更新
+// ==========================================
+function renderDashboard() {
+  const tbody = document.getElementById("studentTableBody");
+  const cfg = MODULE_CONFIG[currentModule];
+  document.getElementById("statStarLabel").textContent = `平均星星 (上限 ${cfg.maxStars}★)`;
+  document.getElementById("thStars").textContent = `星星 (/${cfg.maxStars})`;
 
-  init();
-})();
+  if (!currentStudents.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">此班級 (${currentClassId}) 尚無學生資料</td></tr>`;
+    document.getElementById("statStudentCount").textContent = "0";
+    document.getElementById("statAvgStars").textContent = "0";
+    document.getElementById("statAvgScore").textContent = "0";
+    document.getElementById("statCompletedCount").textContent = "0";
+    return;
+  }
+
+  let sumStars = 0;
+  let sumScore = 0;
+  let completedCount = 0;
+
+  const rowsHtml = currentStudents.map((stu) => {
+    const prog = extractModuleData(stu, currentModule);
+    sumStars += prog.stars;
+    sumScore += prog.score;
+    if (prog.completed) completedCount++;
+
+    const statusBadge = prog.completed
+      ? `<span class="badge badge-done">已完成</span>`
+      : `<span class="badge badge-progress">${prog.stars > 0 ? "進行中" : "未開始"}</span>`;
+
+    return `
+      <tr>
+        <td>${stu.classId || currentClassId}</td>
+        <td>${stu.seatNumber || "-"}</td>
+        <td><strong>${stu.name || "未命名"}</strong></td>
+        <td><button class="btn btn-gray" onclick="window.editStudent('${stu.id}')">🛠️ 維護</button></td>
+        <td>⭐ ${prog.stars}/${prog.maxStars}</td>
+        <td><strong>${prog.score}</strong></td>
+        <td>${prog.currentLevel}</td>
+        <td>${statusBadge}</td>
+        <td>${prog.updatedAt || "-"}</td>
+        <td>${prog.recordsCount} 筆</td>
+      </tr>
+    `;
+  }).join("");
+
+  tbody.innerHTML = rowsHtml;
+
+  const count = currentStudents.length;
+  document.getElementById("statStudentCount").textContent = String(count);
+  document.getElementById("statAvgStars").textContent = (sumStars / count).toFixed(1);
+  document.getElementById("statAvgScore").textContent = String(Math.round(sumScore / count));
+  document.getElementById("statCompletedCount").textContent = String(completedCount);
+  document.getElementById("lastUpdateText").textContent = `最後更新：${new Date().toLocaleTimeString()}`;
+}
+
+// ==========================================
+// 5. 載入班級資料
+// ==========================================
+async function loadClassData(classId) {
+  currentClassId = classId;
+  const q = query(collection(db, "students"), where("classId", "==", String(classId)));
+  const snap = await getDocs(q);
+  const list = [];
+  snap.forEach((docSnap) => {
+    list.push({ id: docSnap.id, ...docSnap.data() });
+  });
+  list.sort((a, b) => Number(a.seatNumber || 0) - Number(b.seatNumber || 0));
+  currentStudents = list;
+  renderDashboard();
+}
+
+// ==========================================
+// 6. 登入與錯誤具體診斷 (解決模糊錯誤訊息)
+// ==========================================
+const loginBtn = document.getElementById("loginBtn");
+const resetPwdBtn = document.getElementById("resetPwdBtn");
+const loginError = document.getElementById("loginError");
+
+function showError(msg) {
+  loginError.style.display = "block";
+  loginError.textContent = msg;
+}
+
+loginBtn.addEventListener("click", async () => {
+  loginError.style.display = "none";
+  const email = document.getElementById("teacherEmail").value.trim();
+  const password = document.getElementById("teacherPassword").value;
+
+  if (!email || !password) {
+    showError("請輸入 Email 與密碼。");
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    console.error("Login Error:", err);
+    if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+      showError(`密碼或帳號不符 (${err.code})。請點右側「發送重設密碼信」並確保輸入最新密碼（請避免瀏覽器自動填入舊密碼）。`);
+    } else if (err.code === "auth/too-many-requests") {
+      showError("短時間嘗試次數過多，已被 Firebase 暫時鎖定，請稍候 15 分鐘或點擊「發送重設密碼信」解鎖。");
+    } else {
+      showError(`登入失敗：${err.message}`);
+    }
+  }
+});
+
+resetPwdBtn.addEventListener("click", async () => {
+  const email = document.getElementById("teacherEmail").value.trim();
+  if (!email) {
+    showError("請先在 Email 欄位輸入教師信箱。");
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert(`已寄出重設密碼信至 ${email}！\n請至信箱點擊最新一封信件設定新密碼，完成後手動輸入新密碼登入。`);
+  } catch (err) {
+    showError(`寄送重設信失敗：${err.message}`);
+  }
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+    await loadClassData(document.getElementById("classSelect").value);
+  } else {
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("dashboardSection").style.display = "none";
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+
+// ==========================================
+// 7. 模組切換與 Excel 匯出 (單一單元 & 四單元總表)
+// ==========================================
+document.querySelectorAll(".module-tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".module-tab").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentModule = btn.dataset.module;
+    renderDashboard();
+  });
+});
+
+document.getElementById("classSelect").addEventListener("change", (e) => {
+  loadClassData(e.target.value);
+});
+
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  loadClassData(currentClassId);
+});
+
+// 下載目前單元 Excel
+document.getElementById("exportCurrentBtn").addEventListener("click", () => {
+  const cfg = MODULE_CONFIG[currentModule];
+  const rows = currentStudents.map((stu) => {
+    const p = extractModuleData(stu, currentModule);
+    return {
+      "班級": stu.classId || currentClassId,
+      "座號": stu.seatNumber,
+      "姓名": stu.name,
+      "單元名稱": cfg.title,
+      "星星數": p.stars,
+      "星星上限": p.maxStars,
+      "單元評分": p.score,
+      "目前進度": p.currentLevel,
+      "是否完成": p.completed ? "已完成" : "進行中",
+      "最近更新": p.updatedAt
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, cfg.key);
+  XLSX.writeFile(wb, `${currentClassId}班_${cfg.key}_進度表.xlsx`);
+});
+
+// 下載四單元整合總表 Excel
+document.getElementById("exportAllBtn").addEventListener("click", () => {
+  const rows = currentStudents.map((stu) => {
+    const d1 = extractModuleData(stu, "digital");
+    const d2 = extractModuleData(stu, "python");
+    const d3 = extractModuleData(stu, "system");
+    const d4 = extractModuleData(stu, "aiot");
+    const total = extractModuleData(stu, "all");
+    return {
+      "班級": stu.classId || currentClassId,
+      "座號": stu.seatNumber,
+      "姓名": stu.name,
+      "單元一：數位時代(24★)": d1.stars,
+      "單元一評分": d1.score,
+      "單元二：Python世界(30★)": d2.stars,
+      "單元二評分": d2.score,
+      "單元三：系統平臺(24★)": d3.stars,
+      "單元三評分": d3.score,
+      "專題：AIoT守護站(15★)": d4.stars,
+      "專題評分": d4.score,
+      "總星星數(93★)": total.stars,
+      "學期總評分": total.score
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "四單元總成績");
+  XLSX.writeFile(wb, `${currentClassId}班_116資訊科技_四單元總成績表.xlsx`);
+});

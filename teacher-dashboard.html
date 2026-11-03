@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>116 資訊科技闖關地圖｜教師管理後台</title>
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --primary: #3b5998;
+      --primary-hover: #2d4373;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --amber-bg: #fffbeb;
+      --amber-border: #f59e0b;
+      --green-bg: #dcfce7;
+      --green-text: #166534;
+    }
+    * { box-sizing: border-box; font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding: 24px; }
+    .container { max-width: 1180px; margin: 0 auto; }
+    
+    /* Login Card */
+    .login-card {
+      max-width: 440px; margin: 60px auto; background: var(--card);
+      padding: 32px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .login-card h2 { margin-top: 0; font-size: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--muted); }
+    .form-control {
+      width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 15px;
+    }
+    .error-msg { color: #dc2626; font-size: 14px; margin: 10px 0; display: none; }
+    
+    /* Dashboard Header & Tabs */
+    .panel-card {
+      background: var(--card); border-radius: 16px; padding: 20px 24px;
+      margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .top-bar {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px;
+    }
+    .module-tabs {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+      border-bottom: 1px solid var(--border); padding-bottom: 14px;
+    }
+    .module-tab {
+      padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border);
+      background: #f8fafc; cursor: pointer; font-weight: 600; font-size: 14px;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .module-tab.active {
+      background: #eef2ff; border-color: #4f46e5; color: #312e81;
+      box-shadow: 0 2px 6px rgba(79,70,229,0.15);
+    }
+    .btn {
+      padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+      font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: #3b49df; color: #fff; }
+    .btn-gray { background: #e2e8f0; color: #334155; }
+    .btn-green { background: #d1fae5; color: #065f46; }
+    .btn-amber { background: #fef3c7; color: #92400e; }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+    }
+    .stat-box {
+      background: #f8fafc; padding: 16px 20px; border-radius: 12px; border: 1px solid #f1f5f9;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .stat-value { font-size: 26px; font-weight: 700; color: #0f172a; }
+
+    /* Rescue Card */
+    .rescue-card {
+      background: var(--amber-bg); border: 1px solid var(--amber-border);
+      border-radius: 16px; padding: 20px 24px; margin-bottom: 20px;
+    }
+    .rescue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; background: #f8fafc; }
+    .badge {
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    }
+    .badge-progress { background: #f1f5f9; color: #475569; }
+    .badge-done { background: #dcfce7; color: #166534; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 登入區塊 -->
+  <div id="loginSection" class="login-card">
+    <h2>教師登入</h2>
+    <p style="font-size:14px; color:#64748b;">請使用 Firebase Authentication 中建立的教師帳號。</p>
+    <div class="form-group">
+      <label for="teacherEmail">Email</label>
+      <input type="email" id="teacherEmail" class="form-control" value="jimwang@mail.qfm.kh.edu.tw" />
+    </div>
+    <div class="form-group">
+      <label for="teacherPassword">密碼</label>
+      <input type="password" id="teacherPassword" class="form-control" placeholder="請輸入密碼" />
+    </div>
+    <div id="loginError" class="error-msg"></div>
+    <div style="display:flex; gap:10px; align-items:center; margin-top:14px;">
+      <button id="loginBtn" class="btn btn-primary">登入教師端</button>
+      <button id="resetPwdBtn" class="btn btn-gray" type="button">發送重設密碼信</button>
+    </div>
+  </div>
+
+  <!-- 教師管理後台區塊 -->
+  <div id="dashboardSection" style="display:none;">
+    <div class="panel-card">
+      <!-- 四大闖關模組切換器 -->
+      <div class="module-tabs" id="moduleTabs">
+        <button class="module-tab" data-module="all">📊 全學期總覽 (93★)</button>
+        <button class="module-tab" data-module="digital">💾 單元一：數位時代 (8關 / 24★)</button>
+        <button class="module-tab active" data-module="python">🐍 單元二：進入 Python 的世界 (10關 / 30★)</button>
+        <button class="module-tab" data-module="system">🖥️ 單元三：系統平臺大冒險 (8關 / 24★)</button>
+        <button class="module-tab" data-module="aiot">💡 延伸專題：5016B AIoT 守護站 (5節 / 15★)</button>
+      </div>
+
+      <!-- 工具列 -->
+      <div class="top-bar">
+        <label for="classSelect" style="font-weight:600;">授權班級：</label>
+        <select id="classSelect" class="form-control" style="width:120px;">
+          <option value="901">901</option>
+          <option value="902">902</option>
+          <option value="905">905</option>
+          <option value="911" selected>911</option>
+        </select>
+        <button id="refreshBtn" class="btn btn-gray">🔄 重新整理</button>
+        <button id="exportCurrentBtn" class="btn btn-green">📗 下載此單元 Excel</button>
+        <button id="exportAllBtn" class="btn btn-green">📚 下載四單元總表 Excel</button>
+        <button id="trashBtn" class="btn btn-gray">🗑️ 回收桶</button>
+        <button id="checkAnomalyBtn" class="btn btn-amber">🔍 異常檢查</button>
+        <span id="lastUpdateText" style="font-size:13px; color:#64748b; margin-left:auto;">最後更新：尚未同步</span>
+        <button id="logoutBtn" class="btn btn-gray">登出</button>
+      </div>
+
+      <!-- 統計卡片 -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">學生人數</div>
+          <div class="stat-value" id="statStudentCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label" id="statStarLabel">平均星星 (上限 30★)</div>
+          <div class="stat-value" id="statAvgStars">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">平均評分 (滿分 100)</div>
+          <div class="stat-value" id="statAvgScore">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">完成人數</div>
+          <div class="stat-value" id="statCompletedCount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 救援已刪除學生 -->
+    <div class="rescue-card">
+      <div style="font-weight:700; margin-bottom:4px;">🛟 救援已刪除學生</div>
+      <div style="font-size:13px; color:#78350f; margin-bottom:12px;">
+        適用於舊版已刪除 Firestore、但 Firebase Authentication 帳號仍存在的學生，例如 905-20。
+      </div>
+      <div class="rescue-grid">
+        <div>
+          <label style="font-size:13px;">班級</label>
+          <input type="text" id="rescueClass" class="form-control" placeholder="例如 905" />
+        </div>
+        <div>
+          <label style="font-size:13px;">座號</label>
+          <input type="text" id="rescueSeat" class="form-control" placeholder="例如 20" />
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;">姓名</label>
+        <input type="text" id="rescueName" class="form-control" placeholder="學生姓名" />
+      </div>
+      <button id="rescueBtn" class="btn btn-amber">🛟 開始救援</button>
+    </div>
+
+    <!-- 學生進度清單 -->
+    <div class="panel-card">
+      <table>
+        <thead>
+          <tr>
+            <th>班級</th>
+            <th>座號</th>
+            <th>姓名</th>
+            <th>維護</th>
+            <th id="thStars">星星</th>
+            <th>評分</th>
+            <th id="thProgress">目前進度</th>
+            <th>完成</th>
+            <th>最近更新</th>
+            <th>紀錄</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody">
+          <tr><td colspan="10" style="text-align:center; color:#94a3b8;">請先登入以載入班級資料</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./teacher-dashboard.js"></script>
+</body>
+</html>

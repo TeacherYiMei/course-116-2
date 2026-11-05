@@ -1,20 +1,21 @@
 /**
- * shared/teacher-dashboard.js (v21 - 多單元智慧聯動與容錯版)
+ * shared/teacher-dashboard.js (v22 - 支援手動修改各單元星星數)
  */
 (function(){
   const cfg=window.COURSE115_FIREBASE_CONFIG||{};
   let auth,db,mods;
   let teacherProfile=null;
   let currentRows=[];
-  let currentUnit="python";
+  let manageRow=null;
+  let currentAccountRecord=null;
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
-    all:    { name: "全學期四單元總覽", maxStars: 93, title: "📊 116 資訊科技｜四單元總覽 (v21)" },
-    unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端 (v21)" },
-    python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端 (v21)" },
-    unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端 (v21)" },
-    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端 (v21)" }
+    all:    { name: "全學期四單元總覽", maxStars: 93, title: "📊 116 資訊科技｜四單元總覽 (v22)" },
+    unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端 (v22)" },
+    python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端 (v22)" },
+    unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端 (v22)" },
+    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端 (v22)" }
   };
 
   const configured=()=>!!(
@@ -93,7 +94,9 @@
       unitObj = modsData.aiot || modsData.project5016B || r.aiot || r.project5016B || r.unit4 || {};
     }
 
-    const stars = Number(unitObj.stars || unitObj.score || 0);
+    let stars = Number(unitObj.stars || unitObj.score || 0);
+    if(stars===0) stars = Number(r[`${unitKey}Stars`] || r[`${unitKey}_stars`] || 0);
+
     const score = Number(unitObj.score || Math.round(stars / maxStars * 100));
     const completed = !!unitObj.completed || stars >= maxStars;
     const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
@@ -159,7 +162,7 @@
     document.querySelectorAll(".manageBtn").forEach(btn=>{
       btn.addEventListener("click",()=>{
         const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
-        if(row) alert(`學生：${row.name} (${row.className}班 ${row.seatNo}號)`);
+        if(row) openStudentManage(row);
       });
     });
   }
@@ -191,7 +194,7 @@
   }
 
   async function loadRows(){
-    $("#dbStatus").textContent="讀取資料中 (v21)…";
+    $("#dbStatus").textContent="讀取資料中 (v22)…";
     try{
       if(isAdmin()){
         const snap=await mods.fs.getDocs(mods.fs.collection(db,"students"));
@@ -213,6 +216,74 @@
       render();
       $("#dbStatus").textContent="讀取失敗："+(e?.message||"未知錯誤");
     }
+  }
+
+  function openStudentManage(row){
+    if(!isAdmin() && !allowedClasses().includes(String(row.className))){
+      alert("沒有此班級維護權限。");
+      return;
+    }
+    const dlg=$("#studentManageDialog");
+    $("#manageStudentTitle").textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
+    
+    const d1 = getStudentUnitData(row, "unit1");
+    const d2 = getStudentUnitData(row, "python");
+    const d3 = getStudentUnitData(row, "unit3");
+    const d4 = getStudentUnitData(row, "aiot");
+
+    $("#manageStudentNote").innerHTML=`
+      <p style="color:#15803d;font-weight:700;">✏️ 您可以直接在這裡手動為學生補登各單元星星數：</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; background:#f8fafc; padding:16px; border-radius:12px; border:1px solid #e2e8f0;">
+        <label>數位時代 (上限 24)<input type="number" id="editUnit1Stars" value="${d1.stars}" class="input" style="width:100%;margin-top:6px;padding:8px;border-radius:6px;border:1px solid #cbd5e1;"></label>
+        <label>Python (上限 30)<input type="number" id="editPythonStars" value="${d2.stars}" class="input" style="width:100%;margin-top:6px;padding:8px;border-radius:6px;border:1px solid #cbd5e1;"></label>
+        <label>系統平臺 (上限 24)<input type="number" id="editUnit3Stars" value="${d3.stars}" class="input" style="width:100%;margin-top:6px;padding:8px;border-radius:6px;border:1px solid #cbd5e1;"></label>
+        <label>AIoT專題 (上限 15)<input type="number" id="editAiotStars" value="${d4.stars}" class="input" style="width:100%;margin-top:6px;padding:8px;border-radius:6px;border:1px solid #cbd5e1;"></label>
+      </div>
+      <button id="saveManualStarsBtn" class="primary" style="margin-top:16px;width:100%;padding:10px;">💾 儲存手動星星數</button>
+      <div id="manualStarStatus" style="margin-top:8px;font-size:13px;font-weight:700;"></div>
+    `;
+
+    $("#saveManualStarsBtn").onclick=async()=>{
+      const btn=$("#saveManualStarsBtn");
+      const status=$("#manualStarStatus");
+      btn.disabled=true;
+      btn.textContent="儲存中...";
+      try {
+        const u1 = Number($("#editUnit1Stars").value);
+        const py = Number($("#editPythonStars").value);
+        const u3 = Number($("#editUnit3Stars").value);
+        const a4 = Number($("#editAiotStars").value);
+        
+        const updates = {
+          "modules.unit1.stars": u1,
+          "modules.unit1.completed": u1 >= 24,
+          "modules.unit1.currentLevel": u1>0?"老師手動補登":"尚未開始",
+          "modules.python.stars": py,
+          "stars": py,
+          "modules.unit3.stars": u3,
+          "modules.unit3.completed": u3 >= 24,
+          "modules.unit3.currentLevel": u3>0?"老師手動補登":"尚未開始",
+          "modules.aiot.stars": a4,
+          "modules.aiot.completed": a4 >= 15,
+          "modules.aiot.currentLevel": a4>0?"老師手動補登":"尚未開始",
+          "updatedAt": new Date().toLocaleString("zh-TW", { hour12: true })
+        };
+
+        const studentRef = mods.fs.doc(db, "students", row.id);
+        await mods.fs.updateDoc(studentRef, updates);
+        
+        status.style.color="#15803d";
+        status.textContent="✅ 星星已成功更新！";
+        setTimeout(() => { dlg.close(); loadRows(); }, 1200);
+      } catch (err) {
+        status.style.color="#dc2626";
+        status.textContent="儲存失敗：" + err.message;
+        btn.disabled=false;
+        btn.textContent="💾 儲存手動星星數";
+      }
+    };
+
+    dlg.showModal();
   }
 
   async function init(){
@@ -264,6 +335,8 @@
   $("#logoutBtn").onclick=()=>mods.auth.signOut(auth);
   $("#refreshBtn").onclick=loadRows;
   $("#classFilter").onchange=render;
+  
+  if($("#closeManageBtn")) $("#closeManageBtn").onclick=()=>$("#studentManageDialog").close();
 
   init();
 })();

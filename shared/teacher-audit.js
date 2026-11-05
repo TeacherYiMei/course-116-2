@@ -73,6 +73,7 @@
     const flagStars=r.challengeDone&&typeof r.challengeDone==="object"?Object.values(r.challengeDone).filter(Boolean).length:0;
     const expectedStars=Math.max(sumProgress(r.progress),flagStars);
     const expectedScore=Math.round(expectedStars/TOTAL*100);
+    const pos=expectedPosition(r.progress);
     const issues=[];
     const types=new Set();
 
@@ -102,6 +103,10 @@
       types.add("completed");
     }
 
+    if(hasGap(r.progress)){
+      issues.push("關卡進度有跳關現象（前一關未滿星，卻有後一關紀錄）");
+      types.add("progress");
+    }
 
     if(duplicateCount>1){
       issues.push(`同班同座號有 ${duplicateCount} 筆原始紀錄`);

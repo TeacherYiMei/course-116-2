@@ -2,6 +2,7 @@
    共用小元件：跳脫、星星、提示、對話框、登入閘門、頁首
    ---------------------------------------------------------------------
    需要先載入 store.js。
+   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入
    ===================================================================== */
 (function () {
   var UI = {};
@@ -12,7 +13,6 @@
     });
   };
 
-  /** ★★☆ */
   UI.stars = function (n, max) {
     max = max == null ? 3 : max; n = Math.max(0, Math.min(max, n || 0));
     var s = '';
@@ -39,7 +39,6 @@
     toastTimer = setTimeout(function () { toastEl.style.opacity = '0'; }, ms || 2200);
   };
 
-  /** 開一個對話框，回傳關閉函式。html 內有 [data-close] 的按鈕會關閉它 */
   UI.modal = function (html, opts) {
     opts = opts || {};
     var m = document.createElement('div');
@@ -55,34 +54,122 @@
     return { el: m, close: close };
   };
 
+  /* --- 🚀 Firebase 動態載入腳本 --- */
+  function loadFirebaseScripts() {
+    return new Promise((resolve) => {
+      if (window.CourseDB) return resolve();
+      
+      const configScript = document.createElement('script');
+      // 根據當前網頁深度推算 shared 目錄位置
+      const depth = location.pathname.split('/').length - 1;
+      const prefix = depth > 2 ? '../../shared/' : '../shared/';
+      
+      configScript.src = prefix + 'firebase-config.js';
+      document.head.appendChild(configScript);
+      
+      configScript.onload = () => {
+        const syncScript = document.createElement('script');
+        syncScript.src = prefix + 'firebase-sync.js';
+        document.head.appendChild(syncScript);
+        syncScript.onload = () => resolve();
+      };
+    });
+  }
+
   /**
-   * 登入閘門：沒登入就跳出「班級／座號／姓名」，登入後才呼叫 ready()。
-   * ⚠️ 日後接學校 Google 帳號時，這一段換成 Google 登入按鈕即可。
+   * 登入閘門：[SSO 升級版] 加入密碼驗證與 Firebase 綁定
    */
-  UI.requireLogin = function (ready) {
-    if (STORE.me()) { ready && ready(STORE.me()); return; }
+  UI.requireLogin = async function (ready) {
+    // 若已登入且 Firebase 已啟動，直接放行
+    if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) { 
+      ready && ready(STORE.me()); 
+      return; 
+    }
+
+    await loadFirebaseScripts();
+    if(window.CourseDB) await CourseDB.ready;
+
+    // 若本機有 STORE，且 Firebase 也登入，嘗試靜態還原
+    if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
+      ready && ready(STORE.me());
+      return;
+    }
+
     var dlg = UI.modal(
-      '<p class="kicker">登入</p><h2 class="title" style="font-size:1.4rem">先告訴我你是誰</h2>' +
-      '<p class="small soft mt1">進度會記在這台電腦的瀏覽器裡。</p>' +
+      '<div style="text-align:center; font-size:3rem; margin-bottom:10px;">🔐</div>' +
+      '<h2 class="title" style="font-size:1.4rem; text-align:center">建立或登入學習帳號</h2>' +
+      '<p class="small soft mt1" style="text-align:center">為避免電腦重啟後遺失進度，請登入學習帳號。舊版從未設定密碼的學生，請由老師使用「🔑 舊帳號救援」。</p>' +
       '<form class="stack mt2" id="login-form">' +
       '<div class="grid" style="grid-template-columns:1fr 1fr;gap:.75rem">' +
-      '<label class="field">班級<input name="cls" inputmode="numeric" placeholder="901" maxlength="3" autocomplete="off"></label>' +
-      '<label class="field">座號<input name="seat" inputmode="numeric" placeholder="5" maxlength="2" autocomplete="off"></label></div>' +
-      '<label class="field">姓名<input name="name" placeholder="王小明" maxlength="12" autocomplete="off"></label>' +
-      '<p id="login-err" class="small bold" style="color:var(--bad);min-height:1.2em" aria-live="polite"></p>' +
-      '<button class="btn primary big" style="width:100%">開始闖關 →</button></form>',
+      '<label class="field">班級<input name="cls" inputmode="numeric" placeholder="例：901" maxlength="3" autocomplete="off" required></label>' +
+      '<label class="field">座號<input name="seat" inputmode="numeric" placeholder="例：5" maxlength="2" autocomplete="off" required></label></div>' +
+      '<label class="field">姓名<input name="name" placeholder="例：王小明" maxlength="12" autocomplete="off" required></label>' +
+      '<label class="field" style="margin-top:10px; color:#4f46e5;">學習密碼 (至少6碼) *<input type="password" name="pwd" placeholder="請記住自己的學習密碼，不要使用其他網站重要密碼" minlength="6" required></label>' +
+      '<p id="login-err" class="small bold" style="color:var(--bad);min-height:1.2em;margin-top:10px;" aria-live="polite"></p>' +
+      '<div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">' +
+      '<button type="submit" id="btn-link" class="btn primary big" style="flex:1; background:#4f46e5; border-color:#4f46e5; color:white;">建立 / 綁定帳號</button>' +
+      '<button type="button" id="btn-login" class="btn big" style="flex:1;">已有帳號，登入</button>' +
+      '</div></form>',
       { sticky: true });
-    dlg.el.querySelector('#login-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var f = e.target;
-      var err = STORE.login(f.cls.value, f.seat.value, f.name.value);
-      if (err) { dlg.el.querySelector('#login-err').textContent = err; return; }
-      dlg.close(); ready && ready(STORE.me());
-    });
+
+    const form = dlg.el.querySelector('#login-form');
+    const errEl = dlg.el.querySelector('#login-err');
+    
+    // 如果之前本機有紀錄，先帶入
+    const me = STORE.me();
+    if(me) {
+      form.cls.value = me.cls || '';
+      form.seat.value = me.seat || '';
+      form.name.value = me.name || '';
+    }
+
+    async function handleAuth(isLogin) {
+      const cls = form.cls.value.trim();
+      const seat = form.seat.value.trim();
+      const name = form.name.value.trim();
+      const pwd = form.pwd.value.trim();
+
+      const localErr = STORE.login(cls, seat, name);
+      if (localErr) { errEl.textContent = localErr; return; }
+      if (pwd.length < 6) { errEl.textContent = "密碼至少需要6個字元"; return; }
+
+      errEl.textContent = "⏳ 連線中...";
+      errEl.style.color = "#3b82f6";
+      
+      try {
+        if (!window.CourseDB) throw new Error("Firebase 尚未載入");
+        
+        if (isLogin) {
+          await CourseDB.signInStudentAccount(cls, seat, pwd);
+        } else {
+          // 若原本未匿名登入，先強制匿名登入才能 link
+          if(!CourseDB.isAnonymous() && !CourseDB.uid) {
+            await window.mods?.auth?.signInAnonymously(window.auth);
+          }
+          await CourseDB.linkStudentAccount(cls, seat, pwd);
+        }
+        
+        // 登入成功，將 STORE 資料上傳一次
+        await STORE.syncToCloud();
+        
+        dlg.close(); 
+        ready && ready(STORE.me());
+      } catch (e) {
+        errEl.style.color = "var(--bad)";
+        if(e?.code === "auth/email-already-in-use" || e?.code === "auth/credential-already-in-use"){
+          errEl.textContent = "此班級座號已被綁定，請按「已有帳號，登入」。";
+        } else if(e?.code === "auth/invalid-credential" || e?.code === "auth/wrong-password"){
+          errEl.textContent = "密碼錯誤，請重新輸入。";
+        } else {
+          errEl.textContent = "連線失敗: " + (e.message || "未知錯誤");
+        }
+      }
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); handleAuth(false); });
+    dlg.el.querySelector('#btn-login').addEventListener('click', (e) => { e.preventDefault(); handleAuth(true); });
   };
 
-  /** 頁首：返回基地＋學生名牌。放在 <header id="topbar"> 裡 */
-  /** 這一頁屬於哪個單元？依 config.js 的 MODULES 比對網址（單元的 href、parts 的 href、或所在資料夾） */
   UI.moduleOf = function () {
     var C = window.CONFIG; if (!C || !C.MODULES) return null;
     var seg = location.pathname.split('/'), file = seg.pop() || 'index.html', dir = seg.pop() || '';
@@ -91,7 +178,7 @@
         (m.parts || []).some(function (p) { return p.href === file; });
     })[0] || null;
   };
-  /** 套用單元色：把 --unit 系列指到這個單元的 --uN（見 theme.css 與 docs/04_設計系統.md） */
+
   UI.useUnitColor = function (c) {
     if (!c) return;
     var r = document.documentElement.style;
@@ -118,7 +205,6 @@
     window.addEventListener('store:change', render);
   };
 
-  /** 課程小卡捲出畫面後，改成精簡版固定在畫面上方（隨時可以切換）。狀態放在外層，小卡重畫也不會掉 */
   UI.stickyNav = function (nav) {
     if (typeof nav === 'string') nav = document.querySelector(nav);
     if (!nav || nav.parentNode.classList.contains('ucards-ph')) return;
@@ -133,13 +219,13 @@
     window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(check); } }, { passive: true });
     check();
   };
-  /** 切換到別的部分後，如果課程小卡已經捲上去了，捲回內容開頭 */
+
   UI.scrollToNav = function (nav) {
     if (typeof nav === 'string') nav = document.querySelector(nav);
     var ph = nav && (nav.closest('.ucards-ph') || nav);
     if (ph && ph.getBoundingClientRect().top < 0) ph.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-  /** 上一個／下一個：每一課、每一部分、每一關的結尾都用這一組。item = { lbl, title, href } 或 { lbl, title, go: function }（可加 id、locked） */
+
   UI.pager = function (el, prev, next) {
     if (typeof el === 'string') el = document.querySelector(el);
     if (!el) return;
@@ -156,7 +242,6 @@
     });
   };
 
-  /** 關卡卡片的欄數：避免最後一排只剩一張（4 張 → 2×2；7、8 張 → 每排 4 張；其他 3 欄） */
   UI.gridCols = function (n) { return 'lvgrid c' + (n === 4 || n === 2 ? 2 : (n === 7 || n === 8 ? 4 : (n === 10 || n === 5 ? 5 : 3))); };
 
   window.UI = UI;

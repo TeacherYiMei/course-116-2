@@ -79,42 +79,46 @@
       safeSet(progressKey(p), JSON.stringify(d));
       fire();
       
-      // 🚀 關鍵：儲存到 local 後，立刻嘗試上傳 Firebase
       this.syncToCloud();
-      
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 全自動雲端同步函數 ---
+    // --- 🚀 全自動雲端同步函數 (包含進階挑戰島星星) ---
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       const p = this.me();
       if(!p) return;
       
-      // 取出本地 STORE 分數
       const dStars = this.moduleStars('digital') || 0;
       const pStars = this.moduleStars('platform') || 0;
       const aStars = this.moduleStars('arduino') || 0;
       const nStars = this.moduleStars('network') || 0;
       
-      // 取出 Python 本地分數 (如果有的話)
       let pyStars = 0;
       let pyState = {};
+      let bonusStars = 0;
       try {
         pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
         pyStars = Object.values(pyState).reduce((a, b) => a + Number(b || 0), 0);
+        let bonusState = JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}');
+        bonusStars = Object.values(bonusState).filter(Boolean).length;
       } catch(e) {}
+      
+      // 合併主線星星與進階挑戰星星
+      const totalPyStars = pyStars + bonusStars;
+      // 確保完成進度依然以主線 30 顆為標準
       
       const payload = {
         className: p.cls,
         seatNo: p.seat,
         name: p.name,
-        courseId: "python", // 主系統識別碼
-        stars: pyStars,     // 兼容原本 Python 系統
+        courseId: "python",
+        stars: totalPyStars,     
         progress: pyState,
-        // 匯集所有單元
+        bonusChallenges: JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}'),
+        bonusBadges: bonusStars,
         modules: {
-          python: { stars: pyStars, completed: pyStars >= 30, currentLevel: "已匯入" },
+          python: { stars: totalPyStars, completed: pyStars >= 30, currentLevel: "已匯入" },
           unit1: { stars: dStars, completed: dStars >= 24, currentLevel: "已匯入" },
           unit3: { stars: pStars, completed: pStars >= 24, currentLevel: "已匯入" },
           aiot:  { stars: aStars, completed: aStars >= 15, currentLevel: "已匯入" },

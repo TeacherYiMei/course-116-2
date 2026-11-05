@@ -62,7 +62,8 @@ const QUESTS=[
  validate(code){
    if(!/input\s*\(/.test(code))return fail("需要先讓使用者輸入密碼。");
    if(!/len\s*\(/.test(code))return fail("需要使用 len() 計算長度。");
-   if(!/[<>]=?\s*6|6\s*[<>]=?/.test(code))return fail("條件中需要以 6 為門檻。");
+   // 放寬條件：學生若寫 > 5，也視為符合邏輯
+   if(!/[<>]=?\s*[56]|[56]\s*[<>]=?/.test(code))return fail("條件中需要以 6 為門檻。");
    if(!/\bif\b/.test(code)||!/\belse\s*:/.test(code))return fail("需要 if / else。");
    return ok();
  },
@@ -77,7 +78,8 @@ const QUESTS=[
  starter:'# 10 → 1，最後發射\n',
  validate(code){
    if(!/\bfor\b/.test(code)||!/range\s*\(/.test(code))return fail("需要使用 for + range()。");
-   if(!/range\s*\([^)]*,[^)]*,-\s*1\s*\)/.test(code))return fail("倒數要讓 range() 使用 -1 的步進。");
+   // 完美修復空白問題
+   if(!/range\s*\([^)]*,[^)]*,\s*-\s*1\s*\)/.test(code))return fail("倒數要讓 range() 使用 -1 的步進。");
    if(!/10/.test(code))return fail("倒數要從 10 開始。");
    if(!/發射/.test(code))return fail("倒數結束後要顯示「發射」。");
    return ok();
@@ -95,7 +97,8 @@ const QUESTS=[
    if(!/import\s+random/.test(code))return fail("需要 import random。");
    if(!/random\.randint\s*\(\s*1\s*,\s*6\s*\)/.test(code))return fail("亂數範圍要是 1～6。");
    if(!/\bif\b/.test(code)||!/\belse\s*:/.test(code))return fail("需要 if / else。");
-   if(!/>=\s*4/.test(code))return fail("請用 >= 4 作為判斷門檻。");
+   // 放寬條件：學生若寫 > 3，也視為符合邏輯
+   if(!/[<>]=?\s*[34]|[34]\s*[<>]=?/.test(code))return fail("請用 >= 4 作為判斷門檻。");
    return ok();
  },
  tests:[{inputs:[]}]
@@ -245,7 +248,7 @@ async function check(){
  $("#feedback").innerHTML=`🎉 <b>挑戰完成！</b>你取得了「${q.icon} ${q.title}」進階星星⭐。`;
  renderBadges();renderList();
  
- // 新增：即時觸發雲端同步，讓進階星星合併進 Python 總星數
+ // 即時觸發雲端同步，讓進階星星合併進 Python 總星數
  try{
    if(window.STORE && typeof window.STORE.syncToCloud === 'function'){
      await window.STORE.syncToCloud();

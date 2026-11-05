@@ -2,7 +2,7 @@
    共用小元件：跳脫、星星、提示、對話框、登入閘門、頁首
    ---------------------------------------------------------------------
    需要先載入 store.js。
-   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入
+   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (修正路徑版)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -54,25 +54,34 @@
     return { el: m, close: close };
   };
 
-  /* --- 🚀 Firebase 動態載入腳本 --- */
+  /* --- 🚀 Firebase 動態載入腳本 (智能路徑尋找) --- */
   function loadFirebaseScripts() {
     return new Promise((resolve) => {
       if (window.CourseDB) return resolve();
       
-      const configScript = document.createElement('script');
-      // 根據當前網頁深度推算 shared 目錄位置
-      const depth = location.pathname.split('/').length - 1;
-      const prefix = depth > 2 ? '../../shared/' : '../shared/';
+      // 自動從現有的 script 標籤中尋找 shared 資料夾的相對路徑
+      let sharedPath = '../shared/';
+      const scripts = document.getElementsByTagName('script');
+      for (let i = 0; i < scripts.length; i++) {
+        const src = scripts[i].getAttribute('src');
+        if (src && src.includes('shared/store.js')) {
+          sharedPath = src.replace('store.js', '');
+          break;
+        }
+      }
       
-      configScript.src = prefix + 'firebase-config.js';
-      document.head.appendChild(configScript);
+      const configScript = document.createElement('script');
+      configScript.src = sharedPath + 'firebase-config.js';
       
       configScript.onload = () => {
         const syncScript = document.createElement('script');
-        syncScript.src = prefix + 'firebase-sync.js';
-        document.head.appendChild(syncScript);
+        syncScript.src = sharedPath + 'firebase-sync.js';
         syncScript.onload = () => resolve();
+        syncScript.onerror = () => { console.error("無法載入 firebase-sync.js"); resolve(); };
+        document.head.appendChild(syncScript);
       };
+      configScript.onerror = () => { console.error("無法載入 firebase-config.js"); resolve(); };
+      document.head.appendChild(configScript);
     });
   }
 
@@ -137,7 +146,7 @@
       errEl.style.color = "#3b82f6";
       
       try {
-        if (!window.CourseDB) throw new Error("Firebase 尚未載入");
+        if (!window.CourseDB) throw new Error("Firebase 尚未載入，請確認網路連線。");
         
         if (isLogin) {
           await CourseDB.signInStudentAccount(cls, seat, pwd);

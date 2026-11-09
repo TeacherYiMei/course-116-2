@@ -2,7 +2,7 @@
    共用小元件：跳脫、星星、提示、對話框、登入閘門、頁首
    ---------------------------------------------------------------------
    需要先載入 store.js。
-   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (修正路徑版)
+   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (全自動背景同步版)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -59,7 +59,6 @@
     return new Promise((resolve) => {
       if (window.CourseDB) return resolve();
       
-      // 自動從現有的 script 標籤中尋找 shared 資料夾的相對路徑
       let sharedPath = '../shared/';
       const scripts = document.getElementsByTagName('script');
       for (let i = 0; i < scripts.length; i++) {
@@ -89,17 +88,16 @@
    * 登入閘門：[SSO 升級版] 加入密碼驗證與 Firebase 綁定
    */
   UI.requireLogin = async function (ready) {
-    // 若已登入且 Firebase 已啟動，直接放行
-    if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) { 
-      ready && ready(STORE.me()); 
-      return; 
-    }
-
+    // 💡 關鍵修正：就算是已經登入的學生，也要在背景強制載入 Firebase 並觸發一次同步！
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
 
-    // 若本機有 STORE，且 Firebase 也登入，嘗試靜態還原
+    // 若本機有 STORE，且 Firebase 也登入，代表學生是舊用戶自動登入
     if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
+      // 在背景無聲無息地把本機成績再上傳一次，確保萬無一失！
+      if (window.STORE && typeof window.STORE.syncToCloud === 'function') {
+        window.STORE.syncToCloud();
+      }
       ready && ready(STORE.me());
       return;
     }

@@ -83,30 +83,47 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 全自動雲端同步函數 (包含進階挑戰島星星) ---
+    // --- 🚀 全自動雲端同步函數 (完美封裝版) ---
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       const p = this.me();
       if(!p) return;
       
-      const dStars = this.moduleStars('digital') || 0;
-      const pStars = this.moduleStars('platform') || 0;
-      const aStars = this.moduleStars('arduino') || 0;
-      const nStars = this.moduleStars('network') || 0;
+      const d = this.load();
+      const mods = d.modules || {};
+      
+      // 動態掃描所有單元，自動加總每一關的星星數，並掛載到 .stars 屬性上
+      for (let mKey in mods) {
+        if (Object.prototype.hasOwnProperty.call(mods, mKey)) {
+          let m = mods[mKey];
+          let sum = 0;
+          if (m.levels) {
+            for (let lKey in m.levels) {
+              sum += (m.levels[lKey].stars || 0);
+            }
+          }
+          m.stars = sum;
+        }
+      }
       
       let pyStars = 0;
       let pyState = {};
       let bonusStars = 0;
+      let bonusState = {};
       try {
         pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
         pyStars = Object.values(pyState).reduce((a, b) => a + Number(b || 0), 0);
-        let bonusState = JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}');
+        bonusState = JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}');
         bonusStars = Object.values(bonusState).filter(Boolean).length;
       } catch(e) {}
       
-      // 合併主線星星與進階挑戰星星
       const totalPyStars = pyStars + bonusStars;
-      // 確保完成進度依然以主線 30 顆為標準
+      mods.python = mods.python || {};
+      mods.python.stars = totalPyStars;
+      mods.python.completed = pyStars >= 30;
+      mods.python.progress = pyState;
+      mods.python.bonusChallenges = bonusState;
+      mods.python.bonusBadges = bonusStars;
       
       const payload = {
         className: p.cls,
@@ -115,15 +132,7 @@
         courseId: "python",
         stars: totalPyStars,     
         progress: pyState,
-        bonusChallenges: JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}'),
-        bonusBadges: bonusStars,
-        modules: {
-          python: { stars: totalPyStars, completed: pyStars >= 30, currentLevel: "已匯入" },
-          unit1: { stars: dStars, completed: dStars >= 24, currentLevel: "已匯入" },
-          unit3: { stars: pStars, completed: pStars >= 24, currentLevel: "已匯入" },
-          aiot:  { stars: aStars, completed: aStars >= 15, currentLevel: "已匯入" },
-          network: { stars: nStars, completed: nStars >= 30, currentLevel: "已匯入" }
-        }
+        modules: mods // 直接將包含所有星星總和的模組物件發送出去
       };
       
       try {

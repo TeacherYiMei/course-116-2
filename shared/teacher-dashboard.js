@@ -5,7 +5,7 @@
   let currentRows=[];
   let manageRow=null;
   let currentAccountRecord=null;
-  let currentUnit="python"; // 預設顯示 Python
+  let currentUnit="python"; 
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
@@ -59,25 +59,44 @@
   function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
   function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
+  // 智慧搜尋模組名稱 (容錯機制)
+  function findModule(mods, keys) {
+    if(!mods) return {};
+    for(let k of keys) { if(mods[k]) return mods[k]; }
+    for(let k in mods) {
+      const kl = k.toLowerCase();
+      if(keys.some(pk => kl.includes(pk))) return mods[k];
+    }
+    return {};
+  }
+
   function getStudentUnitData(r, unitKey){
     const cfgUnit = UNIT_CONFIG[unitKey];
     const maxStars = cfgUnit.maxStars;
     const modsData = r.modules || {};
 
     if(unitKey === "python"){
-      const stars = Number(modsData.python?.stars ?? r.stars ?? progressSum(r.progress) ?? 0);
+      let stars = Number(modsData.python?.stars ?? r.stars ?? progressSum(r.progress) ?? 0);
       const score = Number(modsData.python?.score ?? r.score ?? (maxStars ? Math.round(stars/maxStars*100) : 0));
       const completed = !!(modsData.python?.completed || r.completed || stars >= maxStars);
-      let currentLevel = modsData.python?.currentLevel || `${r.currentStation||"P1"}${r.currentChallenge ? `・第 ${r.currentChallenge} 題` : ""}`;
+      let currentLevel = modsData.python?.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
       return { stars: Math.min(maxStars, stars), maxStars, score: Math.min(100, score), completed, currentLevel };
     }
 
     let unitObj = {};
-    if(unitKey === "unit1") unitObj = modsData.unit1 || modsData.digital || {};
-    else if(unitKey === "unit3") unitObj = modsData.unit3 || modsData.platform || {};
-    else if(unitKey === "aiot") unitObj = modsData.aiot || modsData.arduino || {};
+    if(unitKey === "unit1") unitObj = findModule(modsData, ["unit1", "digital", "u1", "ch1"]);
+    else if(unitKey === "unit3") unitObj = findModule(modsData, ["unit3", "platform", "system", "u3", "ch3"]);
+    else if(unitKey === "aiot") unitObj = findModule(modsData, ["aiot", "arduino", "5016", "u4", "ch4"]);
 
+    // 取得星星：優先拿 stars，沒有的話自動從 levels 加總
     let stars = Number(unitObj.stars || 0);
+    if (stars === 0 && unitObj.levels) {
+       stars = Object.values(unitObj.levels).reduce((sum, lvl) => sum + Number(lvl.stars || 0), 0);
+    }
+    if (stars === 0) {
+       stars = Number(r[`${unitKey}Stars`] || r[`${unitKey}_stars`] || 0);
+    }
+
     const score = Number(unitObj.score || Math.round(stars / maxStars * 100));
     const completed = !!unitObj.completed || stars >= maxStars;
     const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
@@ -148,7 +167,6 @@
 
     if(title) title.textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
     
-    // 將原本的紀錄列表渲染出來
     const records=(row.sourceRecords||[row]).slice().sort((a,b)=> Number(b.stars||0)-Number(a.stars||0));
     
     let html = ``;
@@ -156,7 +174,6 @@
        html += `<p class="small warning">目前合併顯示 ${row.duplicateCount} 筆原始紀錄。請只刪除確認錯誤的那一筆。</p>`;
     }
     
-    // --- 新增手動補登介面 ---
     const d1 = getStudentUnitData(row, "unit1");
     const d2 = getStudentUnitData(row, "python");
     const d3 = getStudentUnitData(row, "unit3");
@@ -199,7 +216,6 @@
     if(list) list.innerHTML = html;
     if(note) note.innerHTML = "";
 
-    // 綁定手動儲存按鈕
     const saveManualBtn = $("#saveManualStarsBtn");
     if(saveManualBtn) {
       saveManualBtn.onclick = async () => {
@@ -239,7 +255,7 @@
     if(dlg) dlg.showModal();
   }
 
-  /* --- 以下是帳號與救援、回收桶功能保留 --- */
+  /* --- 帳號與救援、回收桶功能 --- */
   function normalizedSeat(seatNo){ return String(Number(String(seatNo||"").trim())).padStart(2,"0"); }
   function expectedStudentEmail(className,seatNo){ return `python1151-${String(className||"").trim()}-${normalizedSeat(seatNo)}@student.course115.local`; }
 
@@ -480,7 +496,6 @@
   }
 
   function exportExcel(){
-    // Simplified export, relying on global XLSX if available
     if(!window.XLSX) { alert("無法匯出：缺少 XLSX 模組。"); return; }
     const cls=$("#classFilter").value;
     if(!cls){ alert("請先選擇一個班級。"); return; }
@@ -506,7 +521,6 @@
       const app=appMod.initializeApp(cfg);
       auth=authMod.getAuth(app); db=fsMod.getFirestore(app); mods={auth:authMod,fs:fsMod};
       
-      // 綁定單元分頁按鈕
       document.querySelectorAll(".unitTabBtn").forEach(btn=>{
         btn.addEventListener("click",()=>{
           document.querySelectorAll(".unitTabBtn").forEach(b=>b.classList.remove("active"));

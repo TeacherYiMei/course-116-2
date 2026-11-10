@@ -83,7 +83,7 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 全自動雲端同步函數 (完美封裝版) ---
+    // --- 🚀 全自動雲端同步函數 (智能讀取 Config 架構版) ---
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       const p = this.me();
@@ -92,20 +92,35 @@
       const d = this.load();
       const mods = d.modules || {};
       
-      // 動態掃描所有單元，自動加總每一關的星星數，並掛載到 .stars 屬性上
+      // 1. 動態加總每個底層模組 (例如 cardgame, sheet) 的星星
       for (let mKey in mods) {
         if (Object.prototype.hasOwnProperty.call(mods, mKey)) {
           let m = mods[mKey];
           let sum = 0;
           if (m.levels) {
-            for (let lKey in m.levels) {
-              sum += (m.levels[lKey].stars || 0);
-            }
+            for (let lKey in m.levels) { sum += (m.levels[lKey].stars || 0); }
           }
           m.stars = sum;
         }
       }
+
+      // 2. [核心修正] 依照 config.js 裡定義的「單元 (Unit)」來計算總星星！
+      // 這樣才能把 cardgame, sheet 等子關卡正確合併成 unit1 (數位時代) 
+      if (window.CONFIG && window.CONFIG.MODULES) {
+        window.CONFIG.MODULES.forEach(unit => {
+          let unitStars = 0;
+          if (unit.parts) {
+            unit.parts.forEach(part => { unitStars += STORE.partStars(part); });
+          } else {
+            unitStars = STORE.moduleStars(unit.id);
+          }
+          mods[unit.id] = mods[unit.id] || {};
+          mods[unit.id].stars = unitStars;
+          mods[unit.id].completed = unitStars >= (unit.maxStars || 999);
+        });
+      }
       
+      // 3. 處理舊版 Python 的特例與進階島星星
       let pyStars = 0;
       let pyState = {};
       let bonusStars = 0;
@@ -119,8 +134,9 @@
       
       const totalPyStars = pyStars + bonusStars;
       mods.python = mods.python || {};
-      mods.python.stars = totalPyStars;
-      mods.python.completed = pyStars >= 30;
+      // 如果 config 算出來的 Python 分數較高，就用 config 的；否則用本機讀取的
+      mods.python.stars = Math.max(mods.python.stars || 0, totalPyStars);
+      mods.python.completed = mods.python.stars >= 30;
       mods.python.progress = pyState;
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
@@ -130,14 +146,14 @@
         seatNo: p.seat,
         name: p.name,
         courseId: "python",
-        stars: totalPyStars,     
+        stars: mods.python.stars,     
         progress: pyState,
-        modules: mods // 直接將包含所有星星總和的模組物件發送出去
+        modules: mods
       };
       
       try {
         await CourseDB.saveStudent(payload);
-        console.log("☁️ 雲端存檔成功");
+        console.log("☁️ 雲端存檔成功 (智能打包)");
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);
       }

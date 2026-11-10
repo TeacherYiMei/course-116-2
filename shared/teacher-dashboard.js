@@ -37,7 +37,8 @@
         id:r.id, className:String(r.className||""), seatNo:String(r.seatNo||""), name:String(r.name||""),
         stars:Number(r.stars||0), totalStars:Number(r.totalStars||30), score:Number(r.score||0), progress:r.progress||{},
         currentStation:String(r.currentStation||""), currentChallenge:r.currentChallenge||"", completed:!!r.completed,
-        certificateUnlocked:!!r.certificateUnlocked, updatedAt:r.updatedAt||null, lastSeenAt:r.lastSeenAt||null
+        certificateUnlocked:!!r.certificateUnlocked, updatedAt:r.updatedAt||null, lastSeenAt:r.lastSeenAt||null,
+        modules:r.modules||{}, unit1Stars:r.unit1Stars||0, unit3Stars:r.unit3Stars||0, aiotStars:r.aiotStars||0
       }));
       if(group.length>1){
         const merged={};
@@ -59,7 +60,6 @@
   function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
   function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
-  // 智慧搜尋模組名稱 (容錯機制)
   function findModule(mods, keys) {
     if(!mods) return {};
     for(let k of keys) { if(mods[k]) return mods[k]; }
@@ -70,10 +70,13 @@
     return {};
   }
 
+  // 解讀學生資料 (支援穿透與各種儲存格式)
   function getStudentUnitData(r, unitKey){
     const cfgUnit = UNIT_CONFIG[unitKey];
     const maxStars = cfgUnit.maxStars;
-    const modsData = r.modules || {};
+    
+    // 如果資料夾被放在 progress._mods 裡 (穿透技術)
+    const modsData = r.modules || (r.progress && r.progress._mods) || {};
 
     if(unitKey === "python"){
       let stars = Number(modsData.python?.stars ?? r.stars ?? progressSum(r.progress) ?? 0);
@@ -88,13 +91,15 @@
     else if(unitKey === "unit3") unitObj = findModule(modsData, ["unit3", "platform", "system", "u3", "ch3"]);
     else if(unitKey === "aiot") unitObj = findModule(modsData, ["aiot", "arduino", "5016", "u4", "ch4"]);
 
-    // 取得星星：優先拿 stars，沒有的話自動從 levels 加總
+    // 取分邏輯：先找模組的 stars，再找 levels 總和，再找頂層或 progress._u 變數
     let stars = Number(unitObj.stars || 0);
     if (stars === 0 && unitObj.levels) {
        stars = Object.values(unitObj.levels).reduce((sum, lvl) => sum + Number(lvl.stars || 0), 0);
     }
     if (stars === 0) {
-       stars = Number(r[`${unitKey}Stars`] || r[`${unitKey}_stars`] || 0);
+       if (unitKey === "unit1") stars = Number(r.unit1Stars || (r.progress && r.progress._u1) || 0);
+       if (unitKey === "unit3") stars = Number(r.unit3Stars || (r.progress && r.progress._u3) || 0);
+       if (unitKey === "aiot") stars = Number(r.aiotStars || (r.progress && r.progress._aiot) || 0);
     }
 
     const score = Number(unitObj.score || Math.round(stars / maxStars * 100));
@@ -197,7 +202,7 @@
       <div class="recordCard" data-record="${esc(rec.id)}">
         <div class="recordInfo">
           <b>紀錄 ${index+1}</b>
-          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}</span>
+          <span>Py⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}</span>
           <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
         </div>
         <div class="recordActions">
@@ -229,10 +234,11 @@
           const a4 = Number($("#editAiotStars").value);
           
           const updates = {
-            "modules.unit1.stars": u1, "modules.unit1.completed": u1 >= 24, "modules.unit1.currentLevel": u1>0?"手動補登":"尚未開始",
+            "modules.digital.stars": u1, "modules.digital.completed": u1 >= 24, "modules.digital.currentLevel": u1>0?"手動補登":"尚未開始",
             "modules.python.stars": py, "stars": py,
-            "modules.unit3.stars": u3, "modules.unit3.completed": u3 >= 24, "modules.unit3.currentLevel": u3>0?"手動補登":"尚未開始",
+            "modules.platform.stars": u3, "modules.platform.completed": u3 >= 24, "modules.platform.currentLevel": u3>0?"手動補登":"尚未開始",
             "modules.aiot.stars": a4, "modules.aiot.completed": a4 >= 15, "modules.aiot.currentLevel": a4>0?"手動補登":"尚未開始",
+            "progress._u1": u1, "progress._u3": u3, "progress._aiot": a4,
             "updatedAt": mods.fs.serverTimestamp()
           };
           await mods.fs.updateDoc(mods.fs.doc(db, "students", row.id), updates);

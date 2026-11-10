@@ -1,7 +1,7 @@
 /* =====================================================================
-   身分與進度（SSO 全自動雲端同步版 - 終極防護版）
+   身分與進度（SSO 全自動雲端同步版 - 穿透防護版）
    ---------------------------------------------------------------------
-   ★ 加入 syncFromCloud，防止還原卡清空本機後上傳 0 分覆蓋雲端！
+   ★ 加入進階穿透技術，將單元分數打包進 progress 以突破 firebase-sync.js 過濾
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -82,7 +82,6 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 還原卡防護：登入時先從雲端把舊成績抓下來 ---
     syncFromCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       try {
@@ -100,7 +99,6 @@
               for(let lKey in cMod.levels) {
                 const cLevel = cMod.levels[lKey];
                 const lLevel = lMod.levels[lKey];
-                // 只有當雲端星星大於本機時才覆蓋 (保護還原卡造成的0分)
                 if (!lLevel || (cLevel.stars || 0) > (lLevel.stars || 0)) {
                   lMod.levels[lKey] = cLevel;
                 }
@@ -116,7 +114,6 @@
       }
     },
 
-    // --- 🚀 全自動雲端同步函數 ---
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       const p = this.me();
@@ -125,6 +122,7 @@
       const d = this.load();
       const mods = d.modules || {};
       
+      // 計算各個底層模組的星星
       for (let mKey in mods) {
         if (Object.prototype.hasOwnProperty.call(mods, mKey)) {
           let m = mods[mKey];
@@ -136,20 +134,6 @@
         }
       }
 
-      if (window.CONFIG && window.CONFIG.MODULES) {
-        window.CONFIG.MODULES.forEach(unit => {
-          let unitStars = 0;
-          if (unit.parts) {
-            unit.parts.forEach(part => { unitStars += STORE.partStars(part); });
-          } else {
-            unitStars = STORE.moduleStars(unit.id);
-          }
-          mods[unit.id] = mods[unit.id] || {};
-          mods[unit.id].stars = unitStars;
-          mods[unit.id].completed = unitStars >= (unit.maxStars || 999);
-        });
-      }
-      
       let pyStars = 0;
       let pyState = {};
       let bonusStars = 0;
@@ -169,23 +153,29 @@
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
+      // ✨ 關鍵防護：將模組分數強行打包進 progress 屬性內
+      // 這是因為舊版的 firebase-sync 可能會把 payload 裡未知的欄位丟棄，只准許 progress 通過。
+      pyState._u1 = mods.unit1?.stars || mods.digital?.stars || 0;
+      pyState._u3 = mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0;
+      pyState._aiot = mods.aiot?.stars || mods.arduino?.stars || 0;
+      pyState._mods = mods;
+      
       const payload = {
         className: p.cls,
         seatNo: p.seat,
         name: p.name,
         courseId: "python",
         stars: mods.python.stars,     
-        progress: pyState,
+        progress: pyState, // 利用 progress 欄位夾帶過關資料
         modules: mods,
-        // 終極防呆機制：強制寫入頂層屬性，就算 Firebase 同步腳本忽略 modules 也能抓到分數！
-        unit1Stars: mods.unit1?.stars || mods.digital?.stars || 0,
-        unit3Stars: mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0,
-        aiotStars: mods.aiot?.stars || mods.arduino?.stars || 0
+        unit1Stars: pyState._u1,
+        unit3Stars: pyState._u3,
+        aiotStars: pyState._aiot
       };
       
       try {
         await CourseDB.saveStudent(payload);
-        console.log("☁️ 雲端存檔成功 (終極防護)");
+        console.log("☁️ 雲端存檔成功 (穿透防護)");
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);
       }

@@ -1,8 +1,7 @@
 /* =====================================================================
-   身分與進度（SSO 全自動雲端同步版）
+   身分與進度（SSO 全自動雲端同步版 - 終極防護版）
    ---------------------------------------------------------------------
-   ★ 所有頁面透過 window.STORE 讀寫進度。
-   ★ [116 升級版] 每次寫入 localStorage 後，自動呼叫 Firebase 儲存。
+   ★ 加入 syncFromCloud，防止還原卡清空本機後上傳 0 分覆蓋雲端！
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -83,7 +82,41 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 全自動雲端同步函數 (智能讀取 Config 架構版) ---
+    // --- 🚀 還原卡防護：登入時先從雲端把舊成績抓下來 ---
+    syncFromCloud: async function() {
+      if(!window.CourseDB || CourseDB.isAnonymous()) return;
+      try {
+        const r = await CourseDB.loadStudent();
+        if (r && r.modules) {
+          const p = this.me();
+          if(!p) return;
+          
+          let localData = this.load();
+          for(let mKey in r.modules) {
+            if(!localData.modules[mKey]) localData.modules[mKey] = { levels: {} };
+            const cMod = r.modules[mKey];
+            const lMod = localData.modules[mKey];
+            if (cMod.levels) {
+              for(let lKey in cMod.levels) {
+                const cLevel = cMod.levels[lKey];
+                const lLevel = lMod.levels[lKey];
+                // 只有當雲端星星大於本機時才覆蓋 (保護還原卡造成的0分)
+                if (!lLevel || (cLevel.stars || 0) > (lLevel.stars || 0)) {
+                  lMod.levels[lKey] = cLevel;
+                }
+              }
+            }
+          }
+          safeSet(progressKey(p), JSON.stringify(localData));
+          fire();
+          console.log("☁️ 已成功從雲端還原本機進度");
+        }
+      } catch (e) {
+        console.warn("☁️ 雲端還原失敗", e);
+      }
+    },
+
+    // --- 🚀 全自動雲端同步函數 ---
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       const p = this.me();
@@ -92,7 +125,6 @@
       const d = this.load();
       const mods = d.modules || {};
       
-      // 1. 動態加總每個底層模組 (例如 cardgame, sheet) 的星星
       for (let mKey in mods) {
         if (Object.prototype.hasOwnProperty.call(mods, mKey)) {
           let m = mods[mKey];
@@ -104,8 +136,6 @@
         }
       }
 
-      // 2. [核心修正] 依照 config.js 裡定義的「單元 (Unit)」來計算總星星！
-      // 這樣才能把 cardgame, sheet 等子關卡正確合併成 unit1 (數位時代) 
       if (window.CONFIG && window.CONFIG.MODULES) {
         window.CONFIG.MODULES.forEach(unit => {
           let unitStars = 0;
@@ -120,7 +150,6 @@
         });
       }
       
-      // 3. 處理舊版 Python 的特例與進階島星星
       let pyStars = 0;
       let pyState = {};
       let bonusStars = 0;
@@ -134,7 +163,6 @@
       
       const totalPyStars = pyStars + bonusStars;
       mods.python = mods.python || {};
-      // 如果 config 算出來的 Python 分數較高，就用 config 的；否則用本機讀取的
       mods.python.stars = Math.max(mods.python.stars || 0, totalPyStars);
       mods.python.completed = mods.python.stars >= 30;
       mods.python.progress = pyState;
@@ -148,12 +176,16 @@
         courseId: "python",
         stars: mods.python.stars,     
         progress: pyState,
-        modules: mods
+        modules: mods,
+        // 終極防呆機制：強制寫入頂層屬性，就算 Firebase 同步腳本忽略 modules 也能抓到分數！
+        unit1Stars: mods.unit1?.stars || mods.digital?.stars || 0,
+        unit3Stars: mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0,
+        aiotStars: mods.aiot?.stars || mods.arduino?.stars || 0
       };
       
       try {
         await CourseDB.saveStudent(payload);
-        console.log("☁️ 雲端存檔成功 (智能打包)");
+        console.log("☁️ 雲端存檔成功 (終極防護)");
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);
       }

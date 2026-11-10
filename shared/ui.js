@@ -2,7 +2,7 @@
    共用小元件：跳脫、星星、提示、對話框、登入閘門、頁首
    ---------------------------------------------------------------------
    需要先載入 store.js。
-   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (全自動背景同步版)
+   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (終極還原防護版)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -54,7 +54,7 @@
     return { el: m, close: close };
   };
 
-  /* --- 🚀 Firebase 動態載入腳本 (智能路徑尋找) --- */
+  /* --- 🚀 Firebase 動態載入腳本 --- */
   function loadFirebaseScripts() {
     return new Promise((resolve) => {
       if (window.CourseDB) return resolve();
@@ -84,17 +84,11 @@
     });
   }
 
-  /**
-   * 登入閘門：[SSO 升級版] 加入密碼驗證與 Firebase 綁定
-   */
   UI.requireLogin = async function (ready) {
-    // 💡 關鍵修正：就算是已經登入的學生，也要在背景強制載入 Firebase 並觸發一次同步！
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
 
-    // 若本機有 STORE，且 Firebase 也登入，代表學生是舊用戶自動登入
     if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
-      // 在背景無聲無息地把本機成績再上傳一次，確保萬無一失！
       if (window.STORE && typeof window.STORE.syncToCloud === 'function') {
         window.STORE.syncToCloud();
       }
@@ -122,7 +116,6 @@
     const form = dlg.el.querySelector('#login-form');
     const errEl = dlg.el.querySelector('#login-err');
     
-    // 如果之前本機有紀錄，先帶入
     const me = STORE.me();
     if(me) {
       form.cls.value = me.cls || '';
@@ -148,15 +141,21 @@
         
         if (isLogin) {
           await CourseDB.signInStudentAccount(cls, seat, pwd);
+          
+          // 【終極還原卡防護】
+          // 登入後第一件事，是先把雲端的紀錄抓下來存進本機！
+          // 這樣就算學生的本機被還原卡清空，也不會用 0 分去覆蓋雲端！
+          if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
+            await window.STORE.syncFromCloud();
+          }
         } else {
-          // 若原本未匿名登入，先強制匿名登入才能 link
           if(!CourseDB.isAnonymous() && !CourseDB.uid) {
             await window.mods?.auth?.signInAnonymously(window.auth);
           }
           await CourseDB.linkStudentAccount(cls, seat, pwd);
         }
         
-        // 登入成功，將 STORE 資料上傳一次
+        // 抓完雲端紀錄後，再合併上傳一次，確保兩邊同步
         await STORE.syncToCloud();
         
         dlg.close(); 

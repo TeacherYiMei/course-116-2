@@ -5,7 +5,7 @@
   let currentRows=[];
   let manageRow=null;
   let currentAccountRecord=null;
-  let currentUnit="python"; 
+  let currentUnit="all"; 
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
@@ -121,14 +121,24 @@
 
   function render(){
     const rows=filtered();
-    const cfgUnit = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.python;
-    let totalStarsSum = 0; let totalScoreSum = 0; let doneCount = 0;
+    let doneCount = 0;
+    
+    // 更新上方統計 (以 Python 單元為代表，或是用 All)
+    // 依據使用者的需求，我們直接在表格顯示獨立單元，所以總和和平均可以只算總星數
+    let totalStarsSum = 0; let totalScoreSum = 0;
 
     const mappedRows = rows.map(r=>{
-      const uData = getStudentUnitData(r, currentUnit);
-      totalStarsSum += uData.stars; totalScoreSum += uData.score;
-      if(uData.completed) doneCount++;
-      return { ...r, _uStars: uData.stars, _uMax: uData.maxStars, _uScore: uData.score, _uCompleted: uData.completed, _uLevel: uData.currentLevel };
+      const d1 = getStudentUnitData(r, "unit1");
+      const d2 = getStudentUnitData(r, "python");
+      const d3 = getStudentUnitData(r, "unit3");
+      const d4 = getStudentUnitData(r, "aiot");
+      const dall = getStudentUnitData(r, "all");
+      
+      totalStarsSum += dall.stars; 
+      totalScoreSum += dall.score;
+      if(dall.completed) doneCount++;
+      
+      return { ...r, _d1: d1, _d2: d2, _d3: d3, _d4: d4, _dall: dall };
     });
 
     if($("#studentCount")) $("#studentCount").textContent = rows.length;
@@ -136,20 +146,28 @@
     if($("#avgScore")) $("#avgScore").textContent = rows.length ? Math.round(totalScoreSum/rows.length) : "0";
     if($("#doneCount")) $("#doneCount").textContent = doneCount;
 
+    // 重新繪製表格標題，顯示所有單元
+    const thead = document.querySelector(".tableWrap thead tr");
+    if (thead) {
+        thead.innerHTML = `
+            <th>班級</th><th>座號</th><th>姓名</th><th>維護</th>
+            <th>數位(24)</th><th>Py(30)</th><th>系統(24)</th><th>AIoT(15)</th>
+            <th>總星(93)</th><th>同步時間</th><th>紀錄</th>
+        `;
+    }
+
     if($("#rows")) {
       $("#rows").innerHTML = mappedRows.map(r=>`<tr>
         <td>${esc(r.className)}</td>
         <td>${esc(r.seatNo)}</td>
         <td>${esc(r.name)}</td>
         <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-        <td>⭐ ${r._uStars}/${r._uMax}</td>
-        <td>${r._uScore}</td>
-        <td>
-           ${esc(r._uLevel)}
-           ${r.lastSync ? `<div style="font-size:10px; color:#64748b; margin-top:2px;">🔄 同步: ${new Date(r.lastSync).toLocaleString('zh-TW')}</div>` : ''}
-        </td>
-        <td><span class="badge ${r._uCompleted?"done":""}">${r._uCompleted?"已完成":"進行中"}</span></td>
-        <td>${esc(fmtTime(r.updatedAt))}</td>
+        <td style="font-size:1.1rem; font-weight:bold; color:#1e293b;">${r._d1.stars}</td>
+        <td style="font-size:1.1rem; font-weight:bold; color:#1e293b;">${r._d2.stars}</td>
+        <td style="font-size:1.1rem; font-weight:bold; color:#1e293b;">${r._d3.stars}</td>
+        <td style="font-size:1.1rem; font-weight:bold; color:#1e293b;">${r._d4.stars}</td>
+        <td style="font-size:1.2rem; font-weight:900; color:#2563eb;">${r._dall.stars}</td>
+        <td style="font-size:0.8rem; color:#64748b;">${r.lastSync ? new Date(r.lastSync).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}) : '—'}</td>
         <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併顯示 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
       </tr>`).join("");
     }
@@ -202,7 +220,7 @@
       <div class="recordCard" data-record="${esc(rec.id)}">
         <div class="recordInfo">
           <b>紀錄 ${index+1}</b>
-          <span>Py⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}</span>
+          <span>總⭐ ${Number(rec.stars||0) + Number(rec.unit1Stars||0) + Number(rec.unit3Stars||0)} 顆</span>
           <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
         </div>
         <div class="recordActions">
@@ -529,13 +547,7 @@
       
       document.querySelectorAll(".unitTabBtn").forEach(btn=>{
         btn.addEventListener("click",()=>{
-          document.querySelectorAll(".unitTabBtn").forEach(b=>b.classList.remove("active"));
-          btn.classList.add("active");
-          currentUnit = btn.dataset.unit;
-          const cfgUnit = UNIT_CONFIG[currentUnit];
-          const headerTitle = document.querySelector("header b");
-          if(headerTitle && cfgUnit) headerTitle.textContent = cfgUnit.title;
-          render();
+          // 移除全部分頁按鈕的邏輯，直接重新 render，因為現在都是顯示全部欄位
         });
       });
 

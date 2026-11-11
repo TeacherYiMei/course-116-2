@@ -1,8 +1,5 @@
 /* =====================================================================
-   共用小元件：跳脫、星星、提示、對話框、登入閘門、頁首
-   ---------------------------------------------------------------------
-   需要先載入 store.js。
-   [116升級版] 內建 Firebase 動態載入與學習密碼 SSO 單一登入 (終極還原防護版)
+   共用小元件 (v16.36 包含全站同步狀態顯示)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -84,13 +81,18 @@
     });
   }
 
+  // 修改登入介面與機制
   UI.requireLogin = async function (ready) {
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
 
+    // 如果是穩定帳號 (非匿名)，則自動進行同步
     if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
+      if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
+         await window.STORE.syncFromCloud();
+      }
       if (window.STORE && typeof window.STORE.syncToCloud === 'function') {
-        window.STORE.syncToCloud();
+         window.STORE.syncToCloud();
       }
       ready && ready(STORE.me());
       return;
@@ -98,14 +100,14 @@
 
     var dlg = UI.modal(
       '<div style="text-align:center; font-size:3rem; margin-bottom:10px;">🔐</div>' +
-      '<h2 class="title" style="font-size:1.4rem; text-align:center">建立或登入學習帳號</h2>' +
-      '<p class="small soft mt1" style="text-align:center">為避免電腦重啟後遺失進度，請登入學習帳號。舊版從未設定密碼的學生，請由老師使用「🔑 舊帳號救援」。</p>' +
+      '<h2 class="title" style="font-size:1.4rem; text-align:center">建立或登入全站學習帳號</h2>' +
+      '<p class="small soft mt1" style="text-align:center">請登入以自動同步各單元進度。若無密碼請請老師救援。</p>' +
       '<form class="stack mt2" id="login-form">' +
       '<div class="grid" style="grid-template-columns:1fr 1fr;gap:.75rem">' +
       '<label class="field">班級<input name="cls" inputmode="numeric" placeholder="例：901" maxlength="3" autocomplete="off" required></label>' +
       '<label class="field">座號<input name="seat" inputmode="numeric" placeholder="例：5" maxlength="2" autocomplete="off" required></label></div>' +
       '<label class="field">姓名<input name="name" placeholder="例：王小明" maxlength="12" autocomplete="off" required></label>' +
-      '<label class="field" style="margin-top:10px; color:#4f46e5;">學習密碼 (至少6碼) *<input type="password" name="pwd" placeholder="請記住自己的學習密碼，不要使用其他網站重要密碼" minlength="6" required></label>' +
+      '<label class="field" style="margin-top:10px; color:#4f46e5;">學習密碼 (至少6碼) *<input type="password" name="pwd" placeholder="請輸入學習密碼" minlength="6" required></label>' +
       '<p id="login-err" class="small bold" style="color:var(--bad);min-height:1.2em;margin-top:10px;" aria-live="polite"></p>' +
       '<div style="display:flex; gap:10px; margin-top:15px; flex-wrap:wrap;">' +
       '<button type="submit" id="btn-link" class="btn primary big" style="flex:1; background:#4f46e5; border-color:#4f46e5; color:white;">建立 / 綁定帳號</button>' +
@@ -142,9 +144,6 @@
         if (isLogin) {
           await CourseDB.signInStudentAccount(cls, seat, pwd);
           
-          // 【終極還原卡防護】
-          // 登入後第一件事，是先把雲端的紀錄抓下來存進本機！
-          // 這樣就算學生的本機被還原卡清空，也不會用 0 分去覆蓋雲端！
           if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
             await window.STORE.syncFromCloud();
           }
@@ -155,7 +154,6 @@
           await CourseDB.linkStudentAccount(cls, seat, pwd);
         }
         
-        // 抓完雲端紀錄後，再合併上傳一次，確保兩邊同步
         await STORE.syncToCloud();
         
         dlg.close(); 
@@ -205,11 +203,85 @@
       el.innerHTML =
         (opts.noBack ? '' : '<a class="back" href="' + hub + '">' + UI.esc(opts.backLabel || '← 闖關地圖') + '</a>') +
         (opts.title ? '<div><p class="kicker">' + UI.esc(opts.kicker || '') + '</p><h1 class="title">' + UI.esc(opts.title) + '</h1></div>' : '') +
-        '<span class="who" id="who">' + (p ? UI.esc(p.cls + ' 班 ' + p.seat + ' 號 ' + p.name) : '尚未登入') + '</span>';
+        '<div style="display:flex; align-items:center; gap:10px;">' +
+        '<span id="global-sync-indicator" style="cursor:pointer; font-size:12px; padding:2px 8px; border-radius:12px; font-weight:bold;">同步中...</span>' +
+        '<span class="who" id="who">' + (p ? UI.esc(p.cls + ' 班 ' + p.seat + ' 號 ' + p.name) : '尚未登入') + '</span></div>';
+        
+      const syncInd = el.querySelector('#global-sync-indicator');
+      if (syncInd) {
+          syncInd.onclick = () => showSyncStatusModal();
+      }
     }
     render();
     window.addEventListener('store:change', render);
+    
+    window.addEventListener('sync:status', function(e) {
+        const syncInd = document.getElementById('global-sync-indicator');
+        if(!syncInd) return;
+        if(e.detail === 'SYNC_OK') {
+            syncInd.textContent = "✅ 已同步";
+            syncInd.style.backgroundColor = "#dcfce7";
+            syncInd.style.color = "#166534";
+        } else if (e.detail === 'SYNC_FAIL') {
+            syncInd.textContent = "❌ 待同步";
+            syncInd.style.backgroundColor = "#fee2e2";
+            syncInd.style.color = "#991b1b";
+        } else if (e.detail === 'SYNCING') {
+            syncInd.textContent = "⏳ 同步中";
+            syncInd.style.backgroundColor = "#e0e7ff";
+            syncInd.style.color = "#3730a3";
+        } else if (e.detail === 'ANONYMOUS') {
+            syncInd.textContent = "⚠️ 訪客模式";
+            syncInd.style.backgroundColor = "#fef3c7";
+            syncInd.style.color = "#92400e";
+        }
+    });
   };
+
+  // 全站同步狀態彈窗
+  function showSyncStatusModal() {
+      if(!STORE.me()) return;
+      const d = STORE.load();
+      const mods = d.modules || {};
+      
+      const pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
+      const pyStars = Object.values(pyState).reduce((a, b) => a + Number(b || 0), 0);
+      
+      const u1Stars = mods.unit1?.stars || mods.digital?.stars || 0;
+      const u3Stars = mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0;
+      const aiotStars = mods.aiot?.stars || mods.arduino?.stars || 0;
+      
+      const isAnon = window.CourseDB && CourseDB.isAnonymous();
+      
+      const html = `
+        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態</h2>
+        <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
+                <b>Firebase 學習帳號</b>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '⚠️ 未登入(訪客)' : '✅ 已登入'}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span>單元一：數位時代 (${u1Stars}⭐)</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span>單元二：Python (${pyStars}⭐)</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span>單元三：系統平臺 (${u3Stars}⭐)</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>5016B 專題 (${aiotStars}⭐)</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+            </div>
+        </div>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">若顯示「待同步」，請點擊下方按鈕強制上傳。</p>
+        <button type="button" class="btn primary big" style="width:100%;" onclick="window.STORE.syncToCloud(); this.textContent='⏳ 同步中...'; setTimeout(()=>this.textContent='🔄 強制上傳', 2000);">🔄 強制上傳</button>
+      `;
+      UI.modal(html);
+  }
 
   UI.stickyNav = function (nav) {
     if (typeof nav === 'string') nav = document.querySelector(nav);

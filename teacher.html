@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Python 學習進度｜教師端</title>
+<title>116 全站學習進度｜教師端</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#24324a}
 header{background:#fff;border-bottom:1px solid #e2e6eb;padding:16px max(18px,calc((100vw - 1180px)/2));display:flex;justify-content:space-between;align-items:center}
@@ -88,41 +88,10 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .rescueGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rescueGrid label{font-weight:800}.rescueGrid input{width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #ccd4de;border-radius:10px}.rescueGrid .full{grid-column:1/-1}.rescueResult{margin-top:14px;padding:12px;border-radius:12px;background:#eef8ff;border:1px solid #b9d9f2}.trashList{display:grid;gap:10px;max-height:50vh;overflow:auto}.trashCard{border:1px solid #d9dee6;border-radius:14px;padding:12px;background:#fff}.trashCard .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trashCard .meta{font-size:.92rem;color:#657080;margin-top:6px}.trashCard .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}@media(max-width:640px){.rescueGrid{grid-template-columns:1fr}}
 .rescueHomeCard{border:2px solid #f0b44d;background:#fffaf0}.rescueHomeHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.rescueHomeActions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 </style>
-
-<style>
-  /* v17.0：116 闖關地圖四大單元切換列 */
-  .unitTabsBar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid #e8ebef;
-  }
-  .unitTabBtn {
-    border: 1px solid #d4dce6;
-    background: #f7f9fc;
-    color: #364152;
-    border-radius: 11px;
-    padding: 9px 14px;
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .unitTabBtn:hover {
-    background: #eef2f8;
-  }
-  .unitTabBtn.active {
-    background: #4f59c7;
-    color: #ffffff;
-    border-color: #4f59c7;
-    box-shadow: 0 4px 12px rgba(79, 89, 199, 0.25);
-  }
-</style>
+<style>.moduleMini{display:inline-block;background:#eef2ff;border-radius:6px;padding:2px 5px;margin:2px;font-size:11px;white-space:nowrap}#progressDetailSummary{white-space:pre-line}</style>
 </head>
 <body>
-<header><div><b>👩‍🏫 Python 學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.32 一鍵回收／首頁救援版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.35 全站 Firebase 星星同步版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -132,13 +101,6 @@ dialog.manageDialog::backdrop{background:#22314a80}
 </section>
 <section id="dashboard" class="hidden">
 <div class="card">
-<div class="unitTabsBar" id="unitTabsBar">
-  <button type="button" class="unitTabBtn" data-unit="all" data-max="93">📊 全學期總覽 (93★)</button>
-  <button type="button" class="unitTabBtn" data-unit="unit1" data-max="24">💾 單元一：數位時代 (8關 / 24★)</button>
-  <button type="button" class="unitTabBtn active" data-unit="python" data-max="30">🐍 單元二：進入 Python 的世界 (10關 / 30★)</button>
-  <button type="button" class="unitTabBtn" data-unit="unit3" data-max="24">🖥️ 單元三：系統平臺大冒險 (8關 / 24★)</button>
-  <button type="button" class="unitTabBtn" data-unit="aiot" data-max="15">💡 延伸專題：5016B AIoT 守護站 (5節 / 15★)</button>
-</div>
 <div class="toolbar"><b>授權班級：</b><select id="classFilter"><option value="">全部班級</option></select>
 <button id="refreshBtn" class="soft">重新整理</button><button id="exportBtn" class="export">📗 下載此班 Excel</button><button id="trashStudentBtn" class="soft" type="button">🗃️ 回收桶</button><a class="auditLink" href="teacher-audit.html">🔎 異常檢查</a><span id="dbStatus" class="status"></span></div>
 <div class="summary"><div class="metric">學生人數<b id="studentCount">0</b></div><div class="metric">平均星星<b id="avgStars">0</b></div><div class="metric">平均評分<b id="avgScore">0</b></div><div class="metric">完成人數<b id="doneCount">0</b></div></div>
@@ -155,7 +117,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
   <div class="rescueHomeActions"><button id="runRescueBtn" class="warningBtn" type="button">🛟 開始救援</button><span id="rescueStatus" class="status"></span></div>
   <div id="rescueResult" class="rescueResult" hidden></div>
 </div>
-<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>星星</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>Python 星星</th><th>全站各單元星數</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
 </section></main>
 
 
@@ -281,143 +243,8 @@ dialog.manageDialog::backdrop{background:#22314a80}
   <div class="manageFooter"><span></span><button id="closeTrashBtn" class="soft" type="button">關閉</button></div>
 </dialog>
 
-<script src="shared/firebase-config.js?v=14"></script>
+<script src="shared/firebase-config.js?v=16.35"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.32"></script>
-<script>
-/**
- * 116 闖關地圖 - 四大單元整合擴充模組 (v17.0)
- * 自動與 shared/teacher-dashboard.js 協作，支援切換單元與匯出四單元總表
- */
-(function() {
-  const UNIT_CONFIG = {
-    all:    { name: "全學期四單元總覽", maxStars: 93, title: "📊 116 資訊科技｜四單元總覽" },
-    unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端" },
-    python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端" },
-    unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端" },
-    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" }
-  };
-
-  let currentUnit = "python";
-
-  function applyUnitToRows() {
-    const tbody = document.getElementById("rows");
-    if (!tbody) return;
-    const trs = Array.from(tbody.querySelectorAll("tr"));
-    const cfg = UNIT_CONFIG[currentUnit];
-
-    // 更新左上角大標題
-    const headerTitle = document.querySelector("header b");
-    if (headerTitle && cfg) headerTitle.textContent = cfg.title;
-
-    let studentCount = 0;
-    let sumStars = 0;
-    let sumScore = 0;
-    let doneCount = 0;
-
-    trs.forEach(tr => {
-      const tds = tr.querySelectorAll("td");
-      if (tds.length < 8) return;
-      studentCount++;
-
-      // 第一次渲染時把原本 Python (shared/teacher-dashboard.js 渲染出的結果) 快取起來
-      if (tr.dataset.cachedPy === undefined) {
-        const rawStarText = tds[4].textContent.trim(); // 例如 "⭐ 15/30"
-        const m = rawStarText.match(/(\d+)\s*\/\s*(\d+)/);
-        tr.dataset.cachedPy = "1";
-        tr.dataset.pyStars = m ? m[1] : "0";
-        tr.dataset.pyScore = tds[5].textContent.trim();
-        tr.dataset.pyProgress = tds[6].textContent.trim();
-        tr.dataset.pyBadge = tds[7].innerHTML;
-      }
-
-      const pyStars = parseInt(tr.dataset.pyStars || "0", 10);
-      const u1Stars = parseInt(tr.dataset.u1Stars || "0", 10);
-      const u3Stars = parseInt(tr.dataset.u3Stars || "0", 10);
-      const aiotStars = parseInt(tr.dataset.aiotStars || "0", 10);
-
-      let stars = 0;
-      let progressText = "尚未開始";
-      let isDone = false;
-
-      if (currentUnit === "python") {
-        stars = pyStars;
-        progressText = tr.dataset.pyProgress;
-        const score = parseInt(tr.dataset.pyScore || "0", 10);
-        isDone = stars >= 30 || tr.dataset.pyBadge.includes("已完成");
-        tds[4].textContent = `⭐ ${stars}/30`;
-        tds[5].textContent = String(score);
-        tds[6].textContent = progressText;
-        tds[7].innerHTML = tr.dataset.pyBadge;
-        sumStars += stars;
-        sumScore += score;
-        if (isDone) doneCount++;
-        return;
-      }
-
-      if (currentUnit === "unit1") {
-        stars = u1Stars;
-        progressText = tr.dataset.u1Progress || (stars > 0 ? `第 ${Math.ceil(stars/3)} 關進行中` : "尚未開始 (數位時代)");
-      } else if (currentUnit === "unit3") {
-        stars = u3Stars;
-        progressText = tr.dataset.u3Progress || (stars > 0 ? `第 ${Math.ceil(stars/3)} 關進行中` : "尚未開始 (系統平臺)");
-      } else if (currentUnit === "aiot") {
-        stars = aiotStars;
-        progressText = tr.dataset.aiotProgress || (stars > 0 ? `第 ${Math.ceil(stars/3)} 節進行中` : "尚未開始 (AIoT 專題)");
-      } else if (currentUnit === "all") {
-        stars = u1Stars + pyStars + u3Stars + aiotStars;
-        progressText = `數位:${u1Stars}★ ｜ Py:${pyStars}★ ｜ 系統:${u3Stars}★ ｜ AIoT:${aiotStars}★`;
-      }
-
-      const score = Math.round((stars / cfg.maxStars) * 100);
-      isDone = stars >= cfg.maxStars;
-
-      tds[4].textContent = `⭐ ${stars}/${cfg.maxStars}`;
-      tds[5].textContent = String(score);
-      tds[6].textContent = progressText;
-      tds[7].innerHTML = isDone
-        ? `<span class="badge done">已完成</span>`
-        : `<span class="badge">${stars > 0 ? "進行中" : "尚未開始"}</span>`;
-
-      sumStars += stars;
-      sumScore += score;
-      if (isDone) doneCount++;
-    });
-
-    if (studentCount > 0 && currentUnit !== "python") {
-      document.getElementById("studentCount").textContent = String(studentCount);
-      document.getElementById("avgStars").textContent = (sumStars / studentCount).toFixed(1);
-      document.getElementById("avgScore").textContent = String(Math.round(sumScore / studentCount));
-      document.getElementById("doneCount").textContent = String(doneCount);
-    }
-  }
-
-  // 綁定上方單元切換按鈕
-  document.addEventListener("DOMContentLoaded", () => {
-    const btns = document.querySelectorAll(".unitTabBtn");
-    btns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        btns.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentUnit = btn.dataset.unit;
-        applyUnitToRows();
-      });
-    });
-
-    // 當 shared/teacher-dashboard.js 重新渲染 #rows 時（例如切換班級或按重新整理），自動重新套用單元檢視
-    const tbody = document.getElementById("rows");
-    if (tbody) {
-      const observer = new MutationObserver(() => {
-        if (currentUnit !== "python") {
-          observer.disconnect();
-          applyUnitToRows();
-          observer.observe(tbody, { childList: true });
-        }
-      });
-      observer.observe(tbody, { childList: true });
-    }
-  });
-})();
-</script>
+<script src="shared/teacher-dashboard.js?v=16.35"></script>
 </body></html>

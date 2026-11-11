@@ -67,6 +67,55 @@
       await api.ready;if(!api.configured||!currentUser||!db)return null;
       const snap=await fs.getDoc(fs.doc(db,"students",currentUser.uid));
       return snap.exists()?snap.data():null;
+    },
+    async saveCourseLevel(term,mod,levelId,record,profile){
+      await api.ready;
+      if(!api.configured||!currentUser||currentUser.isAnonymous||!db)return {ok:false,reason:"NO_STABLE_ACCOUNT"};
+      const ref=fs.doc(db,"students",currentUser.uid);
+      const snap=await fs.getDoc(ref);
+      const old=snap.exists()?(snap.data().courseProgress||{}):{};
+      const next=JSON.parse(JSON.stringify(old));
+      next[term]=next[term]||{modules:{}};
+      next[term].modules=next[term].modules||{};
+      next[term].modules[mod]=next[term].modules[mod]||{levels:{}};
+      next[term].modules[mod].levels=next[term].modules[mod].levels||{};
+      const prev=next[term].modules[mod].levels[levelId]||{};
+      next[term].modules[mod].levels[levelId]={...prev,...record,stars:Math.max(Number(prev.stars||0),Number(record.stars||0)),updatedAt:Date.now()};
+      const payload={courseProgress:next,courseProgressUpdatedAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
+      if(profile)Object.assign(payload,{className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")});
+      await fs.setDoc(ref,payload,{merge:true});
+      return {ok:true,uid:currentUser.uid};
+    },
+    async loadCourseSnapshot(term,profile){
+      await api.ready;
+      if(!api.configured||!currentUser||currentUser.isAnonymous||!db)return null;
+      const snap=await fs.getDoc(fs.doc(db,"students",currentUser.uid));
+      if(!snap.exists())return {modules:{}};
+      const all=snap.data().courseProgress||{};
+      return all[term]||{modules:{}};
+    },
+    async saveCourseSnapshot(term,data,profile){
+      await api.ready;
+      if(!api.configured||!currentUser||currentUser.isAnonymous||!db)return {ok:false,reason:"NO_STABLE_ACCOUNT"};
+      const ref=fs.doc(db,"students",currentUser.uid);
+      const snap=await fs.getDoc(ref);
+      const remote=snap.exists()?(snap.data().courseProgress||{}):{};
+      const merged=JSON.parse(JSON.stringify(remote));
+      const localModules=(data&&data.modules)||{};
+      merged[term]=merged[term]||{modules:{}};
+      merged[term].modules=merged[term].modules||{};
+      for(const [mod,modData] of Object.entries(localModules)){
+        merged[term].modules[mod]=merged[term].modules[mod]||{levels:{}};
+        const dest=merged[term].modules[mod].levels||(merged[term].modules[mod].levels={});
+        for(const [id,rec] of Object.entries((modData&&modData.levels)||{})){
+          const old=dest[id]||{};
+          dest[id]={...old,...rec,stars:Math.max(Number(old.stars||0),Number(rec.stars||0))};
+        }
+      }
+      const payload={courseProgress:merged,courseProgressUpdatedAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
+      if(profile)Object.assign(payload,{className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")});
+      await fs.setDoc(ref,payload,{merge:true});
+      return {ok:true,uid:currentUser.uid};
     }
   };
 
@@ -82,13 +131,21 @@
       const app=appMod.getApps().length?appMod.getApp():appMod.initializeApp(cfg);
       authMod=authM;auth=authM.getAuth(app);db=fsMod.getFirestore(app);fs=fsMod;
       await authM.setPersistence(auth,authM.browserSessionPersistence);
-      if(!auth.currentUser&&!force){const cred=await authM.signInAnonymously(auth);currentUser=cred.user}
-      else currentUser=auth.currentUser;
-      api.uid=currentUser?.uid||null;api.state="ready";api.stage="Firebase 已連線";
+      // 等待 Firebase 還原上一頁的穩定學生登入狀態，再決定是否建立匿名帳號。
+      // 舊版直接檢查 auth.currentUser，會在還原尚未完成時誤建匿名帳號，導致其他單元無法寫入學生 UID。
+      currentUser=await new Promise((resolve,reject)=>{
+        let off=()=>{};
+        off=authM.onAuthStateChanged(auth,user=>{off();resolve(user);},err=>{off();reject(err);});
+      });
+      if(!currentUser){
+        const cred=await authM.signInAnonymously(auth);
+        currentUser=cred.user;
+      }
+      api.uid=currentUser?.uid||null;api.state="ready";api.stage=currentUser?.isAnonymous?"Firebase 已連線（尚未登入學生帳號）":"Firebase 學生帳號已連線";
       return true;
     }catch(e){
       api.state="error";api.error=e;api.errorCode=e?.code||"";api.errorMessage=e?.message||String(e);api.stage="Firebase 初始化失敗";return false;
     }
   }
-  api.ready=initialize(false);window.CourseDB=api;
+  api.ready=initialize(false).then(ok=>{try{window.dispatchEvent(new CustomEvent("coursedb:ready"));}catch(e){};return ok;});window.CourseDB=api;
 })();

@@ -195,7 +195,7 @@
       '<button class="btn sm" id="btn-logout">換人登入</button>' +
       (C.REVIEW_PAGE ? '<a class="btn sm" href="' + esc(C.REVIEW_PAGE) + '">🎓 會考前總複習</a>' : '') +
       (C.CHALLENGE_PAGE ? '<a class="btn sm" href="' + esc(C.CHALLENGE_PAGE) + '">🏁 課堂挑戰（老師投影）</a>' : '') + '</section>' +
-      '<p class="tiny faint center mt2">目前為本機版：進度只存在這台電腦的瀏覽器。換電腦前請先「下載我的進度」。</p>';
+      '<p class="tiny faint center mt2">進度會在登入 Firebase 學習帳號後同步到雲端；尚未登入穩定帳號時，請先至 Python 頁登入學習帳號。</p>';
 
     var B = badges();
     root.innerHTML = head + weekCard() + '<section class="grid g2 mt3">' + cards + '</section>' + badgeCard(B) + '<div id="learncard"></div>' + foot;

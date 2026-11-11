@@ -89,7 +89,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .rescueHomeCard{border:2px solid #f0b44d;background:#fffaf0}.rescueHomeHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.rescueHomeActions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 </style>
 <style>
-/* v16.36：教師端單元分頁與大字星星 */
+/* v16.37：全站舊星星登入後自動合併 */
 .moduleTabs{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 12px}
 .moduleTab{font-size:17px;min-height:48px;padding:12px 18px;border:2px solid #d8dee8;background:#f8fafc;color:#334155;border-radius:13px}
 .moduleTab[aria-pressed="true"]{background:#1d4ed8;color:#fff;border-color:#1d4ed8;box-shadow:0 3px 0 #1e40af}
@@ -120,7 +120,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 </style>
 </head>
 <body>
-<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.36 教師單元獨立檢視版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.37 全站進度同步修正版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -286,5 +286,5 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.36"></script>
+<script src="shared/teacher-dashboard.js?v=16.37"></script>
 </body></html>

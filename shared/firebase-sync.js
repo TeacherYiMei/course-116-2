@@ -7,6 +7,12 @@
   function studentAccountEmail(className,seatNo){
     return `python1151-${String(className||"").trim()}-${normalizedSeat(seatNo)}@student.course115.local`;
   }
+  // 穩定帳號登入／綁定完成後通知 STORE：將目前瀏覽器尚未上傳的舊單元紀錄合併至原 UID。
+  function announceStableAccount(){
+    if(currentUser && !currentUser.isAnonymous){
+      try{window.dispatchEvent(new CustomEvent("courseauth:stable",{detail:{uid:currentUser.uid}}));}catch(e){}
+    }
+  }
 
   const api={
     configured:configured(),state:"starting",stage:"尚未開始",uid:null,error:null,errorCode:"",errorMessage:"",ready:null,
@@ -20,6 +26,7 @@
       const credential=authMod.EmailAuthProvider.credential(email,password);
       const result=await authMod.linkWithCredential(currentUser,credential);
       currentUser=result.user;api.uid=currentUser.uid;api.stage="學生學習帳號已綁定";
+      announceStableAccount();
       return {ok:true,uid:currentUser.uid,email};
     },
     async signInStudentAccount(className,seatNo,password){
@@ -27,6 +34,7 @@
       const email=studentAccountEmail(className,seatNo);
       const result=await authMod.signInWithEmailAndPassword(auth,email,password);
       currentUser=result.user;api.uid=currentUser.uid;api.stage="學生學習帳號登入完成";
+      announceStableAccount();
       return {ok:true,uid:currentUser.uid,email};
     },
     async changeOwnPassword(newPassword){

@@ -88,10 +88,39 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .rescueGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rescueGrid label{font-weight:800}.rescueGrid input{width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #ccd4de;border-radius:10px}.rescueGrid .full{grid-column:1/-1}.rescueResult{margin-top:14px;padding:12px;border-radius:12px;background:#eef8ff;border:1px solid #b9d9f2}.trashList{display:grid;gap:10px;max-height:50vh;overflow:auto}.trashCard{border:1px solid #d9dee6;border-radius:14px;padding:12px;background:#fff}.trashCard .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.trashCard .meta{font-size:.92rem;color:#657080;margin-top:6px}.trashCard .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}@media(max-width:640px){.rescueGrid{grid-template-columns:1fr}}
 .rescueHomeCard{border:2px solid #f0b44d;background:#fffaf0}.rescueHomeHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.rescueHomeActions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
 </style>
-<style>.moduleMini{display:inline-block;background:#eef2ff;border-radius:6px;padding:2px 5px;margin:2px;font-size:11px;white-space:nowrap}#progressDetailSummary{white-space:pre-line}</style>
+<style>
+/* v16.36：教師端單元分頁與大字星星 */
+.moduleTabs{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 12px}
+.moduleTab{font-size:17px;min-height:48px;padding:12px 18px;border:2px solid #d8dee8;background:#f8fafc;color:#334155;border-radius:13px}
+.moduleTab[aria-pressed="true"]{background:#1d4ed8;color:#fff;border-color:#1d4ed8;box-shadow:0 3px 0 #1e40af}
+.moduleTab[data-module="digital"][aria-pressed="true"]{background:#2563eb;border-color:#2563eb}
+.moduleTab[data-module="python"][aria-pressed="true"]{background:#15803d;border-color:#15803d}
+.moduleTab[data-module="platform"][aria-pressed="true"]{background:#7e22ce;border-color:#7e22ce}
+.moduleTab[data-module="arduino"][aria-pressed="true"]{background:#c2410c;border-color:#c2410c}
+.moduleFocus{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-radius:14px;padding:14px 18px;margin:8px 0 14px;background:#eff6ff;border:1px solid #bfdbfe}
+.moduleFocus strong{font-size:21px}.moduleFocus .focusCount{font-size:23px;font-weight:950;color:#1d4ed8}
+.moduleFocus small{font-size:14px;color:#475569}
+.moduleTable{max-height:68vh}
+.moduleTable th,.moduleTable td{font-size:17px;padding:14px 13px}
+.moduleTable th{font-size:16px}
+.studentName{font-weight:850;font-size:18px;min-width:110px}
+.starCount{font-size:23px;font-weight:950;white-space:nowrap;color:#172554}
+.starCount .starIcon{font-size:25px}
+.starProgress{min-width:160px}
+.starProgress b{font-size:19px}
+.starBar{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:7px;min-width:120px}
+.starBar span{display:block;height:100%;border-radius:99px;background:#f59e0b}
+.levelStars{display:flex;gap:7px;flex-wrap:wrap;min-width:250px;max-width:500px}
+.levelChip{display:inline-flex;align-items:center;gap:4px;padding:6px 9px;border-radius:9px;background:#f1f5f9;border:1px solid #dbe3ec;font-size:15px;font-weight:800;white-space:nowrap}
+.levelChip.hasStars{background:#fff7d6;border-color:#f5d46a;color:#805b00}
+.levelChip.empty{color:#94a3b8;background:#f8fafc}
+.moduleEmpty{color:#64748b;font-size:15px}
+@media(max-width:700px){.moduleTab{flex:1 1 calc(50% - 8px);font-size:16px}.moduleFocus strong{font-size:18px}.moduleTable th,.moduleTable td{font-size:16px;padding:12px 10px}.starCount{font-size:21px}.levelStars{min-width:220px}}
+#progressDetailSummary{white-space:pre-line}
+</style>
 </head>
 <body>
-<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.35 全站 Firebase 星星同步版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.36 教師單元獨立檢視版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -117,7 +146,18 @@ dialog.manageDialog::backdrop{background:#22314a80}
   <div class="rescueHomeActions"><button id="runRescueBtn" class="warningBtn" type="button">🛟 開始救援</button><span id="rescueStatus" class="status"></span></div>
   <div id="rescueResult" class="rescueResult" hidden></div>
 </div>
-<div class="card tableWrap"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>Python 星星</th><th>全站各單元星數</th><th>評分</th><th>目前進度</th><th>完成</th><th>最近更新</th><th>紀錄</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="card">
+  <h2 style="margin:0 0 8px">📚 各單元學習進度</h2>
+  <div class="status" style="font-size:15px">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</div>
+  <div class="moduleTabs" id="moduleTabs" role="group" aria-label="選擇學習單元">
+    <button class="moduleTab" type="button" data-module="digital" aria-pressed="true">🔢 單元一｜數位時代</button>
+    <button class="moduleTab" type="button" data-module="python" aria-pressed="false">🐍 單元二｜Python</button>
+    <button class="moduleTab" type="button" data-module="platform" aria-pressed="false">🖥️ 單元三｜系統平臺</button>
+    <button class="moduleTab" type="button" data-module="arduino" aria-pressed="false">💡 5016B 專題</button>
+  </div>
+  <div class="moduleFocus"><div><strong id="moduleFocusTitle">單元一｜數位時代</strong><br><small id="moduleFocusNote">每位學生的本單元星星及各關卡紀錄</small></div><div><span class="focusCount" id="moduleFocusAverage">0</span> <small>平均星星</small></div></div>
+  <div class="tableWrap moduleTable"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th id="moduleStarHeader">單元一星星</th><th>各關卡星星</th><th>完成度</th><th>最近更新</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
 </section></main>
 
 
@@ -243,8 +283,8 @@ dialog.manageDialog::backdrop{background:#22314a80}
   <div class="manageFooter"><span></span><button id="closeTrashBtn" class="soft" type="button">關閉</button></div>
 </dialog>
 
-<script src="shared/firebase-config.js?v=16.35"></script>
+<script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.35"></script>
+<script src="shared/teacher-dashboard.js?v=16.36"></script>
 </body></html>

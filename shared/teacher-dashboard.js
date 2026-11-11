@@ -1,3 +1,4 @@
+
 (function(){
   const cfg=window.COURSE115_FIREBASE_CONFIG||{};
   let auth,db,mods;
@@ -5,29 +6,36 @@
   let currentRows=[];
   let manageRow=null;
   let currentAccountRecord=null;
-  let currentUnit="unit1"; 
+  let selectedModule="digital";
   const $=s=>document.querySelector(s);
 
-  const UNIT_CONFIG = {
-    unit1:  { id: "unit1", name: "單元一｜數位時代", maxStars: 24 },
-    python: { id: "python", name: "單元二｜Python", maxStars: 30 },
-    unit3:  { id: "unit3", name: "單元三｜系統平臺", maxStars: 24 },
-    aiot:   { id: "aiot", name: "5016B 專題", maxStars: 15 }
-  };
+  const configured=()=>!!(
+    cfg.enabled &&
+    cfg.apiKey &&
+    !String(cfg.apiKey).startsWith("PASTE_")
+  );
 
-  const configured=()=>!!(cfg.enabled && cfg.apiKey && !String(cfg.apiKey).startsWith("PASTE_"));
-  function esc(x){ return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-  function fmtTime(v){ try{ return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : ""; }catch(e){return ""} }
-  function seatSort(a,b){ return Number(a.seatNo||999)-Number(b.seatNo||999) || String(a.name||"").localeCompare(String(b.name||""),"zh-Hant"); }
-  function progressSum(progress){ 
-    if (!progress) return 0;
-    let sum = 0;
-    for (let k in progress) {
-      if (k.startsWith('_')) continue;
-      let val = Number(progress[k]);
-      if (!isNaN(val)) sum += val;
-    }
-    return sum;
+  function esc(x){
+    return String(x??"").replace(/[&<>"']/g,m=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+
+  function fmtTime(v){
+    try{
+      return v&&typeof v.toDate==="function"
+        ? v.toDate().toLocaleString("zh-TW")
+        : "";
+    }catch(e){return ""}
+  }
+
+  function seatSort(a,b){
+    return Number(a.seatNo||999)-Number(b.seatNo||999) ||
+      String(a.name||"").localeCompare(String(b.name||""),"zh-Hant");
+  }
+
+  function progressSum(progress){
+    return Object.values(progress||{}).reduce((n,v)=>n+Number(v||0),0);
   }
 
   function mergeDuplicateStudents(rows){
@@ -37,351 +45,802 @@
       if(!groups.has(key)) groups.set(key,[]);
       groups.get(key).push(row);
     }
+
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=> (b.lastSync ? new Date(b.lastSync).getTime() : 0) - (a.lastSync ? new Date(a.lastSync).getTime() : 0) || Number(b.stars||0)-Number(a.stars||0));
+      group.sort((a,b)=>
+        Number(b.stars||0)-Number(a.stars||0) ||
+        progressSum(b.progress)-progressSum(a.progress)
+      );
       const best={...group[0]};
       best.duplicateCount=group.length;
       best.sourceRecords=group.map(r=>({
-        id:r.id, className:String(r.className||""), seatNo:String(r.seatNo||""), name:String(r.name||""),
-        stars:Number(r.stars||0), progress:r.progress||{}, modules:r.modules||{}, 
-        unit1Stars:r.unit1Stars||0, unit3Stars:r.unit3Stars||0, aiotStars:r.aiotStars||0,
-        lastSync:r.lastSync||null, updatedAt:r.updatedAt||null
+        id:r.id,
+        className:String(r.className||""),
+        seatNo:String(r.seatNo||""),
+        name:String(r.name||""),
+        stars:Number(r.stars||0),
+        totalStars:Number(r.totalStars||30),
+        score:Number(r.score||0),
+        progress:r.progress||{},
+        currentStation:String(r.currentStation||""),
+        currentChallenge:r.currentChallenge||"",
+        completed:!!r.completed,
+        certificateUnlocked:!!r.certificateUnlocked,
+        updatedAt:r.updatedAt||null,
+        lastSeenAt:r.lastSeenAt||null
       }));
       if(group.length>1){
         const merged={};
-        for(const r of group) {
-          for(const [k,v] of Object.entries(r.progress||{})){ 
-            if(k.startsWith('_')) { merged[k] = Math.max(Number(merged[k]||0), Number(v||0)||0); }
-            else { merged[k]=Math.max(Number(merged[k]||0), Number(v||0)||0); }
+        for(const r of group){
+          for(const [k,v] of Object.entries(r.progress||{})){
+            merged[k]=Math.max(Number(merged[k]||0),Number(v||0));
           }
         }
-        best.progress=merged;
-        best.unit1Stars = Math.max(...group.map(r=>Number(r.unit1Stars||(r.progress&&r.progress._u1)||0)||0));
-        best.unit3Stars = Math.max(...group.map(r=>Number(r.unit3Stars||(r.progress&&r.progress._u3)||0)||0));
-        best.aiotStars = Math.max(...group.map(r=>Number(r.aiotStars||(r.progress&&r.progress._aiot)||0)||0));
-        best.stars = Math.max(...group.map(r=>Number(r.stars||progressSum(r.progress)||0)||0));
+        const term=window.CONFIG?.TERM||"11601";
+        const mergedCourse=JSON.parse(JSON.stringify(best.courseProgress||{}));
+        for(const r of group){
+          const mods=r.courseProgress?.[term]?.modules||{};
+          mergedCourse[term]=mergedCourse[term]||{modules:{}};
+          mergedCourse[term].modules=mergedCourse[term].modules||{};
+          for(const [mod,md] of Object.entries(mods)){
+            mergedCourse[term].modules[mod]=mergedCourse[term].modules[mod]||{levels:{}};
+            const dest=mergedCourse[term].modules[mod].levels||(mergedCourse[term].modules[mod].levels={});
+            for(const [id,rec] of Object.entries(md?.levels||{})){
+              const prev=dest[id]||{};
+              dest[id]={...prev,...rec,stars:Math.max(Number(prev.stars||0),Number(rec.stars||0))};
+            }
+          }
+        }
+        best.courseProgress=mergedCourse;
+        const mergedStars=progressSum(merged);
+        if(mergedStars>Number(best.stars||0)){
+          best.progress=merged;
+          best.stars=mergedStars;
+          best.score=best.totalStars
+            ? Math.round(mergedStars/Number(best.totalStars)*100)
+            : Number(best.score||0);
+        }
       }
       return best;
     });
   }
 
-  function isAdmin(){ return teacherProfile?.role==="admin"; }
-  function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
-  function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
-  function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
-
-  function getStudentUnitData(r, unitKey){
-    const cfg = UNIT_CONFIG[unitKey];
-    const modsData = r.modules || (r.progress && r.progress._mods) || {};
-    
-    let stars = 0;
-    let details = "尚未有關卡紀錄";
-    
-    if (unitKey === "python") {
-      stars = Number(modsData.python?.stars ?? r.stars ?? progressSum(r.progress) ?? 0);
-      details = r.progress && Object.keys(r.progress).length > 0 ? "已進行 Python 挑戰" : "尚未開始";
-    } else {
-      if (unitKey === "unit1") {
-        stars = Number(r.unit1Stars || (r.progress && r.progress._u1) || modsData.digital?.stars || modsData.unit1?.stars || 0);
-        const lvs = modsData.digital?.levels || modsData.unit1?.levels || {};
-        if (Object.keys(lvs).length > 0) details = Object.entries(lvs).map(([k,v])=>`${k}:${v.stars||0}★`).join(', ');
-      }
-      else if (unitKey === "unit3") {
-        stars = Number(r.unit3Stars || (r.progress && r.progress._u3) || modsData.platform?.stars || modsData.unit3?.stars || 0);
-        const lvs = modsData.platform?.levels || modsData.unit3?.levels || {};
-        if (Object.keys(lvs).length > 0) details = Object.entries(lvs).map(([k,v])=>`${k}:${v.stars||0}★`).join(', ');
-      }
-      else if (unitKey === "aiot") {
-        stars = Number(r.aiotStars || (r.progress && r.progress._aiot) || modsData.arduino?.stars || modsData.aiot?.stars || 0);
-        const lvs = modsData.arduino?.levels || modsData.aiot?.levels || {};
-        if (Object.keys(lvs).length > 0) details = Object.entries(lvs).map(([k,v])=>`${k}:${v.stars||0}★`).join(', ');
-      }
-    }
-    
-    if(isNaN(stars)) stars = 0;
-    const score = Math.min(100, Math.round((stars / cfg.maxStars) * 100));
-    
-    return { stars, maxStars: cfg.maxStars, score, details };
+  function isAdmin(){
+    return teacherProfile?.role==="admin";
   }
 
-  function setupTabs() {
-    const wrap = $("#app") || document.body;
-    let tabHtml = `<div class="tabs-container" style="margin-bottom:20px; border-bottom:1px solid #e2e8f0; display:flex; gap:10px;">`;
-    for(let k in UNIT_CONFIG) {
-       tabHtml += `<button class="unit-tab-btn" data-unit="${k}" style="padding:10px 20px; border:none; border-bottom:3px solid transparent; background:none; font-weight:bold; cursor:pointer; color:#64748b;">${UNIT_CONFIG[k].name}</button>`;
-    }
-    tabHtml += `</div>`;
-    
-    let headerDiv = $("#unitHeaderInfo");
-    if (!headerDiv) {
-       headerDiv = document.createElement("div");
-       headerDiv.id = "unitHeaderInfo";
-       // Insert before tableWrap
-       const tableWrap = document.querySelector(".tableWrap");
-       if (tableWrap) tableWrap.parentNode.insertBefore(headerDiv, tableWrap);
-    }
-    
-    if (!document.querySelector(".tabs-container")) {
-       headerDiv.innerHTML = tabHtml + `<div id="unitStats" style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#f8fafc; border-radius:12px; margin-bottom:20px;"></div>`;
-       
-       document.querySelectorAll(".unit-tab-btn").forEach(btn => {
-           btn.addEventListener("click", (e) => {
-               currentUnit = e.target.dataset.unit;
-               render();
-           });
-       });
-    }
+  function allowedClasses(){
+    if(isAdmin()) return null;
+    return Array.isArray(teacherProfile?.classes)
+      ? teacherProfile.classes.map(String).filter(Boolean).sort()
+      : [];
   }
 
+  function filtered(){
+    const cls=$("#classFilter").value;
+    return currentRows
+      .filter(r=>!cls || String(r.className)===cls)
+      .sort(seatSort);
+  }
+
+  const MODULES={
+    digital:{title:"單元一｜數位時代",short:"單元一",max:24,levels:["x1","u1","x2","u2","x3","u3","x4","u4"]},
+    python:{title:"單元二｜Python",short:"Python",max:30,levels:["P1","P2","P3","P4","P5","P6","P7","P8","P9","P10"]},
+    platform:{title:"單元三｜系統平臺",short:"單元三",max:24,levels:["G1","G2","G3","G4","G5","G6","G7","G8"]},
+    arduino:{title:"5016B｜專題挑戰",short:"5016B",max:15,levels:["S1","S2","S3","S4","S5"]}
+  };
+
+  function courseModuleLevels(r,key){
+    const term=window.CONFIG?.TERM||"11601";
+    return r.courseProgress?.[term]?.modules?.[key]?.levels||{};
+  }
+  function courseModuleStars(r,key){
+    const levels=courseModuleLevels(r,key);
+    const cloud=Object.values(levels).reduce((n,x)=>n+Number(x?.stars||0),0);
+    return key==="python"?Math.max(cloud,Number(r.stars||0)):cloud;
+  }
+  function courseTotalStars(r){
+    return Object.keys(MODULES).reduce((n,k)=>n+courseModuleStars(r,k),0);
+  }
+  function renderLevelStars(r,key){
+    const levels=courseModuleLevels(r,key);
+    const cfg=MODULES[key];
+    const ids=[...cfg.levels];
+    const hasAny=Object.keys(levels).length>0;
+    if(!hasAny){
+      const total=courseModuleStars(r,key);
+      return total>0
+        ? `<span class="moduleEmpty">已記錄 ${total} 星，尚無分關明細</span>`
+        : `<span class="moduleEmpty">尚未有關卡紀錄</span>`;
+    }
+    return ids.map(id=>{
+      const rec=levels[id];
+      const stars=Number(rec?.stars||0);
+      const done=!!(rec?.done||stars>0);
+      return `<span class="levelChip ${stars>0?"hasStars":"empty"}" title="${esc(id)}：${stars} 星">${esc(id)} <b>⭐${stars}</b>${done?" ✓":""}</span>`;
+    }).join("");
+  }
   function render(){
-    setupTabs();
     const rows=filtered();
-    const cfgUnit = UNIT_CONFIG[currentUnit];
-    
-    // Update Tab Styles
-    document.querySelectorAll(".unit-tab-btn").forEach(btn => {
-        if(btn.dataset.unit === currentUnit) {
-            btn.style.color = "#2563eb";
-            btn.style.borderBottomColor = "#2563eb";
-        } else {
-            btn.style.color = "#64748b";
-            btn.style.borderBottomColor = "transparent";
-        }
-    });
+    const cfg=MODULES[selectedModule]||MODULES.digital;
+    document.querySelectorAll(".moduleTab").forEach(btn=>btn.setAttribute("aria-pressed",String(btn.dataset.module===selectedModule)));
+    $("#moduleFocusTitle").textContent=cfg.title;
+    $("#moduleStarHeader").textContent=cfg.short+"星星";
+    const average=rows.length?rows.reduce((n,r)=>n+courseModuleStars(r,selectedModule),0)/rows.length:0;
+    $("#moduleFocusAverage").textContent=average.toFixed(1);
+    $("#studentCount").textContent=rows.length;
+    $("#avgStars").textContent=rows.length?(rows.reduce((n,r)=>n+courseTotalStars(r),0)/rows.length).toFixed(1):"0";
+    $("#avgScore").textContent=rows.length?Math.round(rows.reduce((n,r)=>n+Number(r.score||0),0)/rows.length):"0";
+    $("#doneCount").textContent=rows.filter(r=>r.completed).length;
 
-    let totalStarsSum = 0; let doneCount = 0;
-
-    const mappedRows = rows.map(r=>{
-      const d = getStudentUnitData(r, currentUnit);
-      totalStarsSum += d.stars;
-      if(d.stars >= d.maxStars) doneCount++;
-      return { ...r, _d: d };
-    });
-
-    const avg = rows.length ? (totalStarsSum/rows.length).toFixed(1) : "0.0";
-    $("#unitStats").innerHTML = `
-        <h2 style="margin:0; font-size:1.5rem; color:#1e293b;">${cfgUnit.name}</h2>
-        <div style="font-size:1.5rem; font-weight:bold; color:#2563eb;">${avg} <span style="font-size:0.9rem; color:#64748b;">平均星星</span></div>
-    `;
-
-    const theadTr = document.querySelector(".tableWrap thead tr") || document.querySelector("table thead tr");
-    if (theadTr) {
-        theadTr.innerHTML = `
-            <th>班級</th><th>座號</th><th>姓名</th><th>維護</th>
-            <th>單元星星</th><th>各關卡星星</th><th>完成度</th><th>最近更新</th>
-        `;
-    }
-
-    if($("#rows")) {
-      $("#rows").innerHTML = mappedRows.map(r=>`<tr>
+    $("#rows").innerHTML=rows.map(r=>{
+      const stars=courseModuleStars(r,selectedModule);
+      const pct=Math.min(100,Math.round(stars/cfg.max*100));
+      const levelDetail=renderLevelStars(r,selectedModule);
+      return `<tr>
         <td>${esc(r.className)}</td>
         <td>${esc(r.seatNo)}</td>
-        <td>${esc(r.name)}</td>
+        <td class="studentName">${esc(r.name)}</td>
         <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-        <td style="font-size:1.2rem; font-weight:bold; color:#f59e0b;">⭐ ${r._d.stars} <span style="font-size:0.9rem; color:#94a3b8;">/ ${r._d.maxStars}</span></td>
-        <td style="font-size:0.85rem; color:#64748b;">${esc(r._d.details)}</td>
-        <td>
-           <div style="font-weight:bold; color:${r._d.score===100?'#10b981':'#3b82f6'};">${r._d.score}%</div>
-           <div style="font-size:0.75rem; color:#94a3b8;">${r._d.score===100?'已完成':'進行中'}</div>
-        </td>
-        <td style="font-size:0.85rem; color:#64748b;">
-           ${r.lastSync ? new Date(r.lastSync).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric', second:'numeric'}) : '尚未同步'}
-           ${Number(r.duplicateCount||1)>1?`<br><span class="badge" style="margin-top:4px; display:inline-block;">已合併 ${Number(r.duplicateCount)} 筆</span>`:""}
-        </td>
-      </tr>`).join("");
-    }
+        <td class="starProgress"><div class="starCount"><span class="starIcon">⭐</span> ${stars} <span style="font-size:16px;font-weight:700;color:#64748b">/ ${cfg.max}</span></div><div class="starBar"><span style="width:${pct}%"></span></div></td>
+        <td><div class="levelStars">${levelDetail}</div></td>
+        <td><b style="font-size:18px">${pct}%</b><br><span class="status">${stars>=cfg.max?"全部完成":stars>0?"進行中":"尚未開始"}</span></td>
+        <td>${esc(fmtTime(r.updatedAt)||"—")}</td>
+      </tr>`;
+    }).join("");
 
     document.querySelectorAll(".manageBtn").forEach(btn=>{
       btn.addEventListener("click",()=>{
-        const row = rows.find(x=>String(x.id)===String(btn.dataset.id));
+        const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
         if(row) openStudentManage(row);
       });
     });
   }
 
+  function canManageClass(className){
+    return isAdmin() || allowedClasses().includes(String(className));
+  }
+
   function openStudentManage(row){
-    if(!canManageClass(row.className)){ alert("這個教師帳號沒有維護此班級的權限。"); return; }
+    if(!canManageClass(row.className)){
+      alert("這個教師帳號沒有維護此班級的權限。");
+      return;
+    }
+
     manageRow=row;
     const dlg=$("#studentManageDialog");
     const title=$("#manageStudentTitle");
     const list=$("#manageRecordList");
     const note=$("#manageStudentNote");
 
-    if(title) title.textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
-    const records=(row.sourceRecords||[row]).slice().sort((a,b)=> Number(b.stars||0)-Number(a.stars||0));
-    
-    let html = ``;
-    if(Number(row.duplicateCount||1)>1){
-       html += `<p class="small warning">目前合併顯示 ${row.duplicateCount} 筆原始紀錄。請只刪除確認錯誤的那一筆。</p>`;
-    }
-    
-    const d1 = getStudentUnitData(row, "unit1");
-    const d2 = getStudentUnitData(row, "python");
-    const d3 = getStudentUnitData(row, "unit3");
-    const d4 = getStudentUnitData(row, "aiot");
+    title.textContent=`${row.className} 班｜${row.seatNo} 號｜${row.name}`;
+    note.textContent=Number(row.duplicateCount||1)>1
+      ? `目前合併顯示 ${row.duplicateCount} 筆原始紀錄。請只刪除確認錯誤的那一筆。`
+      : "這位學生目前只有 1 筆原始紀錄。";
 
-    html += `
-      <div style="margin-top:12px; background:#f8fafc; padding:16px; border-radius:12px; border:1px solid #e2e8f0;">
-        <p style="color:#15803d;font-weight:700;margin-bottom:8px;">✏️ 手動補登各單元星星數：</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <label class="small bold">單元一：數位時代 (滿分 24)<input type="number" id="editUnit1Stars" value="${d1.stars}" class="input" style="width:100%;"></label>
-          <label class="small bold">單元二：Python (滿分 30)<input type="number" id="editPythonStars" value="${d2.stars}" class="input" style="width:100%;"></label>
-          <label class="small bold">單元三：系統平臺 (滿分 24)<input type="number" id="editUnit3Stars" value="${d3.stars}" class="input" style="width:100%;"></label>
-          <label class="small bold">5016B 專題 (滿分 15)<input type="number" id="editAiotStars" value="${d4.stars}" class="input" style="width:100%;"></label>
-        </div>
-        <button id="saveManualStarsBtn" class="btn primary mt1" style="width:100%;">💾 儲存手動星星數</button>
-        <div id="manualStarStatus" class="small bold mt1"></div>
-      </div>
-    `;
+    const records=(row.sourceRecords||[row]).slice().sort((a,b)=>
+      Number(b.stars||0)-Number(a.stars||0)
+    );
 
-    html += records.map((rec,index)=>`
+    list.innerHTML=records.map((rec,index)=>`
       <div class="recordCard" data-record="${esc(rec.id)}">
         <div class="recordInfo">
-          <b>雲端紀錄片段 ${index+1}</b>
-          <span class="status">更新：${rec.lastSync ? new Date(rec.lastSync).toLocaleString('zh-TW') : esc(fmtTime(rec.updatedAt)||"—")}</span>
+          <b>紀錄 ${index+1}</b>
+          <span>⭐ ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}</span>
+          <span>${esc(rec.currentStation||"尚未開始")}${rec.currentChallenge?`・第 ${esc(rec.currentChallenge)} 題`:""}</span>
+          <span>${rec.completed?"已完成":"進行中"}</span>
+          <span class="status">更新：${esc(fmtTime(rec.updatedAt)||"—")}</span>
         </div>
         <div class="recordActions">
-          <button class="deleteRecordBtn btn sm" style="color:var(--bad);border-color:var(--bad)" type="button"
-            data-docid="${esc(rec.id)}" data-class="${esc(rec.className)}" data-seat="${esc(rec.seatNo)}" data-name="${esc(rec.name)}">
-            🗑️ 移到回收桶
+          <button class="detailRecordBtn soft" type="button" data-docid="${esc(rec.id)}">📊 關卡明細</button>
+          <button class="editRecordBtn soft" type="button" data-docid="${esc(rec.id)}">✏️ 更正資料</button>
+          <button class="accountRecordBtn soft" type="button" data-docid="${esc(rec.id)}">🔑 帳號／密碼</button>
+          <button class="resetRecordBtn warningBtn" type="button" data-docid="${esc(rec.id)}">↺ 重設進度</button>
+          <button class="deleteRecordBtn danger" type="button"
+            data-docid="${esc(rec.id)}"
+            data-class="${esc(rec.className)}"
+            data-seat="${esc(rec.seatNo)}"
+            data-name="${esc(rec.name)}">
+            🗃️ 移到回收桶
           </button>
         </div>
       </div>
     `).join("");
 
-    if(list) list.innerHTML = html;
-    if(note) note.innerHTML = "";
+    list.querySelectorAll(".deleteRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>deleteStudentRecord(btn.dataset));
+    });
+    list.querySelectorAll(".detailRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>showProgressDetail(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
+    list.querySelectorAll(".editRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>openEditRecord(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
+    list.querySelectorAll(".accountRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>openAccountDialog(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
+    list.querySelectorAll(".resetRecordBtn").forEach(btn=>{
+      btn.addEventListener("click",()=>resetStudentProgress(records.find(r=>String(r.id)===String(btn.dataset.docid))));
+    });
 
-    const saveManualBtn = $("#saveManualStarsBtn");
-    if(saveManualBtn) {
-      saveManualBtn.onclick = async () => {
-        const btn = $("#saveManualStarsBtn");
-        const status = $("#manualStarStatus");
-        btn.disabled = true; btn.textContent = "儲存中...";
-        try {
-          const u1 = Number($("#editUnit1Stars").value);
-          const py = Number($("#editPythonStars").value);
-          const u3 = Number($("#editUnit3Stars").value);
-          const a4 = Number($("#editAiotStars").value);
-          
-          const updates = {
-            "unit1Stars": u1, "progress._u1": u1,
-            "stars": py, "modules.python.stars": py,
-            "unit3Stars": u3, "progress._u3": u3,
-            "aiotStars": a4, "progress._aiot": a4,
-            "lastSync": new Date().toISOString(),
-            "updatedAt": mods.fs.serverTimestamp()
-          };
-          await mods.fs.updateDoc(mods.fs.doc(db, "students", row.id), updates);
-          status.style.color = "#15803d"; status.textContent = "✅ 星星已成功更新！";
-          setTimeout(() => { if(dlg) dlg.close(); loadRows(); }, 1200);
-        } catch (err) {
-          status.style.color = "#dc2626"; status.textContent = "儲存失敗：" + err.message;
-          btn.disabled = false; btn.textContent = "💾 儲存手動星星數";
-        }
-      };
-    }
-
-    if(list) {
-      list.querySelectorAll(".deleteRecordBtn").forEach(btn=>btn.addEventListener("click",()=>deleteStudentRecord(btn.dataset)));
-    }
-    if(dlg) dlg.showModal();
+    dlg.showModal();
   }
 
-  /* --- 帳號與救援、回收桶功能 --- */
-  function buildClassFilter(){
-    const old=$("#classFilter")?.value;
-    let classes = isAdmin() ? [...new Set(currentRows.map(r=>String(r.className||"")).filter(Boolean))].sort() : allowedClasses();
-    if($("#classFilter")) {
-      $("#classFilter").innerHTML='<option value="">全部授權班級</option>'+classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-      if(classes.includes(old)) $("#classFilter").value=old;
+
+  function normalizedSeat(seatNo){
+    return String(Number(String(seatNo||"").trim())).padStart(2,"0");
+  }
+
+  function expectedStudentEmail(className,seatNo){
+    return `python1151-${String(className||"").trim()}-${normalizedSeat(seatNo)}@student.course115.local`;
+  }
+
+  function openAccountDialog(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有維護此班級學生帳號的權限。");
+      return;
     }
+
+    currentAccountRecord=rec;
+    $("#accountStudentTitle").textContent=
+      `${rec.className} 班｜${rec.seatNo} 號｜${rec.name}`;
+
+    $("#accountUid").textContent=rec.id||"";
+    $("#accountEmail").textContent=expectedStudentEmail(rec.className,rec.seatNo);
+    $("#accountStatus").textContent="";
+    $("#tempPasswordBox").hidden=true;
+    $("#tempPasswordValue").textContent="";
+
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    $("#resetPasswordBtn").disabled=!endpoint;
+    $("#resetPasswordBtn").textContent=endpoint
+      ? "🛠️ 修復登入帳號＋重設密碼"
+      : "🔒 尚未設定密碼重設後端";
+
+    $("#accountDialog").showModal();
+  }
+
+  async function copyText(text,label){
+    try{
+      await navigator.clipboard.writeText(text);
+      $("#accountStatus").textContent=`已複製${label}。`;
+    }catch(e){
+      $("#accountStatus").textContent=`無法自動複製，請手動選取${label}。`;
+    }
+  }
+
+
+  function temporaryPasswordMessage(name,className,seatNo){
+    const email=expectedStudentEmail(className,seatNo);
+    return `確定要修復「${className} 班 ${seatNo} 號 ${name}」的登入帳號並重設密碼嗎？
+
+系統會把 Firebase Authentication 登入帳號校正為：
+${email}
+
+並產生一次性臨時密碼。`;
+  }
+
+  async function resetStudentPassword(){
+    const rec=currentAccountRecord;
+    if(!rec)return;
+
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    if(!endpoint){
+      $("#accountStatus").textContent="尚未設定密碼重設後端網址。";
+      return;
+    }
+    if(!canManageClass(rec.className)){
+      $("#accountStatus").textContent="你沒有維護此班級學生帳號的權限。";
+      return;
+    }
+    if(!confirm(temporaryPasswordMessage(rec.name,rec.className,rec.seatNo)))return;
+
+    const btn=$("#resetPasswordBtn");
+    btn.disabled=true;
+    btn.textContent="⏳ 正在重設…";
+    $("#accountStatus").textContent="正在驗證教師權限並重設密碼…";
+    $("#tempPasswordBox").hidden=true;
+
+    try{
+      const user=auth?.currentUser;
+      if(!user)throw Error("教師登入已失效，請重新登入教師端。");
+      const idToken=await user.getIdToken(true);
+
+      const res=await fetch(endpoint.replace(/\/$/,"")+"/reset-student-password",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":"Bearer "+idToken
+        },
+        body:JSON.stringify({studentUid:String(rec.id||"")})
+      });
+
+      let data={};
+      try{data=await res.json();}catch(e){}
+
+      if(!res.ok||!data.ok){
+        throw Error(data.message||data.error||`後端回應 ${res.status}`);
+      }
+
+      $("#tempPasswordValue").textContent=data.temporaryPassword||"";
+      $("#tempPasswordBox").hidden=false;
+      $("#accountEmail").textContent=data.loginEmail||expectedStudentEmail(rec.className,rec.seatNo);
+      $("#accountStatus").textContent="✅ 登入帳號已校正，密碼也已重設。請把臨時密碼交給該學生。";
+    }catch(e){
+      console.error(e);
+      $("#accountStatus").textContent="重設失敗："+(e?.message||String(e));
+    }finally{
+      btn.disabled=false;
+      btn.textContent="🛠️ 修復登入帳號＋重設密碼";
+    }
+  }
+
+
+  function progressRows(progress){
+    const needs={p1:2,p2:3,p3:3,p4:2,p5:3,p6:2,p7:2,p8:3,p9:3,p10:3};
+    return Object.entries(needs).map(([id,total])=>{
+      const done=Math.max(0,Math.min(total,Number(progress?.[id]||0)));
+      return {id:id.toUpperCase(),done,total,complete:done>=total};
+    });
+  }
+
+  function showProgressDetail(rec){
+    if(!rec)return;
+    const rows=progressRows(rec.progress);
+    const term=window.CONFIG?.TERM||"11601";
+    const modules=rec.courseProgress?.[term]?.modules||{};
+    const moduleNames={digital:"單元一・數位時代",python:"單元二・Python",platform:"單元三・系統平臺",arduino:"5016B 專題"};
+    const moduleLines=Object.keys(moduleNames).map(k=>{const lv=modules[k]?.levels||{};const stars=Object.values(lv).reduce((n,x)=>n+Number(x?.stars||0),0);return `${moduleNames[k]}：${stars} 星／${Object.keys(lv).length} 筆關卡紀錄`;}).join("｜");
+    $("#detailTitle").textContent=`${rec.className} 班｜${rec.seatNo} 號｜${rec.name}`;
+    $("#progressDetailBody").innerHTML=rows.map(r=>`
+      <tr>
+        <td>${r.id}</td>
+        <td>${r.done} / ${r.total}</td>
+        <td>${r.complete?'<span class="badge done">完成</span>':'<span class="badge">進行中</span>'}</td>
+      </tr>
+    `).join("");
+    $("#progressDetailSummary").textContent=
+      `Python 星星 ${Number(rec.stars||0)}/${Number(rec.totalStars||30)}｜評分 ${Number(rec.score||0)}｜${rec.completed?"全部完成":"尚未全部完成"}\n全站紀錄：${moduleLines}`;
+    $("#progressDetailDialog").showModal();
+  }
+
+  function openEditRecord(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有維護此班級資料的權限。");
+      return;
+    }
+    $("#editDocId").value=rec.id;
+    $("#editOriginalClass").value=rec.className;
+    $("#editClassName").value=rec.className;
+    $("#editSeatNo").value=rec.seatNo;
+    $("#editStudentName").value=rec.name;
+    $("#editRecordError").textContent="";
+    $("#editAccountWarning").textContent=
+      "🔒 學生端已無法自行修改班級、座號與姓名，只有教師可在此更正。注意：若學生已建立學習帳號，班級／座號同時也是登入識別的一部分；免 Functions 版本無法同步修改 Firebase Authentication 登入帳號，因此更正班級或座號前請先確認，學生之後可能仍需用原班級／座號登入。";
+    $("#editRecordDialog").showModal();
+  }
+
+  function validEditFields(className,seatNo,name){
+    if(!/^[1-9][0-9]{2}$/.test(className)) return "班級請輸入 3 位數，例如 701、802、910。";
+    if(!/^(?:[1-9]|[1-9][0-9])$/.test(seatNo)) return "座號請輸入 1～99，不要加「號」或前導 0。";
+    if(name.length<2||name.length>20||!/^[\u3400-\u9FFF A-Za-z·・．'’-]+$/.test(name))
+      return "姓名請輸入 2～20 個中文字或英文字母。";
+    return "";
+  }
+
+  async function seatConflict(className,seatNo,excludeId){
+    const {collection,query,where,getDocs}=mods.fs;
+    const q=query(
+      collection(db,"students"),
+      where("className","==",String(className)),
+      where("seatNo","==",String(seatNo))
+    );
+    const snap=await getDocs(q);
+    return snap.docs.some(d=>d.id!==excludeId);
+  }
+
+  async function saveEditedRecord(){
+    const docid=$("#editDocId").value;
+    const originalClass=$("#editOriginalClass").value;
+    const className=$("#editClassName").value.trim();
+    const seatNo=String(Number($("#editSeatNo").value.trim()||0));
+    const name=$("#editStudentName").value.trim();
+    const err=$("#editRecordError");
+
+    const msg=validEditFields(className,seatNo,name);
+    if(msg){err.textContent=msg;return;}
+
+    if(!canManageClass(originalClass) || !canManageClass(className)){
+      err.textContent="只能把學生資料維護在你被授權的班級範圍內。";
+      return;
+    }
+
+    try{
+      err.textContent="正在檢查班級與座號…";
+      if(await seatConflict(className,seatNo,docid)){
+        err.textContent=`${className} 班 ${seatNo} 號已經有其他學生紀錄，請先確認是否為重複資料。`;
+        return;
+      }
+
+      const ok=confirm(
+        `確定儲存學生資料更正？\n\n`+
+        `${originalClass} 班 → ${className} 班\n`+
+        `座號：${seatNo}\n姓名：${name}`
+      );
+      if(!ok){err.textContent="";return;}
+
+      err.textContent="正在儲存…";
+      await mods.fs.updateDoc(mods.fs.doc(db,"students",docid),{
+        className,seatNo,name,
+        updatedAt:mods.fs.serverTimestamp()
+      });
+      $("#editRecordDialog").close();
+      $("#studentManageDialog").close();
+      await loadRows();
+    }catch(e){
+      err.textContent="儲存失敗："+(e?.code||e?.message||"未知錯誤");
+    }
+  }
+
+  async function resetStudentProgress(rec){
+    if(!rec)return;
+    if(!canManageClass(rec.className)){
+      alert("你沒有重設此班級學生進度的權限。");
+      return;
+    }
+    const typed=prompt(
+      `這會把 ${rec.className} 班 ${rec.seatNo} 號 ${rec.name} 的 Python 進度歸零。\n\n`+
+      `請輸入「重設」兩個字確認：`
+    );
+    if(typed!=="重設")return;
+
+    try{
+      $("#manageDeleteStatus").textContent="正在重設進度…";
+      await mods.fs.updateDoc(mods.fs.doc(db,"students",rec.id),{
+        stars:0,
+        score:0,
+        progress:{},
+        completed:false,
+        certificateUnlocked:false,
+        currentStation:"P1",
+        currentChallenge:1,
+        updatedAt:mods.fs.serverTimestamp()
+      });
+      $("#studentManageDialog").close();
+      await loadRows();
+    }catch(e){
+      $("#manageDeleteStatus").textContent="";
+      alert("重設失敗："+(e?.code||e?.message||"未知錯誤"));
+    }
+  }
+
+  async function apiPost(path,payload){
+    const endpoint=String(window.COURSE116_PASSWORD_RESET_URL||"").trim();
+    if(!endpoint)throw Error("尚未設定後端網址");
+    const user=auth?.currentUser;
+    if(!user)throw Error("教師登入已失效，請重新登入教師端。");
+    const idToken=await user.getIdToken(true);
+    const res=await fetch(endpoint.replace(/\/$/,"")+path,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+idToken},
+      body:JSON.stringify(payload||{})
+    });
+    let data={};try{data=await res.json();}catch(e){}
+    if(!res.ok||!data.ok)throw Error(data.message||data.error||`後端回應 ${res.status}`);
+    return data;
+  }
+
+  async function deleteStudentRecord(data){
+    const className=String(data.class||"");
+    if(!canManageClass(className)){
+      alert("你沒有刪除此班級資料的權限。");
+      return;
+    }
+    const ok=confirm(`確定要把 ${className} 班 ${data.seat} 號 ${data.name} 移到回收桶嗎？\n\n學生登入帳號會保留，資料之後可以直接復原。`);
+    if(!ok)return;
+    const uid=String(data.docid||"");
+    try{
+      $("#manageDeleteStatus").textContent="正在移到回收桶…";
+      const studentRef=mods.fs.doc(db,"students",uid);
+      const snap=await mods.fs.getDoc(studentRef);
+      if(!snap.exists())throw Error("找不到學生資料，可能已被刪除。");
+      const rec=snap.data()||{};
+      if(!canManageClass(rec.className))throw Error("你沒有維護此班級的權限。");
+      await mods.fs.setDoc(mods.fs.doc(db,"deletedStudents",uid),{
+        ...rec,
+        _deletedAt:mods.fs.serverTimestamp(),
+        _deletedBy:auth.currentUser?.uid||"",
+        _deletedUid:uid
+      });
+      await mods.fs.deleteDoc(studentRef);
+      $("#studentManageDialog").close();
+      await loadRows();
+      alert(`${className} 班 ${data.seat} 號 ${data.name} 已移到回收桶，可隨時復原。`);
+    }catch(e){
+      $("#manageDeleteStatus").textContent="";
+      alert("移到回收桶失敗："+(e?.message||"未知錯誤"));
+    }
+  }
+
+
+  async function runRescueStudent(){
+    const className=$("#rescueClass").value.trim();
+    const seatNo=$("#rescueSeat").value.trim();
+    const name=$("#rescueName").value.trim();
+    if(!className||!seatNo||!name){$("#rescueStatus").textContent="請輸入班級、座號與姓名。";return;}
+    if(!canManageClass(className)){ $("#rescueStatus").textContent="你沒有維護此班級的權限。";return; }
+    const btn=$("#runRescueBtn");btn.disabled=true;btn.textContent="救援中…";
+    $("#rescueStatus").textContent="正在尋找原本 Firebase Authentication 帳號…";
+    try{
+      const data=await apiPost("/rescue-student",{className,seatNo,name});
+      $("#rescueResult").hidden=false;
+      $("#rescueResult").innerHTML=`<b>✅ 救援完成</b><br>登入帳號：<code>${esc(data.loginEmail||"")}</code><br>臨時密碼：<code>${esc(data.temporaryPassword||"")}</code><br>Firebase UID：<code>${esc(data.studentUid||"")}</code><br><span class="status">${data.restoredFromTrash?"已從回收桶恢復原資料。":"已用原 UID 重建學生資料；若原電腦尚有本機進度，登入後可重新同步。"}</span>`;
+      $("#rescueStatus").textContent="請將臨時密碼交給學生登入。";
+      await loadRows();
+    }catch(e){
+      $("#rescueStatus").textContent="救援失敗："+(e?.message||"未知錯誤");
+    }finally{btn.disabled=false;btn.textContent="開始救援";}
+  }
+
+  async function loadTrashRows(){
+    const out=[];
+    if(isAdmin()){
+      const snap=await mods.fs.getDocs(mods.fs.collection(db,"deletedStudents"));
+      snap.forEach(d=>out.push({id:d.id,...d.data()}));
+    }else{
+      for(const cls of allowedClasses()){
+        const q=mods.fs.query(mods.fs.collection(db,"deletedStudents"),mods.fs.where("className","==",String(cls)));
+        const snap=await mods.fs.getDocs(q);
+        snap.forEach(d=>out.push({id:d.id,...d.data()}));
+      }
+    }
+    return out.sort((a,b)=>(String(a.className||"")+String(a.seatNo||"")).localeCompare(String(b.className||"")+String(b.seatNo||""),"zh-Hant"));
+  }
+
+  async function openTrash(){
+    $("#trashDialog").showModal();
+    $("#trashStatus").textContent="讀取回收桶…";$("#trashList").innerHTML="";
+    try{
+      const rows=await loadTrashRows();
+      $("#trashStatus").textContent=rows.length?`共 ${rows.length} 筆可復原紀錄。`:"回收桶目前是空的。";
+      $("#trashList").innerHTML=rows.map(r=>`<div class="trashCard"><div class="row"><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號｜${esc(r.name)}</b><span>⭐ ${Number(r.stars||0)}</span></div><div class="meta">刪除時間：${esc(fmtTime(r._deletedAt)||"—")}｜UID：${esc(r.id||"")}</div><div class="actions"><button class="restoreTrashBtn soft" data-uid="${esc(r.id)}" type="button">↩️ 一鍵復原</button><button class="purgeTrashBtn danger" data-uid="${esc(r.id)}" data-label="${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}" type="button">永久刪除</button></div></div>`).join("");
+      $("#trashList").querySelectorAll(".restoreTrashBtn").forEach(b=>b.onclick=()=>restoreTrashStudent(b.dataset.uid));
+      $("#trashList").querySelectorAll(".purgeTrashBtn").forEach(b=>b.onclick=()=>purgeTrashStudent(b.dataset.uid,b.dataset.label));
+    }catch(e){$("#trashStatus").textContent="讀取失敗："+(e?.message||"未知錯誤");}
+  }
+
+  async function restoreTrashStudent(uid){
+    try{
+      $("#trashStatus").textContent="正在復原學生…";
+      const trashRef=mods.fs.doc(db,"deletedStudents",String(uid||""));
+      const snap=await mods.fs.getDoc(trashRef);
+      if(!snap.exists())throw Error("回收桶找不到這筆資料。");
+      const rec={...snap.data()};
+      if(!canManageClass(rec.className))throw Error("你沒有維護此班級的權限。");
+      delete rec._deletedAt;delete rec._deletedBy;delete rec._deletedUid;
+      await mods.fs.setDoc(mods.fs.doc(db,"students",String(uid||"")),rec);
+      await mods.fs.deleteDoc(trashRef);
+      $("#trashStatus").textContent="✅ 已復原學生，原登入帳號與原密碼保持不變。";
+      await openTrash();await loadRows();
+    }catch(e){$("#trashStatus").textContent="復原失敗："+(e?.message||"未知錯誤");}
+  }
+
+  async function purgeTrashStudent(uid,label){
+    const ok=confirm(`確定要永久刪除 ${label} 嗎？\n\n這會刪除回收桶資料與 Firebase Authentication 登入帳號，而且無法復原。`);
+    if(!ok)return;
+    try{
+      $("#trashStatus").textContent="正在永久刪除…";
+      await apiPost("/permanently-delete-student",{studentUid:String(uid||"")});
+      await openTrash();
+    }catch(e){$("#trashStatus").textContent="永久刪除失敗："+(e?.message||"未知錯誤")+"（若尚未部署新版 Worker，可先保留在回收桶。）";}
+  }
+
+  function buildClassFilter(){
+    const old=$("#classFilter").value;
+    let classes;
+
+    if(isAdmin()){
+      classes=[...new Set(
+        currentRows.map(r=>String(r.className||"")).filter(Boolean)
+      )].sort();
+    }else{
+      classes=allowedClasses();
+    }
+
+    $("#classFilter").innerHTML=
+      '<option value="">全部授權班級</option>'+
+      classes.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+    if(classes.includes(old)) $("#classFilter").value=old;
   }
 
   function renderTeacherIdentity(){
     const label=$("#teacherIdentity");
     if(!label)return;
-    if(isAdmin()){ label.textContent=`管理者｜可查看全部班級`; return; }
+
+    if(isAdmin()){
+      label.textContent=`管理者｜可查看全部班級`;
+      return;
+    }
+
     const classes=allowedClasses();
-    label.textContent=`${teacherProfile?.displayName||"教師"}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
+    const name=teacherProfile?.displayName||"教師";
+    label.textContent=`${name}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
   }
 
   async function loadTeacherProfile(uid){
     const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid));
-    return snap.exists() ? {uid,...snap.data()} : null;
+    if(!snap.exists()) return null;
+    return {uid,...snap.data()};
   }
 
   async function queryClass(className){
-    const q=mods.fs.query(mods.fs.collection(db,"students"),mods.fs.where("className","==",String(className)));
-    const snap=await mods.fs.getDocs(q);
-    return snap.docs.map(d=>({id:d.id, ...d.data()}));
+    const {collection,query,where,getDocs}=mods.fs;
+    const q=query(
+      collection(db,"students"),
+      where("className","==",String(className))
+    );
+    const snap=await getDocs(q);
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
   }
 
   async function loadRows(){
-    if($("#dbStatus")) $("#dbStatus").textContent="讀取資料中…";
+    $("#dbStatus").textContent="讀取資料中…";
     try{
       if(isAdmin()){
         const snap=await mods.fs.getDocs(mods.fs.collection(db,"students"));
-        currentRows=snap.docs.map(d=>({id:d.id, ...d.data()}));
+        currentRows=snap.docs.map(d=>({id:d.id,...d.data()}));
       }else{
         const classes=allowedClasses();
-        if(!classes.length){ currentRows=[]; render(); return; }
+        if(!classes.length){
+          currentRows=[];
+          $("#dbStatus").textContent="這個教師帳號尚未分配任何班級";
+          buildClassFilter();
+          render();
+          return;
+        }
+
         const result=await Promise.all(classes.map(queryClass));
         const seen=new Map();
         result.flat().forEach(r=>seen.set(r.id,r));
         currentRows=[...seen.values()];
       }
+
       currentRows=mergeDuplicateStudents(currentRows);
       buildClassFilter();
       render();
-      if($("#dbStatus")) $("#dbStatus").textContent=`最後更新：${new Date().toLocaleTimeString("zh-TW")}`;
+      $("#dbStatus").textContent=`最後更新：${new Date().toLocaleTimeString("zh-TW")}`;
     }catch(e){
-      currentRows=[]; render();
-      if($("#dbStatus")) $("#dbStatus").textContent="讀取失敗："+(e?.message||"未知錯誤");
+      currentRows=[];
+      render();
+      $("#dbStatus").textContent="讀取失敗："+(e?.code||e?.message||"未知錯誤");
     }
   }
 
+  function exportExcel(){
+    const cls=$("#classFilter").value;
+    if(!cls){
+      alert("請先選擇一個班級，再下載該班 Excel。");
+      return;
+    }
+
+    if(!isAdmin() && !allowedClasses().includes(cls)){
+      alert("這個教師帳號沒有此班級的匯出權限。");
+      return;
+    }
+
+    const rows=filtered();
+    if(!rows.length){
+      alert("這個班級目前沒有資料。");
+      return;
+    }
+
+    const moduleCfg=MODULES[selectedModule]||MODULES.digital;
+    const data=rows.map(r=>{
+      const lv=courseModuleLevels(r,selectedModule);
+      const item={"班級":r.className||"","座號":Number(r.seatNo||0),"姓名":r.name||"","單元":moduleCfg.title,"星星":courseModuleStars(r,selectedModule),"滿星數":moduleCfg.max,"完成度":Math.round(courseModuleStars(r,selectedModule)/moduleCfg.max*100)+"%"};
+      for(const id of moduleCfg.levels)item[id+"星數"]=Number(lv[id]?.stars||0);
+      item["最近更新"]=fmtTime(r.updatedAt);
+      return item;
+    });
+
+    const ws=XLSX.utils.json_to_sheet(data);
+    ws["!cols"]=Object.keys(data[0]||{}).map((key,index)=>({wch:index===2?14:(key.includes("星數")?10:Math.max(10,String(key).length+3))}));
+
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,`${cls}班`);
+    XLSX.writeFile(wb,`${moduleCfg.short}學習進度_${cls}班.xlsx`);
+  }
+
   async function init(){
-    if(!configured()){ if($("#loginError")) $("#loginError").textContent="尚未設定 Firebase。"; return; }
+    if(!configured()){
+      $("#loginError").textContent="尚未設定 Firebase。";
+      $("#loginBtn").disabled=true;
+      return;
+    }
+
     try{
       const [appMod,authMod,fsMod]=await Promise.all([
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
         import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
       ]);
+
       const app=appMod.initializeApp(cfg);
-      auth=authMod.getAuth(app); db=fsMod.getFirestore(app); mods={auth:authMod,fs:fsMod};
-      
+      auth=authMod.getAuth(app);
+      db=fsMod.getFirestore(app);
+      mods={auth:authMod,fs:fsMod};
+
       authMod.onAuthStateChanged(auth,async user=>{
         if(!user){
-          if($("#loginCard")) $("#loginCard").classList.remove("hidden");
-          if($("#dashboard")) $("#dashboard").classList.add("hidden");
+          teacherProfile=null;
+          currentRows=[];
+          $("#loginCard").classList.remove("hidden");
+          $("#dashboard").classList.add("hidden");
+          $("#logoutBtn").classList.add("hidden");
           return;
         }
+
         const profile=await loadTeacherProfile(user.uid);
-        if(profile && (profile.role==="teacher" || profile.role==="admin")){
+
+        if(
+          profile &&
+          (profile.role==="teacher" || profile.role==="admin")
+        ){
           teacherProfile=profile;
-          if($("#loginCard")) $("#loginCard").classList.add("hidden");
-          if($("#dashboard")) $("#dashboard").classList.remove("hidden");
+          $("#loginCard").classList.add("hidden");
+          $("#dashboard").classList.remove("hidden");
+          $("#logoutBtn").classList.remove("hidden");
           renderTeacherIdentity();
           await loadRows();
         }else{
-          if($("#loginError")) $("#loginError").textContent="權限不足。";
+          $("#loginError").textContent=
+            "這個帳號尚未被設定為教師或管理者。";
           await authMod.signOut(auth);
         }
       });
-    }catch(e){ if($("#loginError")) $("#loginError").textContent="初始化失敗："+e.message; }
+
+    }catch(e){
+      $("#loginError").textContent="Firebase 初始化失敗："+e.message;
+    }
   }
 
-  if($("#loginBtn")) $("#loginBtn").onclick=async()=>{
-    if($("#loginError")) $("#loginError").textContent="";
-    try{ await mods.auth.signInWithEmailAndPassword(auth,$("#email").value.trim(),$("#password").value); }
-    catch(e){ if($("#loginError")) $("#loginError").textContent="登入失敗。"; }
+  $("#loginBtn").onclick=async()=>{
+    $("#loginError").textContent="";
+    try{
+      await mods.auth.signInWithEmailAndPassword(
+        auth,
+        $("#email").value.trim(),
+        $("#password").value
+      );
+    }catch(e){
+      $("#loginError").textContent=
+        "登入失敗，請確認 Email、密碼與教師權限。";
+    }
   };
-  if($("#logoutBtn")) $("#logoutBtn").onclick=()=>mods.auth.signOut(auth);
-  if($("#refreshBtn")) $("#refreshBtn").onclick=loadRows;
-  if($("#classFilter")) $("#classFilter").onchange=render;
-  if($("#closeManageBtn")) $("#closeManageBtn").onclick=()=>{ if($("#studentManageDialog")) $("#studentManageDialog").close(); };
-  
+
+  $("#logoutBtn").onclick=()=>mods.auth.signOut(auth);
+  $("#refreshBtn").onclick=loadRows;
+  $("#classFilter").onchange=render;
+  document.querySelectorAll(".moduleTab").forEach(btn=>btn.addEventListener("click",()=>{selectedModule=btn.dataset.module||"digital";render();}));
+  $("#exportBtn").onclick=exportExcel;
+  $("#closeManageBtn").onclick=()=>{
+    $("#manageDeleteStatus").textContent="";
+    $("#studentManageDialog").close();
+  };
+  $("#closeDetailBtn").onclick=()=>$("#progressDetailDialog").close();
+  $("#closeEditBtn").onclick=()=>$("#editRecordDialog").close();
+  $("#saveEditBtn").onclick=saveEditedRecord;
+  $("#closeAccountBtn").onclick=()=>$("#accountDialog").close();
+  $("#copyUidBtn").onclick=()=>copyText($("#accountUid").textContent," UID");
+  $("#copyEmailBtn").onclick=()=>copyText($("#accountEmail").textContent,"學習帳號");
+  $("#copyTempPasswordBtn").onclick=()=>copyText($("#tempPasswordValue").textContent,"臨時密碼");
+  $("#resetPasswordBtn").onclick=resetStudentPassword;
+  $("#trashStudentBtn").onclick=openTrash;
+  $("#runRescueBtn").onclick=runRescueStudent;
+  $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
+
   init();
 })();

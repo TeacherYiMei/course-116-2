@@ -20,6 +20,21 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .manageFooter{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 20px 18px}.warn{color:#9a5b19;font-size:13px}
 @media(max-width:700px){.recordCard{align-items:stretch;flex-direction:column}.deleteRecordBtn{width:100%}}
 @media(max-width:700px){.summary{grid-template-columns:repeat(2,1fr)}}
+
+/* v16.54: subunit-level display; no fabricated progress from aggregate scores */
+.subunit-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:9px;margin-top:18px}
+.subunit-summary{background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.subunit-summary strong{font-size:17px;color:#1e3a8a}.subunit-summary span{font-size:16px;font-weight:850;color:#b45309}.subunit-summary small{color:#475569;font-size:13px}
+.subunit-notice{font-size:14px;color:#475569;margin:13px 2px 0;line-height:1.65}
+.moduleTable th.subunit-head{min-width:120px;text-align:center;font-size:15px;background:#e0edff}.subunit-head span{display:block;font-size:12px;color:#64748b;font-weight:500;margin-top:4px}
+.moduleTable td.subunit-cell{min-width:120px;text-align:center;padding:9px 7px}
+.subunit-score{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 5px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;white-space:nowrap}
+.subunit-score strong{font-size:25px;font-weight:950;line-height:1.3;color:#1e293b;font-variant-numeric:tabular-nums}
+.subunit-score small{font-size:13px;color:#64748b}.subunit-score span{font-size:12px;font-weight:750;color:#64748b}
+.subunit-score.complete{background:#ecfdf5;border-color:#6ee7b7}.subunit-score.complete strong,.subunit-score.complete span{color:#047857}
+.subunit-score.partial{background:#fffbeb;border-color:#fcd34d}.subunit-score.partial strong,.subunit-score.partial span{color:#92400e}
+.subunit-score.unknown{border-style:dashed;background:#f1f5f9}.subunit-score.unknown strong{color:#94a3b8}
+@media(max-width:700px){.subunit-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style>
   /* v13.1：維護欄固定可見 */
@@ -118,9 +133,26 @@ dialog.manageDialog::backdrop{background:#22314a80}
 @media(max-width:700px){.moduleTab{flex:1 1 calc(50% - 8px);font-size:16px}.moduleFocus strong{font-size:18px}.moduleTable th,.moduleTable td{font-size:16px;padding:12px 10px}.starCount{font-size:21px}.levelStars{min-width:220px}}
 #progressDetailSummary{white-space:pre-line}
 </style>
+<style>
+/* v16.53 教師版：獨立單元卡、大字星數及關卡明細 */
+.unit-dashboard{margin:14px 0 18px}.unit-page-title{font-size:23px;margin:0 0 6px;color:#172554}.unit-instructions{font-size:15px;color:#475569;line-height:1.65;margin:0 0 16px}
+.unit-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.unit-score-card{background:#fff;border:2px solid #dbe4f0;color:#1e293b;padding:19px;text-align:left;border-radius:16px;box-shadow:0 3px 12px #1725540c;display:flex;flex-direction:column;gap:11px;min-width:0}
+.unit-score-card:hover{border-color:#93c5fd;background:#f8fbff}.unit-score-card.selected{border:3px solid #1d4ed8;background:#eff6ff;box-shadow:0 5px 18px #1d4ed823}
+.unit-score-card:focus-visible{outline:3px solid #f59e0b;outline-offset:2px}.unit-score-heading{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:900}.unit-score-icon{font-size:25px}
+.unit-score-number{display:flex;align-items:baseline;gap:7px;font-size:38px;font-weight:950;font-variant-numeric:tabular-nums;color:#1e40af}.unit-star-glyph{color:#d97706}.unit-score-suffix{font-size:14px;font-weight:750;color:#64748b}
+.unit-score-foot{font-size:14px;color:#475569;font-weight:700}.unit-active-panel{background:#f1f5ff;border:1px solid #bfdbfe;padding:16px 20px;border-radius:14px;margin-bottom:12px}
+.unit-active-title{display:flex;justify-content:space-between;gap:15px;align-items:center}.unit-active-title h3{font-size:21px;margin:0 0 6px}.unit-active-title p{font-size:14px;color:#475569;margin:0}
+.unit-active-average{text-align:right;display:flex;flex-direction:column;white-space:nowrap}.unit-active-average strong{font-size:32px;color:#1d4ed8;font-variant-numeric:tabular-nums}.unit-active-average span{font-size:13px;color:#475569}
+.moduleTable{max-height:70vh}.moduleTable th{font-size:16px;background:#eaf1fb;color:#334155;white-space:nowrap}.moduleTable td{font-size:16px;padding:14px 12px;vertical-align:middle}.student-score-row:nth-child(even){background:#f8fafc}.student-name{font-weight:900;font-size:18px!important}.seat-num{font-variant-numeric:tabular-nums;font-weight:800}
+.unit-star-column{min-width:170px}.star-strong{display:flex;align-items:center;gap:6px;white-space:nowrap}.star-strong strong{font-size:32px;color:#172554;font-weight:950;font-variant-numeric:tabular-nums}.star-strong .star-symbol{font-size:29px;color:#d97706}.star-maximum{font-size:15px;color:#64748b;font-weight:750}.star-zero strong{color:#64748b}.star-progress{height:10px;border-radius:9px;background:#e2e8f0;overflow:hidden;margin-top:7px;max-width:155px}.star-progress span{display:block;background:#f59e0b;height:100%;border-radius:9px}
+.level-detail{min-width:230px;line-height:1.9;color:#475569}.level-pill{display:inline-block;background:#fff3c4;color:#7c5200;font-size:14px;font-weight:850;border:1px solid #f3d47b;border-radius:8px;padding:2px 8px;margin:2px 5px 2px 0}
+.completion-percent{display:block;font-size:20px;font-weight:900;color:#1d4ed8}.completion-label{display:block;font-size:12px;color:#64748b}.sync-time{font-size:13px!important;color:#64748b}.dup-chip{display:block;font-size:11px;background:#e2e8f0;border-radius:8px;padding:3px 6px;margin-top:4px}.manageBtn{padding:8px 10px;background:#e8edf7;color:#334155;border:1px solid #cbd5e1}
+@media(max-width:740px){.unit-card-grid{grid-template-columns:1fr}.unit-score-number{font-size:32px}.unit-active-title{align-items:flex-start}.unit-active-average strong{font-size:26px}.moduleTable td{font-size:15px;padding:10px 8px}}
+</style>
 </head>
 <body>
-<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.37 全站進度同步修正版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.54 小單元逐關進度版</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -286,5 +318,5 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.37"></script>
+<script src="shared/teacher-dashboard.js?v=16.53"></script>
 </body></html>

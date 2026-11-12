@@ -4,10 +4,11 @@
   let teacherProfile=null;
   let currentRows=[];
   let manageRow=null;
+  let currentAccountRecord=null;
   let currentUnit="unit1"; 
   const $=s=>document.querySelector(s);
 
-  // 定義與 v16.35 畫面相符的單元
+  // 定義單元
   const UNIT_CONFIG = {
     unit1:  { id: "unit1", name: "單元一 | 數位時代", icon: "🔢", maxStars: 24, tabColor: "blue", mods: ["digital", "unit1", "u1"] },
     python: { id: "python", name: "單元二 | Python", icon: "🐍", maxStars: 30, tabColor: "emerald", mods: ["python", "py"] },
@@ -20,7 +21,6 @@
   function fmtTime(v){ try{ return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : ""; }catch(e){return ""} }
   function seatSort(a,b){ return Number(a.seatNo||999)-Number(b.seatNo||999) || String(a.name||"").localeCompare(String(b.name||""),"zh-Hant"); }
 
-  // 合併重複學生邏輯 (依照 v16.36 需求)
   function mergeDuplicateStudents(rows){
     const groups=new Map();
     for(const row of rows){
@@ -29,7 +29,7 @@
       groups.get(key).push(row);
     }
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=> (b.lastSync ? new Date(b.lastSync).getTime() : 0) - (a.lastSync ? new Date(a.lastSync).getTime() : 0));
+      group.sort((a,b)=> ((b.progress&&b.progress._lastSync) ? new Date(b.progress._lastSync).getTime() : 0) - ((a.progress&&a.progress._lastSync) ? new Date(a.progress._lastSync).getTime() : 0));
       const best={...group[0]};
       best.duplicateCount=group.length;
       best.sourceRecords=group;
@@ -50,13 +50,21 @@
            }
            if (r.progress) {
               for (let pk in r.progress) {
-                 if (pk.startsWith('_')) continue;
-                 mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                 if (pk.startsWith('_')) {
+                    if (pk === '_lastSync') {
+                        if(!mergedProgress[pk] || new Date(r.progress[pk]).getTime() > new Date(mergedProgress[pk]).getTime()) {
+                            mergedProgress[pk] = r.progress[pk];
+                        }
+                    } else if (pk !== '_mods') {
+                        mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                    }
+                 } else {
+                     mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                 }
               }
            }
         }
         
-        // 重新計算合併後的星數
         for (let mk in mergedMods) {
             let sum = 0;
             for (let lk in mergedMods[mk].levels) { sum += (mergedMods[mk].levels[lk].stars||0); }
@@ -71,7 +79,10 @@
   }
 
   function isAdmin(){ return teacherProfile?.role==="admin"; }
+  
+  // 🔴 嚴重 Bug 修正：移除 async 關鍵字，確保能同步回傳陣列！
   function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
+  
   function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
   function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
@@ -81,8 +92,8 @@
     
     let stars = 0;
     let detailsStr = "尚未有關卡紀錄";
+    let isManual = false;
     
-    // 尋找對應的模組資料
     let foundMod = null;
     for (let alias of cfg.mods) {
        if (modsData[alias]) { foundMod = modsData[alias]; break; }
@@ -107,28 +118,31 @@
           stars = Math.max(sum, Number(foundMod.stars||0));
           if (dt.length > 0) detailsStr = dt.join(', ');
        }
-       // 防禦舊資料結構
        if (stars === 0) {
           if (unitKey === "unit1") stars = Number(r.unit1Stars || (r.progress && r.progress._u1) || 0);
           if (unitKey === "unit3") stars = Number(r.unit3Stars || (r.progress && r.progress._u3) || 0);
           if (unitKey === "aiot") stars = Number(r.aiotStars || (r.progress && r.progress._aiot) || 0);
+          
+          if (stars > 0 && detailsStr === "尚未有關卡紀錄") {
+             detailsStr = "✅ 教師手動補登保留";
+             isManual = true;
+          }
        }
     }
     
     if(isNaN(stars)) stars = 0;
     const score = Math.min(100, Math.round((stars / cfg.maxStars) * 100));
     
-    return { stars, maxStars: cfg.maxStars, score, details: detailsStr };
+    return { stars, maxStars: cfg.maxStars, score, details: detailsStr, isManual };
   }
 
-  // 渲染完美 v16.35 UI 介面
   function setupUI() {
     const wrap = $("#app") || document.querySelector('.tableWrap').parentNode;
     let uiHTML = `
       <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom:24px;">
          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
             <span style="font-size:24px;">📊</span>
-            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.36 全站穩定版)</h1>
+            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.42 最終穩定版)</h1>
          </div>
          <p style="font-size:14px; color:#64748b; margin-bottom:20px;">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</p>
          
@@ -204,7 +218,7 @@
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">座號</th>
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">姓名</th>
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">維護</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">${cfgUnit.name.split('｜')[0]}星星</th>
+            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">${cfgUnit.name.split('｜')[1] || cfgUnit.name}星星</th>
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">各關卡星星</th>
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">完成度</th>
             <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">最近更新</th>
@@ -229,7 +243,7 @@
             </div>
         </td>
         
-        <td style="padding:16px 12px; font-size:13px; color:#64748b;">${esc(r._d.details)}</td>
+        <td style="padding:16px 12px; font-size:13px; color:${r._d.isManual ? '#10b981' : '#64748b'}; font-weight:${r._d.isManual ? 'bold' : 'normal'};">${esc(r._d.details)}</td>
         
         <td style="padding:16px 12px;">
            <div style="font-weight:bold; color:${r._d.score===100?'#10b981':'#3b82f6'};">${r._d.score}%</div>
@@ -237,7 +251,7 @@
         </td>
         
         <td style="padding:16px 12px; font-size:13px; color:#64748b;">
-           ${r.lastSync ? new Date(r.lastSync).toLocaleString('zh-TW', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'}) : (r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步')}
+           ${(r.progress && r.progress._lastSync) ? new Date(r.progress._lastSync).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}) : (r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步')}
            ${Number(r.duplicateCount||1)>1?`<br><span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:10px; margin-top:4px; display:inline-block;">已合併 ${Number(r.duplicateCount)} 筆</span>`:""}
         </td>
       </tr>`).join("");
@@ -252,7 +266,6 @@
   }
 
   function openStudentManage(row){
-    // ... 維持原有的維護視窗邏輯，確保儲存時能正確寫回
     if(!canManageClass(row.className)){ alert("權限不足。"); return; }
     manageRow=row;
     const dlg=$("#studentManageDialog");
@@ -295,11 +308,11 @@
           const a4 = Number($("#editAiotStars").value);
           
           const updates = {
-            "modules.digital.stars": u1, "progress._u1": u1,
-            "modules.python.stars": py, "stars": py,
-            "modules.platform.stars": u3, "progress._u3": u3,
-            "modules.aiot.stars": a4, "progress._aiot": a4,
-            "lastSync": new Date().toISOString(),
+            "progress._u1": u1,
+            "stars": py,
+            "progress._u3": u3,
+            "progress._aiot": a4,
+            "progress._lastSync": new Date().toISOString(),
             "updatedAt": mods.fs.serverTimestamp()
           };
           await mods.fs.updateDoc(mods.fs.doc(db, "students", row.id), updates);
@@ -322,7 +335,12 @@
         currentRows=snap.docs.map(d=>({id:d.id, ...d.data()}));
       }else{
         const classes=allowedClasses();
-        if(!classes.length){ currentRows=[]; render(); return; }
+        if(!classes.length){ 
+           currentRows=[]; 
+           render(); 
+           if($("#dbStatus")) $("#dbStatus").textContent=`請確認授權班級設定`;
+           return; 
+        }
         const result=await Promise.all(classes.map(queryClass));
         const seen=new Map();
         result.flat().forEach(r=>seen.set(r.id,r));
@@ -338,7 +356,6 @@
     }
   }
 
-  // 簡化其餘必要函數，維持系統穩定
   function buildClassFilter(){
     const old=$("#classFilter")?.value;
     let classes = isAdmin() ? [...new Set(currentRows.map(r=>String(r.className||"")).filter(Boolean))].sort() : allowedClasses();
@@ -356,7 +373,6 @@
     label.textContent=`${teacherProfile?.displayName||"教師"}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
   }
 
-  async function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
   async function loadTeacherProfile(uid){ const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid)); return snap.exists() ? {uid,...snap.data()} : null; }
   async function queryClass(className){ const q=mods.fs.query(mods.fs.collection(db,"students"),mods.fs.where("className","==",String(className))); const snap=await mods.fs.getDocs(q); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
 

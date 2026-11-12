@@ -303,7 +303,30 @@
     const d3 = getStudentUnitData(row, "unit3");
     const d4 = getStudentUnitData(row, "aiot");
 
+    // v16.55 唯讀診斷：確認教師端實際取到哪些 Firebase 欄位，而非猜測為已闖關／未闖關。
+    const cloudRecords = row.sourceRecords || [row];
+    const diag = cloudRecords.map(rec => {
+      const sources = [
+        ['modules',rec.modules],
+        ['progress._mods',rec.progress?._mods],
+        ['courseProgress.11601.modules',rec.courseProgress?.['11601']?.modules]
+      ];
+      const present = sources.flatMap(([place,data]) => data && typeof data==='object'
+        ? Object.entries(data).map(([key,value])=>{
+            const lv=value?.levels && typeof value.levels==='object'?value.levels:{};
+            const earned=Object.entries(lv).filter(([,v])=>Number(v?.stars)>0).length;
+            return `${place}.${key}：${earned}/${Object.keys(lv).length} 關有星，總星欄位 ${Number(value?.stars)||0}`;
+          }) : []);
+      const py=Object.entries(rec.progress||{}).filter(([k,v])=>/^p(?:10|[1-9])$/i.test(k)&&Number(v)>0);
+      const legacy=['unit1Stars','stars','unit3Stars','aiotStars'].map(k=>`${k}:${Number(rec[k])||0}`).join('／');
+      return `<li>雲端紀錄：${esc(rec.id)}｜座號原值：${esc(rec.seatNo)}｜${esc(present.length?present.join('；'):'沒有模組逐關資料')}｜Python 舊欄位 ${py.length} 關｜${esc(legacy)}</li>`;
+    }).join('');
     let html = `
+      <div style="margin-top:12px; padding:14px; border:1px solid #bfdbfe; border-radius:10px; background:#eff6ff">
+        <strong>🔎 Firebase 唯讀診斷（v16.55）</strong>
+        <p style="font-size:13px; margin:6px 0">這裡只檢查教師帳號實際讀到的雲端紀錄。沒有逐關資料不等於學生未闖關，也不表示本機成績已刪除。請勿直接按下方手動補登覆蓋成績。</p>
+        <ul style="font-size:12px; line-height:1.8; overflow-wrap:anywhere">${diag}</ul>
+      </div>
       <div style="margin-top:12px; background:#f8fafc; padding:16px; border-radius:12px; border:1px solid #e2e8f0;">
         <p style="color:#15803d;font-weight:700;margin-bottom:8px;">✏️ 手動補登各單元星星數：</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">

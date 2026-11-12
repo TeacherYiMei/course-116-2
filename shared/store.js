@@ -184,7 +184,7 @@
       if(!window.CourseDB || CourseDB.isAnonymous() || !CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(this.me())) {
          window.dispatchEvent(new CustomEvent('sync:status', { detail: 'ANONYMOUS' }));
          if(window.UI && typeof window.UI.requireLogin === 'function') window.UI.requireLogin();
-         return;
+         return {ok:false,reason:'NOT_LOGGED_IN'};
       }
       
       window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNCING' }));
@@ -273,7 +273,7 @@
             } else if (!(key in uploadProgress)) uploadProgress[key] = value;
           }
         }
-      } catch(e) { console.warn('Legacy progress pre-merge unavailable; upload skipped to protect history',e); return; }
+      } catch(e) { console.warn('Legacy progress pre-merge unavailable; upload skipped to protect history',e); window.dispatchEvent(new CustomEvent('sync:status', {detail:'SYNC_FAIL', reason:'REMOTE_READ_FAILED'})); return {ok:false,reason:'REMOTE_READ_FAILED'}; }
       const cleanPayload = JSON.parse(JSON.stringify(payload));
       
       try {
@@ -282,9 +282,11 @@
         // Firebase 端合併每關最高星數。舊版欄位繼續保留供歷史版本讀取。
         await CourseDB.saveCourseSnapshot(term(), {modules:mods}, p);
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_OK' }));
+        return {ok:true};
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);
-        window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_FAIL' }));
+        window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_FAIL', reason:String(e.code||e.message||'UNKNOWN').slice(0,120) }));
+        return {ok:false,reason:String(e.code||e.message||'UNKNOWN').slice(0,120)};
       }
     },
 

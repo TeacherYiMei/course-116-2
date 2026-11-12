@@ -155,7 +155,10 @@
           STORE.login(cls, seat, name);
         }
         
-        await STORE.syncToCloud();
+        const syncResult = await STORE.syncToCloud();
+        if (!syncResult || syncResult.ok !== true) {
+          throw new Error('闖關紀錄尚未成功上傳 Firebase（' + (syncResult?.reason||'UNKNOWN') + '）。本機成績仍保留，請勿清除瀏覽器資料，請老師協助檢查。');
+        }
         
         dlg.close(); 
         ready && ready(STORE.me());
@@ -244,7 +247,8 @@
             syncInd.style.backgroundColor = "#dcfce7";
             syncInd.style.color = "#166534";
         } else if (e.detail === 'SYNC_FAIL' || e.detail === 'MERGE_FAIL') {
-            syncInd.textContent = "❌ 待同步";
+            syncInd.textContent = "❌ 待同步（請勿清除紀錄）";
+            syncInd.title = String(e.reason||"請確認登入帳號與網路連線");
             syncInd.style.backgroundColor = "#fee2e2";
             syncInd.style.color = "#991b1b";
         } else if (e.detail === 'SYNCING') {

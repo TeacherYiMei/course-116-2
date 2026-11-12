@@ -1,0 +1,45 @@
+116course v16.55 差異更新包（由 v16.54 升級）
+
+此 ZIP 僅含比對 v16.54 與 v16.55 後發生變更的網站執行檔，不含圖片、歷史說明、Firebase 資料或完整網站。
+
+使用方式：
+1. 僅適用目前 GitHub 網站程式已是 v16.54 的情況。
+2. 請先備份 GitHub 程式及 Firestore 重要學生紀錄。
+3. 解壓縮，依照壓縮檔內相同路徑，以更新檔覆蓋 GitHub 儲存庫根目錄對應檔案。不要把檔案放進另一層資料夾。
+4. 確認 GitHub Pages 部署成功，清除網頁快取或使用強制重新整理後登入教師版驗證。
+5. 優先檢查 902、903、909、910 班 1～9 號第一單元、Python 星星與 Firebase 唯讀診斷。
+
+本版本提供同步問題診斷；尚未連線正式 Firebase 核對歷史紀錄，請勿當作全部成績已修復。
+
+注意：本壓縮檔不包含 Firebase Security Rules／Cloudflare Worker 部署。
+
+更新檔案清單：
+ - 1.html
+ - 11601/5016b.html
+ - 11601/digital/1.html
+ - 11601/digital/2.html
+ - 11601/digital/3.html
+ - 11601/digital/4.html
+ - 11601/digital/index.html
+ - 11601/hub.html
+ - 11601/midterm-review.html
+ - 11601/platform.html
+ - 11601/pyref.html
+ - 11601/python.html
+ - 11602/5016b.html
+ - 11602/challenge.html
+ - 11602/cipher.html
+ - 11602/data.html
+ - 11602/hub.html
+ - 11602/media.html
+ - 11602/network.html
+ - 11602/review.html
+ - 11602/sheet.html
+ - 11602/sheetref.html
+ - 11602/unit6.html
+ - hub.html
+ - python-bonus.html
+ - shared/store.js
+ - shared/teacher-dashboard.js
+ - shared/ui.js
+ - teacher.html

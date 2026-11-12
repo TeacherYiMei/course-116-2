@@ -1,8 +1,8 @@
 /* =====================================================================
-   身分與進度（v16.43 絕對穿透穩定版）
+   身分與進度（v16.45 終極護城河版）
    ---------------------------------------------------------------------
-   ★ 完美恢復 v16.40 的「終極穿透防護」：所有進階資料 100% 偽裝進 progress
-   ★ 確保絕對不會觸發 Firebase 安全過濾器，解決無法同步問題
+   ★ 完美解決成績覆蓋問題：下載雲端資料時，完整保留教師手動補登的成績。
+   ★ 保障本機上傳不會洗白教師補登紀錄。
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -92,7 +92,6 @@
           if(!p) return;
           
           let localData = this.load();
-          // 解開偽裝：支援從 progress._mods 讀取詳細關卡資料
           const cloudMods = r.modules || (r.progress && r.progress._mods) || {}; 
           
           for(let mKey in cloudMods) {
@@ -123,8 +122,9 @@
              let pyState = {};
              try { pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}'); } catch(e){}
              for (let pyKey in r.progress) {
-                if (!pyKey.startsWith('_')) { 
-                   pyState[pyKey] = Math.max(Number(pyState[pyKey]||0), Number(r.progress[pyKey]||0));
+                // 🔴 關鍵修正：不再忽略底線變數！必須把教師手動補分的 _u1, _u3 抓下來本機！
+                if (pyKey !== '_mods') {
+                    pyState[pyKey] = Math.max(Number(pyState[pyKey]||0), Number(r.progress[pyKey]||0));
                 }
              }
              localStorage.setItem('course115_v3_progress', JSON.stringify(pyState));
@@ -184,14 +184,12 @@
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
-      // 【終極穿透防護】：把所有資料塞進 progress 裡，絕不新增其他外部欄位！
-      pyState._u1 = mods.unit1?.stars || mods.digital?.stars || 0;
-      pyState._u3 = mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0;
-      pyState._aiot = mods.aiot?.stars || mods.arduino?.stars || 0;
-      pyState._lastSync = new Date().toISOString();
-      pyState._mods = mods;
+      // 🔴 關鍵修正：上傳時，本機分數與雲端(被下載下來的)分數取最高，避免洗白教師補登紀錄！
+      pyState._u1 = Math.max(Number(pyState._u1||0), Number(mods.unit1?.stars || mods.digital?.stars || 0));
+      pyState._u3 = Math.max(Number(pyState._u3||0), Number(mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0));
+      pyState._aiot = Math.max(Number(pyState._aiot||0), Number(mods.aiot?.stars || mods.arduino?.stars || 0));
+      pyState._mods = mods; // 夾帶詳細關卡成績
       
-      // 確保只傳送系統預設認得的標準欄位，保證 100% 寫入成功！
       const payload = {
         className: p.cls,
         seatNo: p.seat,

@@ -1,7 +1,8 @@
 /* =====================================================================
-   身分與進度（v16.47 終極穩定版）
+   身分與進度（v16.48 終極排障防崩潰版）
    ---------------------------------------------------------------------
-   ★ 完美解決「1~9號與31號」的字串補零失誤
+   ★ 完美修復 NaN 導致 Firestore 拒絕上傳的崩潰問題 (全班待同步 Bug)。
+   ★ 深層拷貝上傳物件，絕不汙染 Python 原始本機資料。
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -27,10 +28,7 @@
       if (!/^\d{1,2}$/.test(seat) || +seat < 1 || +seat > 40) return '座號請填 1～40';
       if (!name) return '請填姓名';
       
-      // 🔴 關鍵修復：絕不進行字串補 0！保持座號為最原始的數字字串 (例如 "1")
-      // 避免 1~9 號因為強制補 0 而登入成全新的空白帳號！
-      seat = String(Number(seat));
-      
+      // 維持原始座號，不強制補0，確保舊帳號完美對應
       safeSet(profileKey(), JSON.stringify({ cls: cls, seat: seat, name: name.slice(0, 12) }));
       fire();
       return '';
@@ -126,7 +124,10 @@
              try { pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}'); } catch(e){}
              for (let pyKey in r.progress) {
                 if (pyKey !== '_mods') {
-                    pyState[pyKey] = Math.max(Number(pyState[pyKey]||0), Number(r.progress[pyKey]||0));
+                    let val = Number(r.progress[pyKey]);
+                    if (!isNaN(val)) {
+                       pyState[pyKey] = Math.max(Number(pyState[pyKey]||0), val);
+                    }
                 }
              }
              localStorage.setItem('course115_v3_progress', JSON.stringify(pyState));
@@ -172,37 +173,50 @@
       let pyState = {};
       let bonusStars = 0;
       let bonusState = {};
+      
       try {
         pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
-        pyStars = Object.values(pyState).reduce((a, b) => a + Number(b || 0), 0);
+        // 🔴 嚴重崩潰修復：絕不把夾帶的物件(_mods)算進分數裡！否則 Number(Object) 會變成 NaN，導致 Firebase 崩潰拒收！
+        for (let k in pyState) {
+           if (!k.startsWith('_')) {
+              let val = Number(pyState[k]);
+              if (!isNaN(val)) pyStars += val;
+           }
+        }
+        
         bonusState = JSON.parse(localStorage.getItem('course116_python_bonus_v1') || '{}');
         bonusStars = Object.values(bonusState).filter(Boolean).length;
       } catch(e) {}
       
-      const totalPyStars = pyStars + bonusStars;
+      const totalPyStars = (pyStars || 0) + (bonusStars || 0);
       mods.python = mods.python || {};
-      mods.python.stars = Math.max(mods.python.stars || 0, totalPyStars);
+      mods.python.stars = Math.max(Number(mods.python.stars) || 0, totalPyStars);
       mods.python.completed = mods.python.stars >= 30;
       mods.python.progress = pyState;
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
-      pyState._u1 = Math.max(Number(pyState._u1||0), Number(mods.unit1?.stars || mods.digital?.stars || 0));
-      pyState._u3 = Math.max(Number(pyState._u3||0), Number(mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0));
-      pyState._aiot = Math.max(Number(pyState._aiot||0), Number(mods.aiot?.stars || mods.arduino?.stars || 0));
-      pyState._mods = mods;
+      // 🔴 安全拷貝：獨立做一個 uploadProgress 上傳，絕不汙染本機的 pyState 記憶體！
+      const uploadProgress = Object.assign({}, pyState);
+      uploadProgress._u1 = Math.max(Number(pyState._u1)||0, Number(mods.unit1?.stars || mods.digital?.stars)||0);
+      uploadProgress._u3 = Math.max(Number(pyState._u3)||0, Number(mods.unit3?.stars || mods.platform?.stars || mods.system?.stars)||0);
+      uploadProgress._aiot = Math.max(Number(pyState._aiot)||0, Number(mods.aiot?.stars || mods.arduino?.stars)||0);
+      uploadProgress._mods = mods;
       
       const payload = {
-        className: p.cls,
-        seatNo: p.seat,
-        name: p.name,
+        className: String(p.cls),
+        seatNo: String(p.seat),
+        name: String(p.name),
         courseId: "python",
-        stars: mods.python.stars,     
-        progress: pyState
+        stars: Number(mods.python.stars) || 0,     
+        progress: uploadProgress
       };
       
+      // 🔥 終極護城河：將所有 undefined 與 NaN 透過 JSON 轉換徹底消滅，保證 Firebase 100% 接收
+      const cleanPayload = JSON.parse(JSON.stringify(payload));
+      
       try {
-        await CourseDB.saveStudent(payload);
+        await CourseDB.saveStudent(cleanPayload);
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_OK' }));
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);

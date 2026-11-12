@@ -1,8 +1,8 @@
 /* =====================================================================
-   身分與進度（v16.48 終極排障防崩潰版）
+   身分與進度（v16.49 座號補零修正版）
    ---------------------------------------------------------------------
-   ★ 完美修復 NaN 導致 Firestore 拒絕上傳的崩潰問題 (全班待同步 Bug)。
-   ★ 深層拷貝上傳物件，絕不汙染 Python 原始本機資料。
+   ★ 完美保留 v16.48 的防崩潰上傳機制 (NaN / 深度拷貝)。
+   ★ 恢復座號補零邏輯，解決 1~9 號因為格式不符被 Firebase 拒絕的問題。
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -28,7 +28,9 @@
       if (!/^\d{1,2}$/.test(seat) || +seat < 1 || +seat > 40) return '座號請填 1～40';
       if (!name) return '請填姓名';
       
-      // 維持原始座號，不強制補0，確保舊帳號完美對應
+      // 🔴 關鍵修復：恢復補零邏輯！Firebase 規則要求 1~9 號必須是 "01"~"09" 才能放行
+      seat = String(Number(seat)).padStart(2, '0');
+      
       safeSet(profileKey(), JSON.stringify({ cls: cls, seat: seat, name: name.slice(0, 12) }));
       fire();
       return '';
@@ -176,7 +178,6 @@
       
       try {
         pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
-        // 🔴 嚴重崩潰修復：絕不把夾帶的物件(_mods)算進分數裡！否則 Number(Object) 會變成 NaN，導致 Firebase 崩潰拒收！
         for (let k in pyState) {
            if (!k.startsWith('_')) {
               let val = Number(pyState[k]);
@@ -196,7 +197,6 @@
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
-      // 🔴 安全拷貝：獨立做一個 uploadProgress 上傳，絕不汙染本機的 pyState 記憶體！
       const uploadProgress = Object.assign({}, pyState);
       uploadProgress._u1 = Math.max(Number(pyState._u1)||0, Number(mods.unit1?.stars || mods.digital?.stars)||0);
       uploadProgress._u3 = Math.max(Number(pyState._u3)||0, Number(mods.unit3?.stars || mods.platform?.stars || mods.system?.stars)||0);
@@ -205,14 +205,13 @@
       
       const payload = {
         className: String(p.cls),
-        seatNo: String(p.seat),
+        seatNo: String(p.seat), // 這裡會是補零後的座號，例如 "05"
         name: String(p.name),
         courseId: "python",
         stars: Number(mods.python.stars) || 0,     
         progress: uploadProgress
       };
       
-      // 🔥 終極護城河：將所有 undefined 與 NaN 透過 JSON 轉換徹底消滅，保證 Firebase 100% 接收
       const cleanPayload = JSON.parse(JSON.stringify(payload));
       
       try {

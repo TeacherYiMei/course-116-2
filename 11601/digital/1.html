@@ -10,7 +10,7 @@
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); min-height: 100vh; margin: 0; display: flex; flex-direction: column; }
         .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-        .galaxy-card { background-color: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--line); }   /* 116：改成全站卡片樣式 */
+        .galaxy-card { background-color: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--line); }
         .nav-btn { position: relative; overflow: hidden; transition: all 0.2s ease-in-out; border-radius: 999px; border: 2px solid transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
         .nav-active { background-color: #2563eb; color: #ffffff; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
         .nav-inactive { background-color: #ffffff; color: #64748b; border-color: #e2e8f0; }
@@ -20,7 +20,7 @@
         .bit-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; border: 1px solid transparent; }
         .bit-on { background: linear-gradient(145deg, #3b82f6, #2563eb); color: #ffffff; transform: scale(1.05); box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); border-color: #60a5fa; }
         .bit-off { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
-        .bit-off .opacity-70 { opacity: 1; }   /* 投影可讀性：關掉的位元，權值小字也要看得清楚 */
+        .bit-off .opacity-70 { opacity: 1; }
         .gem-btn { transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1); touch-action: none; }
         .gem-selected { transform: scale(0.85) !important; box-shadow: 0 0 0 4px #3b82f6, 0 0 15px rgba(59, 130, 246, 0.5) !important; z-index: 10; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -34,18 +34,14 @@
         .quiz-toggle-box.bit-1 { background-color: #3b82f6; color: white; border-color: #2563eb; }
         .quiz-toggle-box.dec-box { background-color: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
     </style>
-    <!-- 116：Tailwind 改成固定的 CSS（tools/build-tailwind.sh 產生；不再連 cdn.tailwindcss.com） -->
     <link rel="stylesheet" href="tailwind.css">
 </head>
 <body data-unit="1">
 
     <div class="wrap wrap-wide relative">
-        <!-- 標題與選單 -->
-        <!-- 116 全站頁首與課程小卡（progress-hook.js 產生） -->
         <header id="topbar"></header>
         <nav id="ucards"></nav>
 
-        <!-- 單元一內容 -->
         <main class="w-full">
             <section class="galaxy-card p-6 md:p-10 animate-fade-up">
                 <div class="flex items-center gap-4 mb-8">
@@ -63,7 +59,6 @@
                     <ul class="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-600"><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-blue-600">01</span> 用位元的權值讀出二進位數字。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-blue-600">02</span> 在十進位與二進位之間轉換。</li><li class="rounded-2xl bg-white/90 p-3"><span class="font-black text-blue-600">03</span> 用 0 與 1 解釋電腦如何表示資料。</li></ul>
                 </section>
 
-                <!-- 電腦四大任務 -->
                 <div class="bg-blue-50 border border-blue-100 p-6 md:p-8 rounded-3xl mb-8 shadow-sm">
                     <div class="flex items-center gap-3 mb-4"><div class="text-blue-500 bg-white p-2 rounded-xl shadow-sm"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><h3 class="text-xl font-bold text-slate-800">電腦的四大任務</h3></div>
                     <p class="text-slate-600 mb-6 font-medium">無論電腦長得像手機、平板還是超級主機，它們都一定會做這四件事：</p>
@@ -75,7 +70,6 @@
                     </div>
                 </div>
 
-                <!-- 課前引導影片 -->
                 <div class="bg-white border border-slate-200 p-6 rounded-3xl mb-8 shadow-sm flex flex-col lg:flex-row gap-6">
                     <div class="w-full lg:w-3/5"><div class="relative w-full pb-[56.25%] rounded-2xl overflow-hidden shadow-inner border border-slate-100 bg-slate-50"><iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/USCBCmwMCDA?rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div></div>
                     <div class="w-full lg:w-2/5 flex flex-col justify-center space-y-4">
@@ -88,7 +82,6 @@
                     </div>
                 </div>
 
-                <!-- 遊戲區 -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div class="lg:col-span-5">
                         <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 relative overflow-hidden transition-all duration-500 h-full flex flex-col justify-between min-h-[480px] shadow-sm">
@@ -112,10 +105,15 @@
                         <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-200 rounded-3xl p-5 md:p-6 h-full flex flex-col relative overflow-hidden shadow-lg shadow-blue-100/50">
                             <div class="flex justify-between items-center mb-4 border-b border-blue-200 pb-3"><div class="font-mono-code text-blue-700 font-bold text-xs md:text-sm tracking-widest flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse"></span> BINARY BONANZA (5x5 挑戰賽)</div><div class="flex gap-2"><button onclick="shuffleBonanzaGrid()" class="px-3 py-1.5 bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 text-xs font-bold rounded-full transition-colors shadow-sm">重置 🔄</button><button id="bonanza-start-btn" onclick="startBonanzaGame()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-full transition-all shadow-md shadow-blue-500/30">開始 ⚡</button></div></div>
                             <div class="flex flex-col md:flex-row flex-grow gap-6 items-stretch justify-center">
-                                <div class="flex flex-col items-center justify-center bg-white rounded-3xl p-4 md:p-5 border border-blue-100 flex-grow shadow-sm relative"><div id="bonanza-grid" class="grid grid-cols-5 gap-2 w-max mx-auto relative select-none"></div><div class="text-[11px] text-slate-500 mt-4 text-center">在網格中 <span class="text-blue-600 font-bold">拖拉(滑動)相連的 3 顆</span> 寶石，填滿右下角插槽</div><p id="bonanza-selection-hint" class="mt-1 text-center text-[11px] font-bold text-indigo-600" aria-live="polite">尚未選取：從任一顆寶石開始拖拉。</p></div>
+                                <div class="flex flex-col items-center justify-center bg-white rounded-3xl p-4 md:p-5 border border-blue-100 flex-grow shadow-sm relative"><div id="bonanza-grid" class="grid grid-cols-5 gap-2 w-max mx-auto relative select-none"></div><div class="text-[11px] text-slate-500 mt-4 text-center">在網格中 <span class="text-blue-600 font-bold">拖拉(滑動)相連的 4 顆</span> 寶石，填滿右下角插槽</div><p id="bonanza-selection-hint" class="mt-1 text-center text-[11px] font-bold text-indigo-600" aria-live="polite">尚未選取：從任一顆寶石開始拖拉。</p></div>
                                 <div class="w-full md:w-44 flex flex-col justify-between items-center md:items-end flex-shrink-0">
                                     <div class="w-full bg-white p-4 rounded-3xl border border-blue-100 flex flex-row md:flex-col justify-around md:justify-start gap-4 text-center md:text-right mb-4 md:mb-0 shadow-sm"><div><div class="text-[10px] text-slate-400 font-bold tracking-widest">SCORE</div><div class="text-2xl font-black text-blue-600" id="game-score">0</div></div><div class="w-px h-full md:w-full md:h-px bg-slate-100"></div><div><div class="text-[10px] text-slate-400 font-bold tracking-widest">LEVEL</div><div class="text-xl font-bold text-slate-700"><span id="game-level">1</span></div></div><div class="w-px h-full md:w-full md:h-px bg-slate-100"></div><div><div class="text-[10px] text-slate-400 font-bold tracking-widest">TIME</div><div class="text-xl font-bold text-rose-500" id="game-time-left">60s</div></div></div>
-                                    <div class="w-full flex flex-col items-center md:items-end gap-3 bg-white p-4 rounded-3xl border border-blue-200 shadow-md"><div class="text-xs text-slate-500 font-bold tracking-widest uppercase">Target / 目標</div><div id="game-target" class="w-16 h-16 bg-blue-50 rounded-full border-4 border-blue-400 flex items-center justify-center text-3xl font-black text-blue-700 shadow-inner transition-transform">0</div><div class="w-full space-y-2 mt-2"><div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-100 pb-1"><span>位元權值</span><span class="text-slate-600 font-bold font-mono-code">8  -  4  -  1</span></div><div class="flex gap-2 w-full justify-center md:justify-end"><div class="flex flex-col items-center"><div id="slot-0" class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x8</span></div><div class="flex flex-col items-center"><div id="slot-1" class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x4</span></div><div class="flex flex-col items-center"><div id="slot-2" class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x1</span></div></div></div><button onclick="evaluateSelection()" class="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-full transition-all shadow-md shadow-indigo-500/30">驗證組合 (Verify)</button></div>
+                                    <div class="w-full flex flex-col items-center md:items-end gap-3 bg-white p-4 rounded-3xl border border-blue-200 shadow-md"><div class="text-xs text-slate-500 font-bold tracking-widest uppercase">Target / 目標</div><div id="game-target" class="w-16 h-16 bg-blue-50 rounded-full border-4 border-blue-400 flex items-center justify-center text-3xl font-black text-blue-700 shadow-inner transition-transform">0</div><div class="w-full space-y-2 mt-2"><div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-100 pb-1"><span>位元權值</span><span class="text-slate-600 font-bold font-mono-code">8 - 4 - 2 - 1</span></div><div class="flex gap-1 w-full justify-center md:justify-end">
+                                    <div class="flex flex-col items-center"><div id="slot-0" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x8</span></div>
+                                    <div class="flex flex-col items-center"><div id="slot-1" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x4</span></div>
+                                    <div class="flex flex-col items-center"><div id="slot-2" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x2</span></div>
+                                    <div class="flex flex-col items-center"><div id="slot-3" class="w-8 h-8 rounded-xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all"></div><span class="text-[9px] text-slate-400 mt-1 font-mono-code">x1</span></div>
+                                    </div></div><button onclick="evaluateSelection()" class="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-full transition-all shadow-md shadow-indigo-500/30">驗證組合 (Verify)</button></div>
                                 </div>
                             </div>
                             <div id="game-over-overlay" class="absolute inset-0 bg-white/95 backdrop-blur-sm hidden flex-col items-center justify-center z-10 rounded-3xl"><div class="text-6xl mb-4">🏆</div><h3 class="text-2xl font-black text-slate-800 mb-2">挑戰結束！</h3><p class="text-slate-500 text-sm mb-1">你在限時挑戰中獲得了：</p><p class="text-4xl font-black text-blue-600 mb-6"><span id="final-score">0</span> 分</p><button onclick="startBonanzaGame()" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg shadow-blue-500/30 transition-transform hover:scale-105 text-sm">重新挑戰 🔄</button></div>
@@ -154,7 +152,6 @@
     </div>
 
     <script>
-        // JS - 1-1 二進位原理
         let bitStates = [0, 0, 0, 0, 0], bitValues = [1, 2, 4, 8, 16], gameLevels = [9, 21, 14, 27, 31], currentLevel = 0;
         let quizTargetNum = 0, d2bBits = [0, 0, 0, 0, 0], b2dDigits = [0, 0], quizCurrentIndex = 0, quizType = 'd2b', isD2BCompleted = false, isB2DCompleted = false;
         let bonanzaGridData = [], selectedGems = [], bonanzaTarget = 0, bonanzaScore = 0, bonanzaLevel = 1, bonanzaTimeLeft = 60, bonanzaTimerInterval = null, isGameRunning = false, isDragging = false;
@@ -172,19 +169,95 @@
         const originalCalculateDecimal = calculateDecimal;
         calculateDecimal = function() { originalCalculateDecimal(); updateBinaryGuidance(parseInt(document.getElementById('decimal-result')?.innerText || '0', 10)); };
         
-        function startBonanzaGame() { isGameRunning = true; bonanzaScore = 0; bonanzaLevel = 1; bonanzaTimeLeft = 60; selectedGems = []; if (document.getElementById('game-score')) document.getElementById('game-score').innerText = bonanzaScore; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; if (document.getElementById('game-time-left')) document.getElementById('game-time-left').innerText = `${bonanzaTimeLeft}s`; if (document.getElementById('game-over-overlay')) document.getElementById('game-over-overlay').classList.add('hidden'); if (document.getElementById('bonanza-start-btn')) document.getElementById('bonanza-start-btn').innerText = "重置 ⚡"; generateBonanzaGrid(); generateNewTarget(); updateSlots(); const hint = document.getElementById('bonanza-selection-hint'); if (hint) hint.innerText = '重新開始：先選一顆寶石，再依序選兩顆相鄰寶石。'; if(bonanzaTimerInterval) clearInterval(bonanzaTimerInterval); bonanzaTimerInterval = setInterval(() => { bonanzaTimeLeft--; if (document.getElementById('game-time-left')) document.getElementById('game-time-left').innerText = `${bonanzaTimeLeft}s`; if(bonanzaTimeLeft === 45) { bonanzaLevel = 2; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft === 30) { bonanzaLevel = 3; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft === 15) { bonanzaLevel = 4; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft <= 0) endBonanzaGame(); }, 1000); }
+        function startBonanzaGame() { isGameRunning = true; bonanzaScore = 0; bonanzaLevel = 1; bonanzaTimeLeft = 60; selectedGems = []; if (document.getElementById('game-score')) document.getElementById('game-score').innerText = bonanzaScore; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; if (document.getElementById('game-time-left')) document.getElementById('game-time-left').innerText = `${bonanzaTimeLeft}s`; if (document.getElementById('game-over-overlay')) document.getElementById('game-over-overlay').classList.add('hidden'); if (document.getElementById('bonanza-start-btn')) document.getElementById('bonanza-start-btn').innerText = "重置 ⚡"; generateBonanzaGrid(); generateNewTarget(); updateSlots(); const hint = document.getElementById('bonanza-selection-hint'); if (hint) hint.innerText = '重新開始：先選一顆寶石，再依序選三顆相鄰寶石。'; if(bonanzaTimerInterval) clearInterval(bonanzaTimerInterval); bonanzaTimerInterval = setInterval(() => { bonanzaTimeLeft--; if (document.getElementById('game-time-left')) document.getElementById('game-time-left').innerText = `${bonanzaTimeLeft}s`; if(bonanzaTimeLeft === 45) { bonanzaLevel = 2; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft === 30) { bonanzaLevel = 3; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft === 15) { bonanzaLevel = 4; if (document.getElementById('game-level')) document.getElementById('game-level').innerText = bonanzaLevel; } if(bonanzaTimeLeft <= 0) endBonanzaGame(); }, 1000); }
         function endBonanzaGame() { isGameRunning = false; clearInterval(bonanzaTimerInterval); if (document.getElementById('final-score')) document.getElementById('final-score').innerText = bonanzaScore; if (document.getElementById('game-over-overlay')) document.getElementById('game-over-overlay').classList.replace('hidden', 'flex'); if (document.getElementById('bonanza-start-btn')) document.getElementById('bonanza-start-btn').innerText = "開始 ⚡"; }
         function generateBonanzaGrid() { const gridContainer = document.getElementById('bonanza-grid'); if (!gridContainer) return; gridContainer.innerHTML = ''; bonanzaGridData = []; gridContainer.style.touchAction = 'none'; gridContainer.ontouchmove = (e) => { e.preventDefault(); if(!isDragging || !isGameRunning) return; const touch = e.touches[0]; const el = document.elementFromPoint(touch.clientX, touch.clientY); if(el && el.classList.contains('gem-btn')) overDrag(parseInt(el.getAttribute('data-r')), parseInt(el.getAttribute('data-c'))); }; for(let r = 0; r < 5; r++) { bonanzaGridData[r] = []; for(let c = 0; c < 5; c++) { const val = bonanzaGemValues[Math.floor(Math.random() * bonanzaGemValues.length)]; bonanzaGridData[r][c] = val; const gemBtn = document.createElement('button'); gemBtn.id = `gem-${r}-${c}`; gemBtn.setAttribute('data-r', r); gemBtn.setAttribute('data-c', c); gemBtn.className = `gem-btn w-12 h-12 md:w-14 md:h-14 rounded-2xl font-black text-2xl transition-all cursor-pointer flex items-center justify-center shadow-md ${bonanzaColors[val]}`; gemBtn.innerText = val; gemBtn.onmousedown = (e) => { e.preventDefault(); startDrag(r, c); }; gemBtn.onmouseenter = (e) => { overDrag(r, c); }; gemBtn.ontouchstart = (e) => { e.preventDefault(); startDrag(r, c); }; gridContainer.appendChild(gemBtn); } } }
         const originalGenerateBonanzaGrid = generateBonanzaGrid;
         generateBonanzaGrid = function() { originalGenerateBonanzaGrid(); document.querySelectorAll('#bonanza-grid .gem-btn').forEach(button => { const row = parseInt(button.dataset.r), col = parseInt(button.dataset.c); button.setAttribute('aria-label', `第 ${row + 1} 列、第 ${col + 1} 格，數值 ${button.innerText}`); button.addEventListener('click', event => { if (event.detail === 0) selectBonanzaGem(row, col); }); button.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectBonanzaGem(row, col); } }); }); };
-        function selectBonanzaGem(row, col) { if (!isGameRunning) return; if (selectedGems.length === 0 || selectedGems.length >= 3) { startDrag(row, col); return; } const lastGem = selectedGems[selectedGems.length - 1]; if (Math.abs(lastGem.r - row) + Math.abs(lastGem.c - col) === 1) overDrag(row, col); else startDrag(row, col); }
-        function shuffleBonanzaGrid() { if(!isGameRunning) return; selectedGems = []; updateSlots(); generateBonanzaGrid(); generateNewTarget(); const hint = document.getElementById('bonanza-selection-hint'); if (hint) hint.innerText = '已重置：先選一顆寶石，再依序選兩顆相鄰寶石。'; }
+        
+        // --- 4位數邏輯修正 ---
+        function selectBonanzaGem(row, col) { if (!isGameRunning) return; if (selectedGems.length === 0 || selectedGems.length >= 4) { startDrag(row, col); return; } const lastGem = selectedGems[selectedGems.length - 1]; if (Math.abs(lastGem.r - row) + Math.abs(lastGem.c - col) === 1) overDrag(row, col); else startDrag(row, col); }
+        function shuffleBonanzaGrid() { if(!isGameRunning) return; selectedGems = []; updateSlots(); generateBonanzaGrid(); generateNewTarget(); const hint = document.getElementById('bonanza-selection-hint'); if (hint) hint.innerText = '已重置：先選一顆寶石，再依序選三顆相鄰寶石。'; }
         function getNeighbors(r, c) { let n = []; if (r > 0) n.push({r: r-1, c: c}); if (r < 4) n.push({r: r+1, c: c}); if (c > 0) n.push({r: r, c: c-1}); if (c < 4) n.push({r: r, c: c+1}); return n; }
-        function generateNewTarget() { let r1 = Math.floor(Math.random() * 5), c1 = Math.floor(Math.random() * 5); let neighbors1 = getNeighbors(r1, c1); let next1 = neighbors1[Math.floor(Math.random() * neighbors1.length)]; let r2 = next1.r, c2 = next1.c; let neighbors2 = getNeighbors(r2, c2).filter(n => !(n.r === r1 && n.c === c1)); let next2 = neighbors2[Math.floor(Math.random() * neighbors2.length)]; let r3 = next2.r, c3 = next2.c; bonanzaTarget = bonanzaGridData[r1][c1]*8 + bonanzaGridData[r2][c2]*4 + bonanzaGridData[r3][c3]*1; const targetEl = document.getElementById('game-target'); if (targetEl) { targetEl.innerText = bonanzaTarget; targetEl.classList.remove('scale-110', 'border-blue-500'); } }
+        
+        function generateNewTarget() { 
+            let r1 = Math.floor(Math.random() * 5), c1 = Math.floor(Math.random() * 5); 
+            let neighbors1 = getNeighbors(r1, c1); 
+            let next1 = neighbors1[Math.floor(Math.random() * neighbors1.length)]; 
+            let r2 = next1.r, c2 = next1.c; 
+            
+            let neighbors2 = getNeighbors(r2, c2).filter(n => !(n.r === r1 && n.c === c1)); 
+            let next2 = neighbors2[Math.floor(Math.random() * neighbors2.length)]; 
+            let r3 = next2.r, c3 = next2.c; 
+            
+            let neighbors3 = getNeighbors(r3, c3).filter(n => !(n.r === r2 && n.c === c2) && !(n.r === r1 && n.c === c1)); 
+            let next3 = neighbors3.length > 0 ? neighbors3[Math.floor(Math.random() * neighbors3.length)] : getNeighbors(r3, c3)[0]; 
+            let r4 = next3.r, c4 = next3.c; 
+            
+            bonanzaTarget = bonanzaGridData[r1][c1]*8 + bonanzaGridData[r2][c2]*4 + bonanzaGridData[r3][c3]*2 + bonanzaGridData[r4][c4]*1; 
+            const targetEl = document.getElementById('game-target'); 
+            if (targetEl) { targetEl.innerText = bonanzaTarget; targetEl.classList.remove('scale-110', 'border-blue-500'); } 
+        }
+        
         function startDrag(r, c) { if(!isGameRunning) return; isDragging = true; selectedGems.forEach(g => { if (document.getElementById(`gem-${g.r}-${g.c}`)) document.getElementById(`gem-${g.r}-${g.c}`).classList.remove('gem-selected'); }); selectedGems = []; selectedGems.push({ r, c, val: bonanzaGridData[r][c] }); if(document.getElementById(`gem-${r}-${c}`)) document.getElementById(`gem-${r}-${c}`).classList.add('gem-selected'); updateSlots(); }
-        function overDrag(r, c) { if(!isDragging || !isGameRunning || selectedGems.length >= 3 || selectedGems.some(g => g.r === r && g.c === c)) return; const lastGem = selectedGems[selectedGems.length - 1]; if (Math.abs(lastGem.r - r) + Math.abs(lastGem.c - c) === 1) { selectedGems.push({ r, c, val: bonanzaGridData[r][c] }); if(document.getElementById(`gem-${r}-${c}`)) document.getElementById(`gem-${r}-${c}`).classList.add('gem-selected'); updateSlots(); } }
-        function updateSlots() { for(let i=0; i<3; i++) { const slot = document.getElementById(`slot-${i}`); if (!slot) continue; if(selectedGems[i]) { const val = selectedGems[i].val; slot.innerText = val; slot.className = `w-9 h-9 md:w-10 md:h-10 rounded-2xl flex items-center justify-center text-lg font-black transition-all ${bonanzaColors[val]}`; } else { slot.innerText = ""; slot.className = `w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all`; } } const hint = document.getElementById('bonanza-selection-hint'); if (hint) { if (selectedGems.length === 0) hint.innerText = '尚未選取：從任一顆寶石開始拖拉。'; else if (selectedGems.length < 3) hint.innerText = `已選 ${selectedGems.length} / 3 顆：下一顆必須與上一顆相鄰。`; else hint.innerText = '已選滿 3 顆：按「驗證組合」查看結果。'; } }
-        function evaluateSelection() { if(selectedGems.length !== 3) { const feedbackDiv = document.createElement('div'); feedbackDiv.className = "fixed top-10 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-800 font-bold px-6 py-3 rounded-full shadow-lg z-50 text-center"; feedbackDiv.innerText = "⚠️ 請拖拉選滿 3 顆相鄰寶石再驗證！"; document.body.appendChild(feedbackDiv); setTimeout(() => { feedbackDiv.remove(); }, 2000); return; } let sum = selectedGems[0].val * 8 + selectedGems[1].val * 4 + selectedGems[2].val * 1; if(sum === bonanzaTarget) { bonanzaScore += bonanzaTarget * 10; if (document.getElementById('game-score')) document.getElementById('game-score').innerText = bonanzaScore; if (document.getElementById('game-target')) document.getElementById('game-target').classList.add('scale-110', 'border-blue-500'); selectedGems.forEach(g => { const el = document.getElementById(`gem-${g.r}-${g.c}`); if (el) { el.classList.remove('gem-selected'); el.classList.add('gem-pop'); } }); setTimeout(() => { popAndDropGems(); generateNewTarget(); }, 400); } else { const slots = [document.getElementById('slot-0'), document.getElementById('slot-1'), document.getElementById('slot-2')]; slots.forEach(s => { if (s) s.classList.add('slot-error'); }); setTimeout(() => { selectedGems.forEach(g => { if (document.getElementById(`gem-${g.r}-${g.c}`)) document.getElementById(`gem-${g.r}-${g.c}`).classList.remove('gem-selected'); }); slots.forEach(s => { if (s) s.classList.remove('slot-error'); }); selectedGems = []; updateSlots(); }, 600); } }
+        function overDrag(r, c) { if(!isDragging || !isGameRunning || selectedGems.length >= 4 || selectedGems.some(g => g.r === r && g.c === c)) return; const lastGem = selectedGems[selectedGems.length - 1]; if (Math.abs(lastGem.r - r) + Math.abs(lastGem.c - c) === 1) { selectedGems.push({ r, c, val: bonanzaGridData[r][c] }); if(document.getElementById(`gem-${r}-${c}`)) document.getElementById(`gem-${r}-${c}`).classList.add('gem-selected'); updateSlots(); } }
+        
+        function updateSlots() { 
+            for(let i=0; i<4; i++) { 
+                const slot = document.getElementById(`slot-${i}`); 
+                if (!slot) continue; 
+                if(selectedGems[i]) { 
+                    const val = selectedGems[i].val; 
+                    slot.innerText = val; 
+                    slot.className = `w-8 h-8 md:w-10 md:h-10 rounded-2xl flex items-center justify-center text-lg font-black transition-all ${bonanzaColors[val]}`; 
+                } else { 
+                    slot.innerText = ""; 
+                    slot.className = `w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-slate-50 border border-slate-300 border-dashed flex items-center justify-center text-md font-bold text-slate-400 transition-all`; 
+                } 
+            } 
+            const hint = document.getElementById('bonanza-selection-hint'); 
+            if (hint) { 
+                if (selectedGems.length === 0) hint.innerText = '尚未選取：從任一顆寶石開始拖拉。'; 
+                else if (selectedGems.length < 4) hint.innerText = `已選 ${selectedGems.length} / 4 顆：下一顆必須與上一顆相鄰。`; 
+                else hint.innerText = '已選滿 4 顆：按「驗證組合」查看結果。'; 
+            } 
+        }
+        
+        function evaluateSelection() { 
+            if(selectedGems.length !== 4) { 
+                const feedbackDiv = document.createElement('div'); 
+                feedbackDiv.className = "fixed top-10 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-800 font-bold px-6 py-3 rounded-full shadow-lg z-50 text-center"; 
+                feedbackDiv.innerText = "⚠️ 請拖拉選滿 4 顆相鄰寶石再驗證！"; 
+                document.body.appendChild(feedbackDiv); 
+                setTimeout(() => { feedbackDiv.remove(); }, 2000); 
+                return; 
+            } 
+            
+            let sum = selectedGems[0].val * 8 + selectedGems[1].val * 4 + selectedGems[2].val * 2 + selectedGems[3].val * 1; 
+            
+            if(sum === bonanzaTarget) { 
+                bonanzaScore += 10; 
+                if (document.getElementById('game-score')) document.getElementById('game-score').innerText = bonanzaScore; 
+                if (document.getElementById('game-target')) document.getElementById('game-target').classList.add('scale-110', 'border-blue-500'); 
+                selectedGems.forEach(g => { 
+                    const el = document.getElementById(`gem-${g.r}-${g.c}`); 
+                    if (el) { el.classList.remove('gem-selected'); el.classList.add('gem-pop'); } 
+                }); 
+                setTimeout(() => { popAndDropGems(); generateNewTarget(); }, 400); 
+            } else { 
+                const slots = [document.getElementById('slot-0'), document.getElementById('slot-1'), document.getElementById('slot-2'), document.getElementById('slot-3')]; 
+                slots.forEach(s => { if (s) s.classList.add('slot-error'); }); 
+                setTimeout(() => { 
+                    selectedGems.forEach(g => { 
+                        if (document.getElementById(`gem-${g.r}-${g.c}`)) document.getElementById(`gem-${g.r}-${g.c}`).classList.remove('gem-selected'); 
+                    }); 
+                    slots.forEach(s => { if (s) s.classList.remove('slot-error'); }); 
+                    selectedGems = []; updateSlots(); 
+                }, 600); 
+            } 
+        }
+        // --- 修正結束 ---
+        
         function popAndDropGems() { for (let c = 0; c < 5; c++) { let activeValues = []; for (let r = 4; r >= 0; r--) { if (!selectedGems.some(g => g.r === r && g.c === c)) activeValues.push(bonanzaGridData[r][c]); } while(activeValues.length < 5) activeValues.push(bonanzaGemValues[Math.floor(Math.random() * bonanzaGemValues.length)]); for (let r = 4; r >= 0; r--) { const newVal = activeValues[4 - r]; bonanzaGridData[r][c] = newVal; const el = document.getElementById(`gem-${r}-${c}`); if (el) { el.className = `gem-btn w-12 h-12 md:w-14 md:h-14 rounded-2xl font-black text-2xl transition-all cursor-pointer flex items-center justify-center shadow-md ${bonanzaColors[newVal]}`; el.innerText = newVal; } } } selectedGems = []; updateSlots(); }
         
         function calcDecToBin() { const decInput = document.getElementById('calc-dec'), binInput = document.getElementById('calc-bin'); if(!decInput || !binInput) return; const val = decInput.value.trim(); if(val === "") { binInput.value = ""; return; } const decNum = parseInt(val, 10); if(!isNaN(decNum) && decNum >= 0) binInput.value = decNum.toString(2); else binInput.value = "無效數值"; }
@@ -197,8 +270,6 @@
 
         const originalSubmitQuizAnswer = submitQuizAnswer;
         submitQuizAnswer = function() { const expected = quizType === 'd2b' ? quizTargetNum.toString(2).padStart(5, '0') : quizTargetNum; const answer = quizType === 'd2b' ? d2bBits.join('') : (b2dDigits[0] * 10 + b2dDigits[1]); originalSubmitQuizAnswer(); const feedback = document.getElementById('quiz-feedback'); if (feedback && answer !== expected) { const selected = quizType === 'd2b' ? d2bBits.reduce((sum, bit, index) => sum + bit * [16, 8, 4, 2, 1][index], 0) : answer; const diff = quizTargetNum - selected; feedback.innerText = diff > 0 ? `❌ 還差 ${diff}；檢查是否漏開了對應權值。` : `❌ 超過 ${Math.abs(diff)}；關掉一個較大的權值再試試。`; } else if (feedback) feedback.innerText = '✅ 答對了！你已正確使用位元的權值。進入下一題…'; };
-
-
 
         const reviewPassed = new Set();
         function answerReview(question, isCorrect, button, hint = '') { const feedback = document.getElementById('review-feedback'), score = document.getElementById('review-score'); if (!feedback || !score) return; if (isCorrect) { reviewPassed.add(question); button.className = 'bg-emerald-500 text-white border-emerald-600 rounded px-2 py-1'; feedback.innerText = `✅ 第 ${question} 題答對了！`; } else { feedback.innerText = `💡 ${hint}`; } score.innerText = `${reviewPassed.size} / 3`; if (reviewPassed.size === 3) document.getElementById('review-badge')?.classList.remove('hidden'); }
@@ -213,9 +284,7 @@
     <script src="course-core.js"></script>
     <!-- 116 課程系統：進度掛鉤（見 progress-hook.js）-->
     <script src="../config.js"></script>
-<script src="../../shared/firebase-config.js?v=16.35"></script>
-<script src="../../shared/firebase-sync.js?v=16.37"></script>
-    <script src="../../shared/store.js?v=16.37"></script>
+    <script src="../../shared/store.js"></script>
     <script src="../../shared/ui.js"></script>
     <script src="../../shared/unit.js"></script>
     <script src="../../shared/api.js"></script>

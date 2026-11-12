@@ -20,6 +20,18 @@
   function fmtTime(v){ try{ return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : ""; }catch(e){return ""} }
   function seatSort(a,b){ return Number(a.seatNo||999)-Number(b.seatNo||999) || String(a.name||"").localeCompare(String(b.name||""),"zh-Hant"); }
 
+  // 防禦性加總：自動忽略有底線的私有變數
+  function progressSum(progress){ 
+    if (!progress) return 0;
+    let sum = 0;
+    for (let k in progress) {
+      if (k.startsWith('_')) continue;
+      let val = Number(progress[k]);
+      if (!isNaN(val)) sum += val;
+    }
+    return sum;
+  }
+
   function mergeDuplicateStudents(rows){
     const groups=new Map();
     for(const row of rows){
@@ -28,7 +40,7 @@
       groups.get(key).push(row);
     }
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=> (b.updatedAt ? new Date(b.updatedAt.toDate?b.updatedAt.toDate():b.updatedAt).getTime() : 0) - (a.updatedAt ? new Date(a.updatedAt.toDate?a.updatedAt.toDate():a.updatedAt).getTime() : 0));
+      group.sort((a,b)=> ((b.progress&&b.progress._lastSync) ? new Date(b.progress._lastSync).getTime() : 0) - ((a.progress&&a.progress._lastSync) ? new Date(a.progress._lastSync).getTime() : 0));
       const best={...group[0]};
       best.duplicateCount=group.length;
       best.sourceRecords=group;
@@ -37,6 +49,7 @@
         const mergedMods = {};
         const mergedProgress = {};
         for(const r of group) {
+           // 正確解析隱藏在 progress._mods 內的模組
            const cMods = r.modules || (r.progress && r.progress._mods) || {};
            for (let mk in cMods) {
               if(!mergedMods[mk]) mergedMods[mk] = { levels: {} };
@@ -49,8 +62,17 @@
            }
            if (r.progress) {
               for (let pk in r.progress) {
-                 if (pk.startsWith('_')) continue;
-                 mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                 if (pk.startsWith('_')) {
+                    if (pk === '_lastSync') {
+                        if(!mergedProgress[pk] || new Date(r.progress[pk]).getTime() > new Date(mergedProgress[pk]).getTime()) {
+                            mergedProgress[pk] = r.progress[pk];
+                        }
+                    } else if (pk !== '_mods') {
+                        mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                    }
+                 } else {
+                     mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
+                 }
               }
            }
         }
@@ -63,12 +85,6 @@
         
         best.modules = mergedMods;
         best.progress = mergedProgress;
-        
-        // 🔴 嚴重 Bug 修復：將所有最高分屬性重新指派回 best，避免被空紀錄覆蓋
-        best.stars = Math.max(...group.map(r=>Number(r.stars||0)));
-        best.unit1Stars = Math.max(...group.map(r=>Number(r.unit1Stars || (r.progress && r.progress._u1) || 0)));
-        best.unit3Stars = Math.max(...group.map(r=>Number(r.unit3Stars || (r.progress && r.progress._u3) || 0)));
-        best.aiotStars = Math.max(...group.map(r=>Number(r.aiotStars || (r.progress && r.progress._aiot) || 0)));
       }
       return best;
     });
@@ -81,7 +97,8 @@
 
   function getStudentUnitData(r, unitKey){
     const cfg = UNIT_CONFIG[unitKey];
-    const modsData = r.modules || {};
+    // 正確解碼：取得穿透偽裝的 modules
+    const modsData = r.modules || (r.progress && r.progress._mods) || {};
     
     let stars = 0;
     let detailsStr = "尚未有關卡紀錄";
@@ -136,7 +153,7 @@
       <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom:24px;">
          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
             <span style="font-size:24px;">📊</span>
-            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.42 最終穩定版)</h1>
+            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.43 絕對穿透穩定版)</h1>
          </div>
          <p style="font-size:14px; color:#64748b; margin-bottom:20px;">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</p>
          
@@ -245,7 +262,7 @@
         </td>
         
         <td style="padding:16px 12px; font-size:13px; color:#64748b;">
-           ${r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步'}
+           ${(r.progress && r.progress._lastSync) ? new Date(r.progress._lastSync).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}) : (r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步')}
            ${Number(r.duplicateCount||1)>1?`<br><span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:10px; margin-top:4px; display:inline-block;">已合併 ${Number(r.duplicateCount)} 筆</span>`:""}
         </td>
       </tr>`).join("");
@@ -302,10 +319,11 @@
           const a4 = Number($("#editAiotStars").value);
           
           const updates = {
-            "modules.digital.stars": u1, "progress._u1": u1, "unit1Stars": u1,
-            "modules.python.stars": py, "stars": py,
-            "modules.platform.stars": u3, "progress._u3": u3, "unit3Stars": u3,
-            "modules.aiot.stars": a4, "progress._aiot": a4, "aiotStars": a4,
+            "progress._u1": u1,
+            "stars": py,
+            "progress._u3": u3,
+            "progress._aiot": a4,
+            "progress._lastSync": new Date().toISOString(),
             "updatedAt": mods.fs.serverTimestamp()
           };
           await mods.fs.updateDoc(mods.fs.doc(db, "students", row.id), updates);

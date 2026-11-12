@@ -91,6 +91,49 @@
       const requested={className:payload.className,seatNo:payload.seatNo,name:payload.name};
       const existing=await api.existingIdentity(ref,requested);
       const safePayload={...payload};
+      // v16.58: Python is written by multiple entry points. A partial local
+      // restoration must never replace a more complete historic cloud result.
+      // Merge only Python challenge fields; do not infer which unit owns a
+      // generic aggregate score or fabricate missing challenge completions.
+      if (existing.exists && (payload.courseId === "python" || payload.progress || payload.challengeDone)) {
+        const previous=existing.data || {};
+        const isPythonData=payload.courseId === "python" ||
+          (payload.progress && Object.keys(payload.progress).some(k=>/^p(?:10|[1-9])$/.test(k)));
+        if(isPythonData){
+          const oldProgress=(previous.progress && typeof previous.progress === 'object') ? previous.progress : {};
+          const incomingProgress=(payload.progress && typeof payload.progress === 'object') ? payload.progress : {};
+          const combined={...oldProgress,...incomingProgress};
+          for(const k of new Set([...Object.keys(oldProgress),...Object.keys(incomingProgress)])){
+            if(/^p(?:10|[1-9])$/.test(k)){
+              const a=Number(oldProgress[k]),b=Number(incomingProgress[k]);
+              combined[k]=Math.max(Number.isFinite(a)?a:0,Number.isFinite(b)?b:0);
+            }
+          }
+          // Preserve old _mods if this call comes from Python's own page.
+          if(oldProgress._mods && !incomingProgress._mods)combined._mods=oldProgress._mods;
+          if(payload.progress) safePayload.progress=combined;
+          const oldFlags=(previous.challengeDone && typeof previous.challengeDone==='object')?previous.challengeDone:{};
+          const incomingFlags=(payload.challengeDone && typeof payload.challengeDone==='object')?payload.challengeDone:{};
+          if(payload.challengeDone){
+            const flags={...oldFlags,...incomingFlags};
+            for(const [k,v] of Object.entries(oldFlags))if(v===true)flags[k]=true;
+            safePayload.challengeDone=flags;
+          }
+          const oldStars=Number(previous.stars),newStars=Number(payload.stars);
+          if(payload.stars!==undefined){
+            safePayload.stars=Math.max(Number.isFinite(oldStars)?oldStars:0,Number.isFinite(newStars)?newStars:0);
+            if(payload.totalStars!==undefined)safePayload.stars=Math.min(Number(payload.totalStars)||30,safePayload.stars);
+          }
+          const allStars=Number(safePayload.stars);
+          if(Number.isFinite(allStars) && allStars>=30){
+            safePayload.completed=true;
+            safePayload.certificateUnlocked=true;
+          }else{
+            if(previous.completed===true)safePayload.completed=true;
+            if(previous.certificateUnlocked===true)safePayload.certificateUnlocked=true;
+          }
+        }
+      }
       if(existing.exists){
         // Never attempt an immutable profile change from a student session.
         for(const field of ["className","seatNo","name"]){

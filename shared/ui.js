@@ -70,7 +70,7 @@
       
       configScript.onload = () => {
         const syncScript = document.createElement('script');
-        syncScript.src = sharedPath + 'firebase-sync.js?v=16.56';
+        syncScript.src = sharedPath + 'firebase-sync.js?v=16.58';
         syncScript.onload = () => resolve();
         syncScript.onerror = () => { console.error("無法載入 firebase-sync.js"); resolve(); };
         document.head.appendChild(syncScript);

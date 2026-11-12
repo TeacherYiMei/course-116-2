@@ -51,7 +51,6 @@
     return { el: m, close: close };
   };
 
-  /* --- 🚀 Firebase 動態載入腳本 --- */
   function loadFirebaseScripts() {
     return new Promise((resolve) => {
       if (window.CourseDB) return resolve();
@@ -81,7 +80,6 @@
     });
   }
 
-  // 修改登入介面與機制
   UI.requireLogin = async function (ready) {
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
@@ -218,11 +216,11 @@
     window.addEventListener('sync:status', function(e) {
         const syncInd = document.getElementById('global-sync-indicator');
         if(!syncInd) return;
-        if(e.detail === 'SYNC_OK') {
+        if(e.detail === 'SYNC_OK' || e.detail === 'MERGED_OK') {
             syncInd.textContent = "✅ 已同步";
             syncInd.style.backgroundColor = "#dcfce7";
             syncInd.style.color = "#166534";
-        } else if (e.detail === 'SYNC_FAIL') {
+        } else if (e.detail === 'SYNC_FAIL' || e.detail === 'MERGE_FAIL') {
             syncInd.textContent = "❌ 待同步";
             syncInd.style.backgroundColor = "#fee2e2";
             syncInd.style.color = "#991b1b";
@@ -254,7 +252,7 @@
       const isAnon = window.CourseDB && CourseDB.isAnonymous();
       
       const html = `
-        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態</h2>
+        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態 (v16.36)</h2>
         <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px; text-align:left;">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
                 <b>Firebase 學習帳號</b>

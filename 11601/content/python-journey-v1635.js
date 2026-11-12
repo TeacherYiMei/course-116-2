@@ -902,6 +902,31 @@ function updateAccountButton(){
   }
 }
 
+// v16.51: Read Python history from all supported cloud paths without mutating the source.
+function readPythonHistoricalProgress(remote){
+  const out={};
+  if(!remote || typeof remote!=="object")return out;
+  const sources=[remote.progress,remote.modules?.python?.progress,
+    remote.progress?._mods?.python?.progress,
+    remote.courseProgress?.["11601"]?.modules?.python?.progress];
+  for(const source of sources){
+    if(!source || typeof source!=="object")continue;
+    for(const l of LEVELS){
+      const val=Number(source[l.id]);
+      if(Number.isFinite(val))out[l.id]=Math.max(out[l.id]||0,Math.min(stepsOf(l),Math.max(0,val)));
+    }
+  }
+  const moduleSources=[remote.modules?.python,remote.progress?._mods?.python,
+    remote.courseProgress?.["11601"]?.modules?.python];
+  for(const mod of moduleSources){
+    if(!mod?.levels)continue;
+    for(const l of LEVELS){
+      const val=Number(mod.levels[l.id.toUpperCase()]?.stars ?? mod.levels[l.id]?.stars);
+      if(Number.isFinite(val))out[l.id]=Math.max(out[l.id]||0,Math.min(stepsOf(l),Math.max(0,val)));
+    }
+  }
+  return out;
+}
 function mergeProgress(a,b){
   const out={...(a||{})};
   Object.entries(b||{}).forEach(([k,v])=>{
@@ -951,7 +976,7 @@ async function adoptRemoteAndLocalProgress(){
   const localProfile=getStudentProfile();
   const remote=await CourseDB.loadStudent();
 
-  if(remote?.progress){state=mergeProgress(localProgress,remote.progress);}else{state=localProgress;}
+  state=mergeProgress(localProgress,readPythonHistoricalProgress(remote));
   freeDone=seedFreeDoneFromProgress(state,freeDone);
   if(remote?.challengeDone)freeDone=mergeFreeDone(freeDone,remote.challengeDone);
   fillFlagsToStars(Math.max(localStars,Number(remote?.stars||0)),freeDone);
@@ -975,8 +1000,8 @@ async function adoptRemoteAndLocalProgress(){
   updateProfileStrip();
   await syncCloudProgress();
   // 學生首次登入穩定帳號後，把同一瀏覽器既有的單元一／三／專題本機紀錄一併匯入全站雲端資料。
-  if(window.STORE&&typeof STORE.syncCloud==="function"){
-    try{await STORE.syncCloud();}catch(e){console.warn("legacy course progress migration skipped",e);}
+  if(window.STORE&&typeof STORE.syncFromCloud==="function"){
+    try{await STORE.syncFromCloud();}catch(e){console.warn("legacy course progress migration skipped",e);}
   }
   return Math.max(localStars,Number(remote?.stars||0),starsOfProgress(state));
 }
@@ -999,6 +1024,7 @@ async function linkLearningAccount(){
       return;
     }
     await CourseDB.linkStudentAccount(p.className,p.seatNo,pw);
+    if(window.STORE){ STORE.login(p.className,p.seatNo,p.name); await STORE.syncFromCloud(); }
     await CourseDB.saveStudent(p);
     await adoptRemoteAndLocalProgress();
     updateAccountButton();
@@ -1029,6 +1055,7 @@ async function loginLearningAccount(){
   try{
     err.textContent="正在登入並取回進度…";
     await CourseDB.signInStudentAccount(p.className,p.seatNo,pw);
+    if(window.STORE){ STORE.login(p.className,p.seatNo,p.name); await STORE.syncFromCloud(); }
     await CourseDB.saveStudent(p);
     state=localSnapshot;
     await adoptRemoteAndLocalProgress();
@@ -1175,11 +1202,20 @@ async function syncCloudProgress(){
     }
     updateCloudStatus("☁️ 同步中…","syncing");
     const stars=Object.values(state).reduce((a,b)=>a+Number(b||0),0);
+    // Keep other units' legacy _mods / _u1 / _u3 while writing Python progress.
+    // Never replace the whole progress map with Python-only keys.
+    const before=await CourseDB.loadStudent();
+    const oldProgress=before?.progress||{};
+    const safeProgress={...oldProgress};
+    for(const l of LEVELS){
+      const k=l.id;
+      safeProgress[k]=Math.max(Number(oldProgress[k])||0,Number(state[k])||0);
+    }
     await CourseDB.saveStudent({
       ...profile,
       courseId:"python",
-      progress:{...state},
-      challengeDone:{...freeDone},
+      progress:safeProgress,
+      challengeDone:{...(before?.challengeDone||{}),...freeDone},
       stars,
       totalStars:TOTAL_CHALLENGES,
       score:Math.round(stars/TOTAL_CHALLENGES*100),
@@ -1305,7 +1341,7 @@ async function restoreCloudState(){
           localStorage.setItem(NAMEKEY,restored.name);
         }
       }
-      if(remote.progress){state=mergeProgress(state,remote.progress);}
+      state=mergeProgress(state,readPythonHistoricalProgress(remote));
       freeDone=seedFreeDoneFromProgress(state,freeDone);
       if(remote.challengeDone)freeDone=mergeFreeDone(freeDone,remote.challengeDone);
       fillFlagsToStars(Number(remote.stars||0),freeDone);

@@ -1,8 +1,9 @@
 /* =====================================================================
-   身分與進度（v16.41 穩定回溯相容版）
+   身分與進度（v16.42 最終穩定版）
    ---------------------------------------------------------------------
-   ★ 恢復與 10 號同學成功上傳時「完全相同」的資料結構，避開安全規則阻擋
-   ★ 移除所有可能觸發 Firestore 拒絕的新增時間戳記欄位
+   ★ 恢復 v2 穿透版的完美 payload，確保關卡細節 (modules) 成功上傳
+   ★ 移除會觸發 Firestore 阻擋的 lastSync 欄位
+   ★ 完美保留本機與雲端安全合併機制
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -83,7 +84,6 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 雲端資料還原 ---
     syncFromCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       try {
@@ -93,7 +93,7 @@
           if(!p) return;
           
           let localData = this.load();
-          const cloudMods = r.modules || {}; // 恢復原始讀取方式
+          const cloudMods = r.modules || {}; 
           
           for(let mKey in cloudMods) {
             if(!localData.modules[mKey]) localData.modules[mKey] = { levels: {} };
@@ -184,11 +184,11 @@
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
-      // 恢復與 10 號同學成功上傳時完全一致的包裹結構！不增加 _lastSync 等新欄位。
       pyState._u1 = mods.unit1?.stars || mods.digital?.stars || 0;
       pyState._u3 = mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0;
       pyState._aiot = mods.aiot?.stars || mods.arduino?.stars || 0;
       
+      // 使用 10號同學 成功上傳的完美 Payload 結構 (避開 lastSync 等新欄位觸發防火牆)
       const payload = {
         className: p.cls,
         seatNo: p.seat,

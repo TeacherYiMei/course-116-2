@@ -8,7 +8,6 @@
   let currentUnit="unit1"; 
   const $=s=>document.querySelector(s);
 
-  // 定義單元
   const UNIT_CONFIG = {
     unit1:  { id: "unit1", name: "單元一 | 數位時代", icon: "🔢", maxStars: 24, tabColor: "blue", mods: ["digital", "unit1", "u1"] },
     python: { id: "python", name: "單元二 | Python", icon: "🐍", maxStars: 30, tabColor: "emerald", mods: ["python", "py"] },
@@ -29,7 +28,7 @@
       groups.get(key).push(row);
     }
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=> ((b.progress&&b.progress._lastSync) ? new Date(b.progress._lastSync).getTime() : 0) - ((a.progress&&a.progress._lastSync) ? new Date(a.progress._lastSync).getTime() : 0));
+      group.sort((a,b)=> (b.updatedAt ? new Date(b.updatedAt.toDate?b.updatedAt.toDate():b.updatedAt).getTime() : 0) - (a.updatedAt ? new Date(a.updatedAt.toDate?a.updatedAt.toDate():a.updatedAt).getTime() : 0));
       const best={...group[0]};
       best.duplicateCount=group.length;
       best.sourceRecords=group;
@@ -50,17 +49,8 @@
            }
            if (r.progress) {
               for (let pk in r.progress) {
-                 if (pk.startsWith('_')) {
-                    if (pk === '_lastSync') {
-                        if(!mergedProgress[pk] || new Date(r.progress[pk]).getTime() > new Date(mergedProgress[pk]).getTime()) {
-                            mergedProgress[pk] = r.progress[pk];
-                        }
-                    } else if (pk !== '_mods') {
-                        mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
-                    }
-                 } else {
-                     mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
-                 }
+                 if (pk.startsWith('_')) continue;
+                 mergedProgress[pk] = Math.max(Number(mergedProgress[pk]||0), Number(r.progress[pk]||0));
               }
            }
         }
@@ -73,22 +63,25 @@
         
         best.modules = mergedMods;
         best.progress = mergedProgress;
+        
+        // 🔴 嚴重 Bug 修復：將所有最高分屬性重新指派回 best，避免被空紀錄覆蓋
+        best.stars = Math.max(...group.map(r=>Number(r.stars||0)));
+        best.unit1Stars = Math.max(...group.map(r=>Number(r.unit1Stars || (r.progress && r.progress._u1) || 0)));
+        best.unit3Stars = Math.max(...group.map(r=>Number(r.unit3Stars || (r.progress && r.progress._u3) || 0)));
+        best.aiotStars = Math.max(...group.map(r=>Number(r.aiotStars || (r.progress && r.progress._aiot) || 0)));
       }
       return best;
     });
   }
 
   function isAdmin(){ return teacherProfile?.role==="admin"; }
-  
-  // 🔴 嚴重 Bug 修正：移除 async 關鍵字，確保能同步回傳陣列！
   function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
-  
   function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
   function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
   function getStudentUnitData(r, unitKey){
     const cfg = UNIT_CONFIG[unitKey];
-    const modsData = r.modules || (r.progress && r.progress._mods) || {};
+    const modsData = r.modules || {};
     
     let stars = 0;
     let detailsStr = "尚未有關卡紀錄";
@@ -100,9 +93,10 @@
     }
     
     if (unitKey === "python") {
-       let pyState = r.progress || {};
        let pyStars = 0;
-       for (let pk in pyState) { if(!pk.startsWith('_') && !isNaN(Number(pyState[pk]))) pyStars += Number(pyState[pk]); }
+       if (r.progress) {
+          for (let pk in r.progress) { if(!pk.startsWith('_') && !isNaN(Number(r.progress[pk]))) pyStars += Number(r.progress[pk]); }
+       }
        stars = Math.max(pyStars, Number(foundMod?.stars||0), Number(r.stars||0));
        if (stars > 0) detailsStr = "已進行 Python 挑戰";
     } else {
@@ -251,7 +245,7 @@
         </td>
         
         <td style="padding:16px 12px; font-size:13px; color:#64748b;">
-           ${(r.progress && r.progress._lastSync) ? new Date(r.progress._lastSync).toLocaleString('zh-TW', {month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}) : (r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步')}
+           ${r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步'}
            ${Number(r.duplicateCount||1)>1?`<br><span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:10px; margin-top:4px; display:inline-block;">已合併 ${Number(r.duplicateCount)} 筆</span>`:""}
         </td>
       </tr>`).join("");
@@ -308,11 +302,10 @@
           const a4 = Number($("#editAiotStars").value);
           
           const updates = {
-            "progress._u1": u1,
-            "stars": py,
-            "progress._u3": u3,
-            "progress._aiot": a4,
-            "progress._lastSync": new Date().toISOString(),
+            "modules.digital.stars": u1, "progress._u1": u1, "unit1Stars": u1,
+            "modules.python.stars": py, "stars": py,
+            "modules.platform.stars": u3, "progress._u3": u3, "unit3Stars": u3,
+            "modules.aiot.stars": a4, "progress._aiot": a4, "aiotStars": a4,
             "updatedAt": mods.fs.serverTimestamp()
           };
           await mods.fs.updateDoc(mods.fs.doc(db, "students", row.id), updates);
@@ -338,7 +331,6 @@
         if(!classes.length){ 
            currentRows=[]; 
            render(); 
-           if($("#dbStatus")) $("#dbStatus").textContent=`請確認授權班級設定`;
            return; 
         }
         const result=await Promise.all(classes.map(queryClass));
@@ -373,6 +365,7 @@
     label.textContent=`${teacherProfile?.displayName||"教師"}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
   }
 
+  async function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
   async function loadTeacherProfile(uid){ const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid)); return snap.exists() ? {uid,...snap.data()} : null; }
   async function queryClass(className){ const q=mods.fs.query(mods.fs.collection(db,"students"),mods.fs.where("className","==",String(className))); const snap=await mods.fs.getDocs(q); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
 

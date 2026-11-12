@@ -4,7 +4,6 @@
   let teacherProfile=null;
   let currentRows=[];
   let manageRow=null;
-  let currentAccountRecord=null;
   let currentUnit="unit1"; 
   const $=s=>document.querySelector(s);
 
@@ -20,15 +19,22 @@
   function fmtTime(v){ try{ return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : ""; }catch(e){return ""} }
   function seatSort(a,b){ return Number(a.seatNo||999)-Number(b.seatNo||999) || String(a.name||"").localeCompare(String(b.name||""),"zh-Hant"); }
 
+  // 🔴 關鍵修復：這裡使用正確的同步函數，並且絕不重複宣告！
+  function isAdmin(){ return teacherProfile?.role==="admin"; }
+  function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
+  function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
+  function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
+
   function mergeDuplicateStudents(rows){
     const groups=new Map();
     for(const row of rows){
-      const key=`${String(row.className||"").trim()}::${String(row.seatNo||"").trim()}`;
+      // 🔴 關鍵修復：強制將座號轉為數字再做分組，這樣 "5" 和 "05" 就會完美合併，不會漏掉任何舊成績！
+      const seatKey = Number(String(row.seatNo||"").trim() || 0);
+      const key=`${String(row.className||"").trim()}::${seatKey}`;
       if(!groups.has(key)) groups.set(key,[]);
       groups.get(key).push(row);
     }
     return [...groups.values()].map(group=>{
-      // 🔴 關鍵修復：恢復以 updatedAt 為主要排序，確保幽靈紀錄不會排到第一位
       group.sort((a,b)=> {
           let tA = a.updatedAt ? (a.updatedAt.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt).getTime()) : 0;
           let tB = b.updatedAt ? (b.updatedAt.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt).getTime()) : 0;
@@ -70,7 +76,6 @@
         best.modules = mergedMods;
         best.progress = mergedProgress;
         
-        // 🔴 終極防線：把散落的星星全部抓出比對最高分，徹底解決星星消失問題！
         best.stars = Math.max(...group.map(r=>Number(r.stars||0)));
         best.unit1Stars = Math.max(...group.map(r=>Number(r.unit1Stars || (r.progress && r.progress._u1) || 0)));
         best.unit3Stars = Math.max(...group.map(r=>Number(r.unit3Stars || (r.progress && r.progress._u3) || 0)));
@@ -79,11 +84,6 @@
       return best;
     });
   }
-
-  function isAdmin(){ return teacherProfile?.role==="admin"; }
-  function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
-  function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
-  function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
   function getStudentUnitData(r, unitKey){
     const cfg = UNIT_CONFIG[unitKey];
@@ -153,7 +153,7 @@
       <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom:24px;">
          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
             <span style="font-size:24px;">📊</span>
-            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.46 終極救援版)</h1>
+            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.47 終極穩定版)</h1>
          </div>
          <p style="font-size:14px; color:#64748b; margin-bottom:20px;">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</p>
          <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;" id="custom-tabs-container">
@@ -344,6 +344,7 @@
         if(!classes.length){ 
            currentRows=[]; 
            render(); 
+           if($("#dbStatus")) $("#dbStatus").textContent=`請確認授權班級設定`;
            return; 
         }
         const result=await Promise.all(classes.map(queryClass));
@@ -378,7 +379,7 @@
     label.textContent=`${teacherProfile?.displayName||"教師"}｜授權班級：${classes.length?classes.join("、"):"尚未設定"}`;
   }
 
-  async function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
+  // 🔴 確保這裡絕對沒有 async allowedClasses
   async function loadTeacherProfile(uid){ const snap=await mods.fs.getDoc(mods.fs.doc(db,"teachers",uid)); return snap.exists() ? {uid,...snap.data()} : null; }
   async function queryClass(className){ const q=mods.fs.query(mods.fs.collection(db,"students"),mods.fs.where("className","==",String(className))); const snap=await mods.fs.getDocs(q); return snap.docs.map(d=>({id:d.id, ...d.data()})); }
 

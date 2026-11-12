@@ -15,6 +15,12 @@
   function term() { return (window.CONFIG && window.CONFIG.TERM) || '11601'; }
   function profileKey() { return PREFIX + '-profile'; }
   function progressKey(p) { return PREFIX + '-' + term() + '-progress-' + p.cls + '-' + p.seat; }
+  // v16.57: 同一學生每學期的未上傳標記。瀏覽器重新載入仍可重試。
+  function pendingKey(p) { return PREFIX + '-' + term() + '-pending-' + p.cls + '-' + String(Number(p.seat)); }
+  function markPending(p) { if (p) safeSet(pendingKey(p), '1'); }
+  function isPending(p) { return !!p && safeGet(pendingKey(p)) === '1'; }
+  var uploadInFlight = null;
+
 
   var STORE = {
     me: function () {
@@ -103,8 +109,9 @@
       if (rec.code != null) next.code = String(rec.code).slice(0, 8000);
       d.modules[mod].levels[id] = next;
       safeSet(progressKey(p), JSON.stringify(d));
+      markPending(p); // 課程換頁或離線時也不遺失「尚未上傳」狀態
       fire();
-      
+
       this.syncToCloud();
       return { record: next, improved: improved };
     },
@@ -187,12 +194,13 @@
          return {ok:false,reason:'NOT_LOGGED_IN'};
       }
       
-      window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNCING' }));
-      
+      if (uploadInFlight) return uploadInFlight;
       const p = this.me();
-      if(!p) return;
-      
-      const d = this.load();
+      if(!p) return {ok:false,reason:'NO_PROFILE'};
+      markPending(p);
+      window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNCING' }));
+      uploadInFlight = (async function(){
+      const d = STORE.load();
       const mods = d.modules || {};
       
       for (let mKey in mods) {
@@ -281,6 +289,7 @@
         // 正式統一進度：保存整個學期的各關卡紀錄，不覆蓋其他學期；
         // Firebase 端合併每關最高星數。舊版欄位繼續保留供歷史版本讀取。
         await CourseDB.saveCourseSnapshot(term(), {modules:mods}, p);
+        safeDel(pendingKey(p));
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_OK' }));
         return {ok:true};
       } catch(e) {
@@ -288,6 +297,9 @@
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_FAIL', reason:String(e.code||e.message||'UNKNOWN').slice(0,120) }));
         return {ok:false,reason:String(e.code||e.message||'UNKNOWN').slice(0,120)};
       }
+      })();
+      try { return await uploadInFlight; }
+      finally { uploadInFlight = null; }
     },
 
     moduleStars: function (mod) {
@@ -327,7 +339,7 @@
       if (o.term !== term()) return '這是 ' + o.term + ' 的進度檔，現在是 ' + term();
       var p = this.me();
       if (!p || p.cls !== o.me.cls || p.seat !== o.me.seat) return '這份進度是 ' + o.me.cls + ' 班 ' + o.me.seat + ' 號的，和目前登入的人不同';
-      safeSet(progressKey(p), JSON.stringify(o.data)); fire();
+      safeSet(progressKey(p), JSON.stringify(o.data)); markPending(p); fire();
       this.syncToCloud();
       return '';
     }
@@ -335,4 +347,21 @@
 
   function fire() { try { window.dispatchEvent(new CustomEvent('store:change')); } catch (e) {} }
   window.STORE = STORE;
+  // 重載、恢復網路、切回頁面時僅重送「尚未成功上傳」的本機資料。
+  // 不讀取其他人的本機鍵值，不重新建立 Firebase 帳號。
+  var retryTimer = null;
+  function retryPending(){
+    clearTimeout(retryTimer);
+    retryTimer = setTimeout(function(){
+      var p=STORE.me();
+      if(!isPending(p) || !window.CourseDB || CourseDB.state!=='ready' ||
+         !CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(p)) return;
+      STORE.syncToCloud();
+    }, 700);
+  }
+  window.addEventListener('online',retryPending);
+  window.addEventListener('pageshow',retryPending);
+  window.addEventListener('focus',retryPending);
+  window.addEventListener('courseauth:stable',retryPending);
+  window.addEventListener('coursedb:ready',retryPending);
 })();

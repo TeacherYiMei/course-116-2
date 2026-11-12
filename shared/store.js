@@ -1,8 +1,8 @@
 /* =====================================================================
-   身分與進度（v16.36 全站穩定登入與安全遷移版）
+   身分與進度（v16.41 穩定回溯相容版）
    ---------------------------------------------------------------------
-   ★ 遵守四大安全原則：不換帳號、不改UID、不因失敗清空本機、不以雲端0分覆蓋本機
-   ★ 採用「本機與雲端逐關比較、取最高星數」的安全合併策略
+   ★ 恢復與 10 號同學成功上傳時「完全相同」的資料結構，避開安全規則阻擋
+   ★ 移除所有可能觸發 Firestore 拒絕的新增時間戳記欄位
    ===================================================================== */
 (function () {
   var PREFIX = 'c116';
@@ -83,7 +83,7 @@
       return { record: next, improved: improved };
     },
     
-    // --- 🚀 v16.36 安全資料遷移與合併 ---
+    // --- 🚀 雲端資料還原 ---
     syncFromCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
       try {
@@ -93,9 +93,8 @@
           if(!p) return;
           
           let localData = this.load();
-          const cloudMods = r.modules || (r.progress && r.progress._mods) || {};
+          const cloudMods = r.modules || {}; // 恢復原始讀取方式
           
-          // 逐關合併邏輯：保留最高星數與最佳狀態
           for(let mKey in cloudMods) {
             if(!localData.modules[mKey]) localData.modules[mKey] = { levels: {} };
             const cMod = cloudMods[mKey];
@@ -105,16 +104,13 @@
                 const cLevel = cMod.levels[lKey];
                 const lLevel = lMod.levels[lKey] || { stars: 0, tries: 0 };
                 
-                // 星數取高
                 const bestStars = Math.max(cLevel.stars || 0, lLevel.stars || 0);
-                // 嘗試次數取高
                 const bestTries = Math.max(cLevel.tries || 0, lLevel.tries || 0);
-                // 完成狀態保留
                 const bestDone = cLevel.done || lLevel.done || false;
                 
                 lMod.levels[lKey] = {
                    ...cLevel, 
-                   ...lLevel, // 本機的額外屬性優先保留
+                   ...lLevel, 
                    stars: bestStars,
                    tries: bestTries,
                    done: bestDone
@@ -123,12 +119,11 @@
             }
           }
           
-          // Python 特殊處理：合併到 localStorage
           if (r.progress) {
              let pyState = {};
              try { pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}'); } catch(e){}
              for (let pyKey in r.progress) {
-                if (!pyKey.startsWith('_')) { // 排除我們塞進去的私有變數
+                if (!pyKey.startsWith('_')) { 
                    pyState[pyKey] = Math.max(Number(pyState[pyKey]||0), Number(r.progress[pyKey]||0));
                 }
              }
@@ -137,8 +132,6 @@
           
           safeSet(progressKey(p), JSON.stringify(localData));
           fire();
-          
-          // 觸發全站同步狀態更新
           window.dispatchEvent(new CustomEvent('sync:status', { detail: 'MERGED_OK' }));
         }
       } catch (e) {
@@ -161,7 +154,6 @@
       const d = this.load();
       const mods = d.modules || {};
       
-      // 計算各個底層模組的星星
       for (let mKey in mods) {
         if (Object.prototype.hasOwnProperty.call(mods, mKey)) {
           let m = mods[mKey];
@@ -192,11 +184,10 @@
       mods.python.bonusChallenges = bonusState;
       mods.python.bonusBadges = bonusStars;
       
-      // 穿透防護：將所有單元星星強制塞入 progress
+      // 恢復與 10 號同學成功上傳時完全一致的包裹結構！不增加 _lastSync 等新欄位。
       pyState._u1 = mods.unit1?.stars || mods.digital?.stars || 0;
       pyState._u3 = mods.unit3?.stars || mods.platform?.stars || mods.system?.stars || 0;
       pyState._aiot = mods.aiot?.stars || mods.arduino?.stars || 0;
-      pyState._mods = mods;
       
       const payload = {
         className: p.cls,
@@ -208,8 +199,7 @@
         modules: mods,
         unit1Stars: pyState._u1,
         unit3Stars: pyState._u3,
-        aiotStars: pyState._aiot,
-        lastSync: new Date().toISOString()
+        aiotStars: pyState._aiot
       };
       
       try {

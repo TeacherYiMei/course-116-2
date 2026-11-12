@@ -1,5 +1,5 @@
 /* =====================================================================
-   共用小元件 (v16.36 包含全站同步狀態顯示)
+   共用小元件 (v16.41 包含全站同步狀態顯示)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -84,7 +84,6 @@
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
 
-    // 如果是穩定帳號 (非匿名)，則自動進行同步
     if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
       if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
          await window.STORE.syncFromCloud();
@@ -236,7 +235,6 @@
     });
   };
 
-  // 全站同步狀態彈窗
   function showSyncStatusModal() {
       if(!STORE.me()) return;
       const d = STORE.load();
@@ -252,7 +250,7 @@
       const isAnon = window.CourseDB && CourseDB.isAnonymous();
       
       const html = `
-        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態 (v16.36)</h2>
+        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態 (v16.41)</h2>
         <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px; text-align:left;">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
                 <b>Firebase 學習帳號</b>

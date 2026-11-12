@@ -23,6 +23,7 @@
     return '<span class="hearts" aria-label="剩下 ' + n + ' 顆愛心">' + s + '</span>';
   };
 
+  var lastSync = {status:'UNKNOWN',reason:''};
   var toastEl = null, toastTimer = null;
   UI.toast = function (msg, ms) {
     if (!toastEl) {
@@ -252,20 +253,28 @@
     window.addEventListener('sync:status', function(e) {
         const syncInd = document.getElementById('global-sync-indicator');
         if(!syncInd) return;
-        if(e.detail === 'SYNC_OK' || e.detail === 'MERGED_OK') {
-            syncInd.textContent = "✅ 已同步";
+        var status = (e.detail && typeof e.detail === 'object') ? e.detail.status : e.detail;
+        var reason = (e.detail && typeof e.detail === 'object') ? (e.detail.reason || '') : (e.reason || '');
+        // MERGED_OK means only that cloud data was read, not that local work was uploaded.
+        lastSync = {status:status || 'UNKNOWN',reason:String(reason)};
+        if(status === 'SYNC_OK') {
+            syncInd.textContent = "✅ 雲端已確認";
             syncInd.style.backgroundColor = "#dcfce7";
             syncInd.style.color = "#166534";
-        } else if (e.detail === 'SYNC_FAIL' || e.detail === 'MERGE_FAIL') {
-            syncInd.textContent = "❌ 待同步（請勿清除紀錄）";
-            syncInd.title = String(e.reason||"請確認登入帳號與網路連線");
+        } else if (status === 'MERGED_OK') {
+            syncInd.textContent = '☁️ 已讀取雲端（上傳待確認）';
+            syncInd.style.backgroundColor = '#e0e7ff';
+            syncInd.style.color = '#3730a3';
+        } else if (status === 'SYNC_FAIL' || status === 'MERGE_FAIL') {
+            syncInd.textContent = "❌ 待同步（點此看原因）";
+            syncInd.title = String(reason||"請確認登入帳號與網路連線");
             syncInd.style.backgroundColor = "#fee2e2";
             syncInd.style.color = "#991b1b";
-        } else if (e.detail === 'SYNCING') {
+        } else if (status === 'SYNCING') {
             syncInd.textContent = "⏳ 同步中";
             syncInd.style.backgroundColor = "#e0e7ff";
             syncInd.style.color = "#3730a3";
-        } else if (e.detail === 'ANONYMOUS') {
+        } else if (status === 'ANONYMOUS') {
             syncInd.textContent = "⚠️ 請登入";
             syncInd.style.backgroundColor = "#fef3c7";
             syncInd.style.color = "#92400e";
@@ -288,8 +297,14 @@
       
       const isAnon = window.CourseDB && CourseDB.isAnonymous();
       
+      const statusName = lastSync.status === 'SYNC_OK' ? '已確認雲端寫入' :
+        lastSync.status === 'SYNC_FAIL' ? '上傳失敗' :
+        lastSync.status === 'MERGE_FAIL' ? '讀取雲端失敗' :
+        lastSync.status === 'SYNCING' ? '正在上傳' : '尚未確認上傳成功';
+      const diagnostic = UI.esc(lastSync.reason || (isAnon ? '未登入 Firebase 學生帳號' : '請按下方按鈕確認能否寫入雲端'));
       const html = `
         <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態</h2>
+        <div style="padding:10px;margin-bottom:12px;border:1px solid #f59e0b;border-radius:8px;background:#fff7ed;color:#7c2d12;font-size:.9rem">${UI.esc(statusName)}｜${diagnostic}<div style="margin-top:6px">登入成功 ≠ 雲端儲存成功；請勿清除瀏覽器紀錄。</div></div>
         <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px; text-align:left;">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
                 <b>Firebase 學習帳號</b>
@@ -297,23 +312,23 @@
             </div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span>單元一：數位時代 (${u1Stars}⭐)</span>
-                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${lastSync.status === 'SYNC_OK' ? '雲端上傳完成' : '尚未確認'}</span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span>單元二：Python (${pyStars}⭐)</span>
-                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${lastSync.status === 'SYNC_OK' ? '雲端上傳完成' : '尚未確認'}</span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span>單元三：系統平臺 (${u3Stars}⭐)</span>
-                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${lastSync.status === 'SYNC_OK' ? '雲端上傳完成' : '尚未確認'}</span>
             </div>
             <div style="display:flex; justify-content:space-between;">
                 <span>5016B 專題 (${aiotStars}⭐)</span>
-                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${lastSync.status === 'SYNC_OK' ? '雲端上傳完成' : '尚未確認'}</span>
             </div>
         </div>
         <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">若顯示「待同步」，表示您尚未登入或網路斷線，請點擊下方按鈕登入上傳。</p>
-        <button type="button" class="btn primary big" style="width:100%;" onclick="if(window.CourseDB && CourseDB.isAnonymous()){ UI.requireLogin(); document.querySelector('.modal').remove(); } else { window.STORE.syncToCloud(); this.textContent='⏳ 同步中...'; setTimeout(()=>this.textContent='🔄 強制上傳', 2000); }">🔄 強制登入與上傳</button>
+        <button type="button" class="btn primary big" style="width:100%;" onclick="if(window.CourseDB && CourseDB.isAnonymous()){ UI.requireLogin(); } else { this.textContent='⏳ 正在驗證上傳'; window.STORE.syncToCloud().then(r=>{this.textContent=(r&&r.ok)?'✅ 雲端已確認':'❌ 上傳失敗，請關閉重看原因';}).catch(()=>{this.textContent='❌ 上傳失敗';}); }">🔄 強制登入與上傳</button>
       `;
       UI.modal(html);
   }

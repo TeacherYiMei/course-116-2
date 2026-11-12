@@ -189,7 +189,7 @@
 
     syncToCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous() || !CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(this.me())) {
-         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'ANONYMOUS' }));
+         window.dispatchEvent(new CustomEvent('sync:status', { detail: {status:'ANONYMOUS',reason:'NOT_LOGGED_IN'} }));
          if(window.UI && typeof window.UI.requireLogin === 'function') window.UI.requireLogin();
          return {ok:false,reason:'NOT_LOGGED_IN'};
       }
@@ -281,20 +281,35 @@
             } else if (!(key in uploadProgress)) uploadProgress[key] = value;
           }
         }
-      } catch(e) { console.warn('Legacy progress pre-merge unavailable; upload skipped to protect history',e); window.dispatchEvent(new CustomEvent('sync:status', {detail:'SYNC_FAIL', reason:'REMOTE_READ_FAILED'})); return {ok:false,reason:'REMOTE_READ_FAILED'}; }
+      } catch(e) { console.warn('Legacy progress pre-merge unavailable; upload skipped to protect history',e); window.dispatchEvent(new CustomEvent('sync:status', {detail:{status:'SYNC_FAIL', reason:'REMOTE_READ_FAILED'}})); return {ok:false,reason:'REMOTE_READ_FAILED'}; }
       const cleanPayload = JSON.parse(JSON.stringify(payload));
       
       try {
-        await CourseDB.saveStudent(cleanPayload);
+        const firstWrite = await CourseDB.saveStudent(cleanPayload);
+        if (!firstWrite || firstWrite.ok !== true) throw new Error('STUDENT_WRITE_NOT_CONFIRMED');
         // 正式統一進度：保存整個學期的各關卡紀錄，不覆蓋其他學期；
         // Firebase 端合併每關最高星數。舊版欄位繼續保留供歷史版本讀取。
-        await CourseDB.saveCourseSnapshot(term(), {modules:mods}, p);
+        const secondWrite = await CourseDB.saveCourseSnapshot(term(), {modules:mods}, p);
+        if (!secondWrite || secondWrite.ok !== true) throw new Error('COURSE_WRITE_NOT_CONFIRMED');
+        // Read back the exact per-level digital progress: only a confirmed cloud
+        // record may clear pending status.  Never confuse a signed-in account
+        // with completed upload.
+        const expectedDigital = (mods.digital && mods.digital.levels) || {};
+        if (Object.keys(expectedDigital).some(k => Number(expectedDigital[k]?.stars || 0) > 0)) {
+          const checked = await CourseDB.loadCourseSnapshot(term(), p);
+          const got = checked?.modules?.digital?.levels || {};
+          for (const [id,record] of Object.entries(expectedDigital)) {
+            if (Number(record?.stars || 0) > Number(got[id]?.stars || 0)) {
+              throw new Error('DIGITAL_CLOUD_READBACK_MISMATCH:' + id);
+            }
+          }
+        }
         safeDel(pendingKey(p));
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_OK' }));
         return {ok:true};
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);
-        window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_FAIL', reason:String(e.code||e.message||'UNKNOWN').slice(0,120) }));
+        window.dispatchEvent(new CustomEvent('sync:status', { detail: {status:'SYNC_FAIL',reason:String(e.code||e.message||'UNKNOWN').slice(0,120)} }));
         return {ok:false,reason:String(e.code||e.message||'UNKNOWN').slice(0,120)};
       }
       })();

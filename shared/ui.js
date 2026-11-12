@@ -1,5 +1,5 @@
 /* =====================================================================
-   共用小元件 (v16.41 包含全站同步狀態顯示)
+   共用小元件 (v16.46 終極救援版：自動偵測斷線並彈出登入)
    ===================================================================== */
 (function () {
   var UI = {};
@@ -194,6 +194,7 @@
     var mod = UI.moduleOf();
     UI.useUnitColor(opts.unit || (mod && mod.color));
     var hub = opts.hub || 'hub.html';
+    
     function render() {
       var p = STORE.me();
       el.className = 'topbar';
@@ -206,11 +207,30 @@
         
       const syncInd = el.querySelector('#global-sync-indicator');
       if (syncInd) {
-          syncInd.onclick = () => showSyncStatusModal();
+          syncInd.onclick = () => {
+              if (window.CourseDB && CourseDB.isAnonymous()) {
+                  UI.requireLogin();
+              } else {
+                  showSyncStatusModal();
+              }
+          };
       }
     }
     render();
     window.addEventListener('store:change', render);
+    
+    // 🔴 關鍵防呆機制：自動偵測學生是否遺失登入狀態（開新分頁時），如果遺失則強制彈出密碼框
+    setTimeout(() => {
+        if (STORE.me() && window.CourseDB && CourseDB.isAnonymous()) {
+            UI.requireLogin();
+            const syncInd = el.querySelector('#global-sync-indicator');
+            if (syncInd) {
+                syncInd.textContent = "⚠️ 請登入";
+                syncInd.style.backgroundColor = "#fef3c7";
+                syncInd.style.color = "#92400e";
+            }
+        }
+    }, 1500);
     
     window.addEventListener('sync:status', function(e) {
         const syncInd = document.getElementById('global-sync-indicator');
@@ -228,9 +248,10 @@
             syncInd.style.backgroundColor = "#e0e7ff";
             syncInd.style.color = "#3730a3";
         } else if (e.detail === 'ANONYMOUS') {
-            syncInd.textContent = "⚠️ 訪客模式";
+            syncInd.textContent = "⚠️ 請登入";
             syncInd.style.backgroundColor = "#fef3c7";
             syncInd.style.color = "#92400e";
+            if (STORE.me() && typeof UI.requireLogin === 'function') UI.requireLogin();
         }
     });
   };
@@ -250,11 +271,11 @@
       const isAnon = window.CourseDB && CourseDB.isAnonymous();
       
       const html = `
-        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態 (v16.41)</h2>
+        <h2 style="font-size:1.3rem; margin-bottom:15px; font-weight:bold;">☁️ 全站同步狀態</h2>
         <div style="background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:15px; text-align:left;">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #cbd5e1; padding-bottom:8px;">
                 <b>Firebase 學習帳號</b>
-                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '⚠️ 未登入(訪客)' : '✅ 已登入'}</span>
+                <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '⚠️ 尚未登入' : '✅ 登入正常'}</span>
             </div>
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span>單元一：數位時代 (${u1Stars}⭐)</span>
@@ -273,8 +294,8 @@
                 <span style="color:${isAnon ? '#991b1b' : '#166534'};">${isAnon ? '待同步' : '已同步'}</span>
             </div>
         </div>
-        <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">若顯示「待同步」，請點擊下方按鈕強制上傳。</p>
-        <button type="button" class="btn primary big" style="width:100%;" onclick="window.STORE.syncToCloud(); this.textContent='⏳ 同步中...'; setTimeout(()=>this.textContent='🔄 強制上傳', 2000);">🔄 強制上傳</button>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:15px;">若顯示「待同步」，表示您尚未登入或網路斷線，請點擊下方按鈕登入上傳。</p>
+        <button type="button" class="btn primary big" style="width:100%;" onclick="if(window.CourseDB && CourseDB.isAnonymous()){ UI.requireLogin(); document.querySelector('.modal').remove(); } else { window.STORE.syncToCloud(); this.textContent='⏳ 同步中...'; setTimeout(()=>this.textContent='🔄 強制上傳', 2000); }">🔄 強制登入與上傳</button>
       `;
       UI.modal(html);
   }

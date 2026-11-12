@@ -28,7 +28,13 @@
       groups.get(key).push(row);
     }
     return [...groups.values()].map(group=>{
-      group.sort((a,b)=> (b.updatedAt ? new Date(b.updatedAt.toDate?b.updatedAt.toDate():b.updatedAt).getTime() : 0) - (a.updatedAt ? new Date(a.updatedAt.toDate?a.updatedAt.toDate():a.updatedAt).getTime() : 0));
+      // 🔴 關鍵修復：恢復以 updatedAt 為主要排序，確保幽靈紀錄不會排到第一位
+      group.sort((a,b)=> {
+          let tA = a.updatedAt ? (a.updatedAt.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt).getTime()) : 0;
+          let tB = b.updatedAt ? (b.updatedAt.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt).getTime()) : 0;
+          return tB - tA;
+      });
+      
       const best={...group[0]};
       best.duplicateCount=group.length;
       best.sourceRecords=group;
@@ -37,7 +43,6 @@
         const mergedMods = {};
         const mergedProgress = {};
         for(const r of group) {
-           // 🔴 關鍵修正：精準保留並合併 _mods
            const cMods = r.modules || (r.progress && r.progress._mods) || {};
            for (let mk in cMods) {
               if(!mergedMods[mk]) mergedMods[mk] = { levels: {} };
@@ -64,7 +69,12 @@
         
         best.modules = mergedMods;
         best.progress = mergedProgress;
-        best.progress._mods = mergedMods; // 確保向下相容
+        
+        // 🔴 終極防線：把散落的星星全部抓出比對最高分，徹底解決星星消失問題！
+        best.stars = Math.max(...group.map(r=>Number(r.stars||0)));
+        best.unit1Stars = Math.max(...group.map(r=>Number(r.unit1Stars || (r.progress && r.progress._u1) || 0)));
+        best.unit3Stars = Math.max(...group.map(r=>Number(r.unit3Stars || (r.progress && r.progress._u3) || 0)));
+        best.aiotStars = Math.max(...group.map(r=>Number(r.aiotStars || (r.progress && r.progress._aiot) || 0)));
       }
       return best;
     });
@@ -109,11 +119,10 @@
           if (dt.length > 0) detailsStr = dt.join(', ');
        }
        
-       // 🔴 關鍵修正：完美抓取任何可能的手動補登欄位，取最高分！
        let fallbackStar = 0;
-       if (unitKey === "unit1") fallbackStar = Math.max(Number(r.unit1Stars||0), Number(r.progress?._u1||0), Number(r.progress?.unit1Stars||0));
-       if (unitKey === "unit3") fallbackStar = Math.max(Number(r.unit3Stars||0), Number(r.progress?._u3||0), Number(r.progress?.unit3Stars||0));
-       if (unitKey === "aiot") fallbackStar = Math.max(Number(r.aiotStars||0), Number(r.progress?._aiot||0), Number(r.progress?.aiotStars||0));
+       if (unitKey === "unit1") fallbackStar = Math.max(Number(r.unit1Stars||0), Number(r.progress?._u1||0));
+       if (unitKey === "unit3") fallbackStar = Math.max(Number(r.unit3Stars||0), Number(r.progress?._u3||0));
+       if (unitKey === "aiot") fallbackStar = Math.max(Number(r.aiotStars||0), Number(r.progress?._aiot||0));
        
        if (fallbackStar > stars) {
           stars = fallbackStar;
@@ -129,7 +138,6 @@
   }
 
   function setupUI() {
-    // 🔴 關鍵修正：徹底清除舊版雙層 UI！
     const tableWrap = document.querySelector('.tableWrap');
     if (tableWrap) {
         let prev = tableWrap.previousElementSibling;
@@ -138,18 +146,16 @@
             prev = prev.previousElementSibling;
         }
     }
-
-    if ($("#customHeaderInfo")) return; // 如果已經建立過，就不重複建立
+    if ($("#customHeaderInfo")) return;
 
     const wrap = $("#app") || document.querySelector('.tableWrap')?.parentNode || document.body;
     let uiHTML = `
       <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom:24px;">
          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
             <span style="font-size:24px;">📊</span>
-            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.45 終極護城河版)</h1>
+            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.46 終極救援版)</h1>
          </div>
          <p style="font-size:14px; color:#64748b; margin-bottom:20px;">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</p>
-         
          <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;" id="custom-tabs-container">
     `;
     
@@ -180,7 +186,7 @@
     document.querySelectorAll(".unit-tab-btn").forEach(btn => {
        btn.addEventListener("click", (e) => {
            currentUnit = e.currentTarget.dataset.unit;
-           document.querySelector('#customHeaderInfo').remove(); // 確保切換時重繪 Tab 狀態
+           document.querySelector('#customHeaderInfo').remove();
            render();
        });
     });

@@ -167,7 +167,7 @@
       '<div class="tiny faint">每個單元各算完成 %，再取平均</div>' +
       '</div></div>' +
       (nextMod ? '<div class="note mt2 small"><b>下一步建議：</b>單元' + esc(nextMod.no) + '「' + esc(nextMod.title) + '」—— <a href="' + esc(nextMod.href) + '" class="bold">前往 →</a></div>' : '<div class="note ok mt2 small"><b>全部完成！</b>去 5016B 做一個自己的專題吧。</div>') +
-      openAllBanner() + backupNote(total) +
+      openAllBanner() + backupNote(total) + cloudPanel() +
       '</section>';
 
     var cards = mods.map(function (m, i) {
@@ -205,6 +205,7 @@
     root.querySelector('#btn-logout').onclick = function () {
       if (confirm('確定要登出嗎？（進度不會被刪除）')) { STORE.logout(); UI.requireLogin(render); }
     };
+    bindCloudPanel(root);
     root.querySelector('#btn-export').onclick = exportNow;
     var e2 = root.querySelector('#btn-export2'); if (e2) e2.onclick = exportNow;
     root.querySelector('#file-import').onchange = function (e) {
@@ -214,6 +215,76 @@
         UI.toast(err || '進度已匯入！');
       });
     };
+  }
+
+  /* v16.60：數位時代雲端讀回診斷，唯讀、不改變既有學生成績。 */
+  var cloudState = {label:'尚未檢查',cloud:null,reason:'',busy:false};
+  function digitalStarsFrom(modules) {
+    var digital=(modules && modules.digital) || {};
+    return Object.values(digital.levels || {}).reduce(function(n,r){return n+Math.max(0,Number(r && r.stars)||0);},0);
+  }
+  function cloudPanel(){
+    var p=STORE.me(); if(!p)return '';
+    return '<section class="note mt2 small" id="digital-cloud-panel" style="border:2px solid #c7d2fe;background:#eef2ff;color:#1e3a8a;border-radius:12px;padding:12px">'+
+      '<b>☁️ 數位時代同步檢查</b><div id="digital-sync-details" style="margin:7px 0">本機 '+digitalStarsFrom(STORE.load().modules)+'/24 星｜雲端：'+esc(cloudState.label)+'</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="btn-check-digital">檢查雲端成績</button>'+
+      '<button type="button" class="btn sm" id="btn-sync-digital">安全補同步本機成績</button>'+
+      '<button type="button" class="btn sm" id="btn-backup-digital">先下載進度備份</button></div>'+
+      '<p class="tiny" style="margin-top:8px">需登入原本 Firebase 學生帳號。本機 0 星時，無法憑空恢復其他電腦未上傳的成績；請保留原闖關電腦瀏覽器資料。</p></section>';
+  }
+  function showCloudState(){
+    var el=document.getElementById('digital-sync-details');if(!el)return;
+    var local=digitalStarsFrom(STORE.load().modules);
+    var cloud=cloudState.cloud===null?'尚未確認':(cloudState.cloud+'/24 星');
+    el.textContent='本機 '+local+'/24 星｜雲端 '+cloud+'｜'+cloudState.label+(cloudState.reason?'（'+cloudState.reason+'）':'');
+  }
+  async function checkDigitalCloud(){
+    cloudState.label='檢查中';cloudState.reason='';showCloudState();
+    try {
+      if(!window.CourseDB){throw Error('FIREBASE_NOT_LOADED');}
+      await CourseDB.ready;
+      var p=STORE.me();
+      if(CourseDB.isAnonymous() || !CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(p))
+        throw Error('NOT_LOGGED_IN_AS_THIS_STUDENT');
+      var snapshot=await CourseDB.loadCourseSnapshot(C.TERM,p);
+      var student=await CourseDB.loadStudent();
+      var modules=(snapshot&&snapshot.modules)||{};
+      var legacy=((student&&student.progress&&student.progress._mods)||{});
+      var oldModules=(student&&student.modules)||{};
+      var names=Array.from(new Set([...(Object.keys((modules.digital||{}).levels||{})),...(Object.keys((legacy.digital||{}).levels||{})),...(Object.keys((oldModules.digital||{}).levels||{}))]));
+      var sum=0;
+      names.forEach(function(k){sum+=Math.max(Number((modules.digital&&modules.digital.levels||{})[k]?.stars)||0,Number((legacy.digital&&legacy.digital.levels||{})[k]?.stars)||0,Number((oldModules.digital&&oldModules.digital.levels||{})[k]?.stars)||0);});
+      cloudState.cloud=sum;cloudState.label='讀取成功';
+      if(sum===0 && digitalStarsFrom(STORE.load().modules)>0)cloudState.reason='本機有成績但雲端未找到，請先下載備份再補同步';
+      else if(sum===0)cloudState.reason='此帳號未找到逐關成績；原電腦可能仍有資料';
+    }catch(e){cloudState.label='讀取失敗';cloudState.cloud=null;cloudState.reason=String(e.code||e.message||e).slice(0,125);}
+    showCloudState();return cloudState;
+  }
+  async function syncDigitalSafely(){
+    var btn=document.getElementById('btn-sync-digital');if(btn)btn.disabled=true;
+    try{
+      if(!window.CourseDB){throw Error('FIREBASE_NOT_LOADED');}
+      await CourseDB.ready;
+      if(CourseDB.isAnonymous()||!CourseDB.matchesStudentProfile(STORE.me()))throw Error('NOT_LOGGED_IN_AS_THIS_STUDENT');
+      // Never write with an incorrect student UID, and merge first to preserve other units.
+      await STORE.syncFromCloud();
+      var local=digitalStarsFrom(STORE.load().modules);
+      if(local===0){throw Error('LOCAL_DIGITAL_EMPTY：目前瀏覽器沒有數位時代星星，請回原上課電腦或使用先前匯出的進度檔');}
+      var r=await STORE.syncToCloud();
+      if(!r || r.ok!==true)throw Error((r&&r.reason)||'UPLOAD_UNCONFIRMED');
+      await checkDigitalCloud();
+      if(cloudState.cloud===null || cloudState.cloud<local)throw Error('CLOUD_READBACK_LOWER_THAN_LOCAL');
+      cloudState.label='✅ 雲端已確認';cloudState.reason='教師版重新整理後可檢查';
+    }catch(e){cloudState.label='❌ 尚未成功補同步';cloudState.reason=String(e.code||e.message||e).slice(0,145);}
+    if(btn)btn.disabled=false;
+    showCloudState();
+  }
+  function bindCloudPanel(root){
+    var c=root.querySelector('#btn-check-digital'),s=root.querySelector('#btn-sync-digital'),b=root.querySelector('#btn-backup-digital');
+    if(c)c.onclick=checkDigitalCloud;
+    if(s)s.onclick=syncDigitalSafely;
+    if(b)b.onclick=exportNow;
+    showCloudState();
   }
 
   /* 💾 進度下載提醒：本機版的進度只在這台電腦，有進度卻超過 7 天沒下載就提醒 */
@@ -258,6 +329,8 @@
     if (window.STORE && STORE.me()) render();
   }
   window.addEventListener('store:change', refreshHubFromSavedProgress);
+  window.addEventListener('coursedb:ready', function(){ if(document.getElementById('digital-cloud-panel')) checkDigitalCloud(); });
+  window.addEventListener('courseauth:stable', function(){ if(document.getElementById('digital-cloud-panel')) checkDigitalCloud(); });
   // 回到地圖時，瀏覽器可能從 bfcache 還原舊畫面；重新讀取最新 localStorage/STORE。
   window.addEventListener('pageshow', refreshHubFromSavedProgress);
   window.addEventListener('focus', refreshHubFromSavedProgress);

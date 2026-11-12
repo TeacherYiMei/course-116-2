@@ -108,7 +108,11 @@
       if (rec.extra) next.extra = Object.assign({}, old.extra || {}, rec.extra);
       if (rec.code != null) next.code = String(rec.code).slice(0, 8000);
       d.modules[mod].levels[id] = next;
-      safeSet(progressKey(p), JSON.stringify(d));
+      var savedLocally = safeSet(progressKey(p), JSON.stringify(d));
+      if (!savedLocally) {
+        window.dispatchEvent(new CustomEvent('sync:status',{detail:{status:'SYNC_FAIL',reason:'LOCAL_STORAGE_WRITE_FAILED'}}));
+        return {record:next, improved:improved, error:'LOCAL_STORAGE_WRITE_FAILED'};
+      }
       markPending(p); // 課程換頁或離線時也不遺失「尚未上傳」狀態
       fire();
 
@@ -354,7 +358,22 @@
       if (o.term !== term()) return '這是 ' + o.term + ' 的進度檔，現在是 ' + term();
       var p = this.me();
       if (!p || p.cls !== o.me.cls || p.seat !== o.me.seat) return '這份進度是 ' + o.me.cls + ' 班 ' + o.me.seat + ' 號的，和目前登入的人不同';
-      safeSet(progressKey(p), JSON.stringify(o.data)); markPending(p); fire();
+      var current = this.load(), incoming = o.data || {};
+      current.modules = current.modules || {};
+      Object.keys(incoming.modules || {}).forEach(function(m){
+        var src = incoming.modules[m] || {}, dest = current.modules[m] || (current.modules[m] = {levels:{}});
+        dest.levels = dest.levels || {};
+        Object.keys(src.levels || {}).forEach(function(k){
+          var old = dest.levels[k] || {}, rec = src.levels[k] || {};
+          dest.levels[k] = Object.assign({}, rec, old, {
+            stars: Math.max(Number(old.stars)||0, Number(rec.stars)||0),
+            done: !!(old.done || rec.done),
+            tries: Math.max(Number(old.tries)||0, Number(rec.tries)||0)
+          });
+        });
+      });
+      if(!safeSet(progressKey(p), JSON.stringify(current))) return '無法保存本機進度，請確認瀏覽器儲存空間';
+      markPending(p); fire();
       this.syncToCloud();
       return '';
     }

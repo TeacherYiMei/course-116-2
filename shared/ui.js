@@ -60,7 +60,7 @@
       for (let i = 0; i < scripts.length; i++) {
         const src = scripts[i].getAttribute('src');
         if (src && src.includes('shared/store.js')) {
-          sharedPath = src.replace('store.js', '');
+          sharedPath = src.replace(/store\.js(?:[?#].*)?$/, '');
           break;
         }
       }
@@ -70,7 +70,7 @@
       
       configScript.onload = () => {
         const syncScript = document.createElement('script');
-        syncScript.src = sharedPath + 'firebase-sync.js?v=16.50';
+        syncScript.src = sharedPath + 'firebase-sync.js?v=16.56';
         syncScript.onload = () => resolve();
         syncScript.onerror = () => { console.error("無法載入 firebase-sync.js"); resolve(); };
         document.head.appendChild(syncScript);
@@ -83,6 +83,16 @@
   UI.requireLogin = async function (ready) {
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
+    if (!window.CourseDB || CourseDB.state === 'error' || CourseDB.state === 'disabled') {
+      var detail = window.CourseDB && CourseDB.errorMessage ? '（' + CourseDB.errorMessage + '）' : '';
+      UI.modal('<h2 class="title">Firebase 連線尚未就緒</h2>' +
+        '<p class="small mt1">目前無法確認雲端登入狀態。請確認網路連線後重新整理，不要重新建立學生帳號，也不要清除瀏覽器資料。</p>' +
+        '<p class="small mt1" style="overflow-wrap:anywhere">' + UI.esc(detail) + '</p>' +
+        '<button type="button" class="btn primary mt2" id="firebase-retry">重新載入</button>', {sticky:true});
+      var retry = document.getElementById('firebase-retry');
+      if(retry) retry.addEventListener('click', function(){ location.reload(); });
+      return;
+    }
 
     if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous() && CourseDB.matchesStudentProfile?.(STORE.me())) {
       if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {

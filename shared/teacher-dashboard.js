@@ -14,6 +14,59 @@
     aiot:   { id: "aiot", name: "5016B 專題", icon: "💡", maxStars: 15, tabColor: "amber", mods: ["aiot", "arduino", "5016"] }
   };
 
+  // v16.54: each module's actual saved level IDs. A dash means no level-level
+  // evidence; do not transform aggregate-only scores into invented completions.
+  const SUBUNITS={
+    unit1:[
+      {id:'d1',label:'1-1 二進位',parts:['x1','u1'],max:6},
+      {id:'d2',label:'1-2 文字',parts:['x2','u2'],max:6},
+      {id:'d3',label:'1-3 音訊',parts:['x3','u3'],max:6},
+      {id:'d4',label:'1-4 影像',parts:['x4','u4'],max:6}
+    ],
+    python:Array.from({length:10},(_,i)=>({id:'p'+(i+1),label:'P'+(i+1),parts:['p'+(i+1)],max:3})),
+    unit3:Array.from({length:8},(_,i)=>({id:'G'+(i+1),label:'G'+(i+1),parts:['G'+(i+1)],max:3})),
+    aiot:Array.from({length:5},(_,i)=>({id:'S'+(i+1),label:'S'+(i+1),parts:['S'+(i+1)],max:3}))
+  };
+  function getSubunitData(r,unitKey){
+    const cfg=UNIT_CONFIG[unitKey], records=r.sourceRecords||[r], best={};
+    const observed=new Set();
+    for(const record of records){
+      const sources=[record.modules,record.progress?._mods,record.courseProgress?.['11601']?.modules];
+      for(const source of sources){
+        if(!source || typeof source!=='object')continue;
+        for(const alias of cfg.mods){
+          const levels=source[alias]?.levels;
+          if(!levels || typeof levels!=='object')continue;
+          for(const [raw,entry] of Object.entries(levels)){
+            const key=String(raw).toLowerCase();
+            const n=Number(entry?.stars);
+            if(!Number.isFinite(n)||n<0)continue;
+            observed.add(key);
+            best[key]=Math.max(best[key]||0,n);
+          }
+        }
+      }
+      if(unitKey==='python'){
+        for(const [raw,val] of Object.entries(record.progress||{})){
+          const key=raw.toLowerCase();
+          if(!/^p(?:10|[1-9])$/.test(key))continue;
+          const n=Number(val);
+          if(Number.isFinite(n)&&n>=0){observed.add(key);best[key]=Math.max(best[key]||0,n);}
+        }
+      }
+    }
+    return SUBUNITS[unitKey].map(sub=>{
+      const count=sub.parts.filter(p=>observed.has(p.toLowerCase())).length;
+      const stars=sub.parts.reduce((sum,p)=>sum+(best[p.toLowerCase()]||0),0);
+      return {...sub,stars:Math.min(sub.max,stars),observed:count>0, complete:count===sub.parts.length&&stars>=sub.max};
+    });
+  }
+  function subunitBadge(sub){
+    const cls=!sub.observed?'unknown':sub.complete?'complete':sub.stars>0?'partial':'empty';
+    const status=!sub.observed?'未同步／無逐關紀錄':sub.complete?'滿星':sub.stars>0?'進行中':'目前 0 星';
+    return `<div class="subunit-score ${cls}" title="${esc(sub.label)}：${esc(status)}"><strong>${sub.observed?`★ ${sub.stars}`:'—'}</strong><small>${sub.observed?'/ '+sub.max:'待確認'}</small><span>${sub.observed?(sub.complete?'✓ 滿星':sub.stars>0?'進行中':'0 星'):'未有明細'}</span></div>`;
+  }
+
   const configured=()=>!!(cfg.enabled && cfg.apiKey && !String(cfg.apiKey).startsWith("PASTE_"));
   function esc(x){ return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
   function fmtTime(v){ try{ return v&&typeof v.toDate==="function" ? v.toDate().toLocaleString("zh-TW") : ""; }catch(e){return ""} }
@@ -23,7 +76,7 @@
   function isAdmin(){ return teacherProfile?.role==="admin"; }
   function allowedClasses(){ return isAdmin() ? null : Array.isArray(teacherProfile?.classes) ? teacherProfile.classes.map(String).filter(Boolean).sort() : []; }
   function canManageClass(className){ return isAdmin() || allowedClasses().includes(String(className)); }
-  function filtered(){ const cls=$("#classFilter").value; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
+  function filtered(){ const cls=$("#classFilter")?.value || ""; return currentRows.filter(r=>!cls || String(r.className)===cls).sort(seatSort); }
 
   function mergeDuplicateStudents(rows){
     const groups=new Map();
@@ -85,117 +138,98 @@
     });
   }
 
+  // 多入口相容：舊版 modules、progress._mods 與新版 courseProgress 皆納入。
+  // 同一關卡取最高成績；同班同座的舊 UID 僅做唯讀彙總，不移動或刪除帳號。
   function getStudentUnitData(r, unitKey){
-    const cfg = UNIT_CONFIG[unitKey];
-    const modsData = r.modules || (r.progress && r.progress._mods) || {};
-    
-    let stars = 0;
-    let detailsStr = "尚未有關卡紀錄";
-    let isManual = false;
-    
-    let foundMod = null;
-    for (let alias of cfg.mods) {
-       if (modsData[alias]) { foundMod = modsData[alias]; break; }
-    }
-    
-    if (unitKey === "python") {
-       let pyStars = 0;
-       if (r.progress) {
-          for (let pk in r.progress) { if(!pk.startsWith('_') && !isNaN(Number(r.progress[pk]))) pyStars += Number(r.progress[pk]); }
-       }
-       stars = Math.max(pyStars, Number(foundMod?.stars||0), Number(r.stars||0));
-       if (stars > 0) detailsStr = "已進行 Python 挑戰";
-    } else {
-       if (foundMod && foundMod.levels) {
-          let lvs = foundMod.levels;
-          let dt = [];
-          let sum = 0;
-          for (let k in lvs) {
-             let s = Number(lvs[k].stars||0);
-             if (s > 0) dt.push(`${k}:${s}★`);
-             sum += s;
+    const cfg=UNIT_CONFIG[unitKey];
+    const records=r.sourceRecords||[r];
+    const levelBest={};
+    let moduleTotal=0, fallback=0, pyTotal=0, found=false;
+    for(const record of records){
+      const sources=[record.modules, record.progress?._mods,
+        record.courseProgress?.['11601']?.modules];
+      for(const source of sources){
+        if(!source)continue;
+        for(const alias of cfg.mods){
+          const m=source[alias]; if(!m)continue;
+          found=true;
+          const declared=Number(m.stars)||0;
+          moduleTotal=Math.max(moduleTotal,declared);
+          for(const [id,lv] of Object.entries(m.levels||{})){
+            levelBest[id]=Math.max(levelBest[id]||0,Number(lv?.stars)||0);
           }
-          stars = Math.max(sum, Number(foundMod.stars||0));
-          if (dt.length > 0) detailsStr = dt.join(', ');
-       }
-       
-       let fallbackStar = 0;
-       if (unitKey === "unit1") fallbackStar = Math.max(Number(r.unit1Stars||0), Number(r.progress?._u1||0));
-       if (unitKey === "unit3") fallbackStar = Math.max(Number(r.unit3Stars||0), Number(r.progress?._u3||0));
-       if (unitKey === "aiot") fallbackStar = Math.max(Number(r.aiotStars||0), Number(r.progress?._aiot||0));
-       
-       if (fallbackStar > stars) {
-          stars = fallbackStar;
-          detailsStr = "✅ 教師手動補登保留";
-          isManual = true;
-       }
+        }
+      }
+      if(unitKey==='unit1')fallback=Math.max(fallback,Number(record.unit1Stars)||0,Number(record.progress?._u1)||0);
+      if(unitKey==='unit3')fallback=Math.max(fallback,Number(record.unit3Stars)||0,Number(record.progress?._u3)||0);
+      if(unitKey==='aiot')fallback=Math.max(fallback,Number(record.aiotStars)||0,Number(record.progress?._aiot)||0);
+      if(unitKey==='python'){
+        let py=0;
+        for(const [k,v] of Object.entries(record.progress||{})){
+          if(/^p(?:10|[1-9])$/.test(k) && Number.isFinite(Number(v)))py+=Number(v);
+        }
+        pyTotal=Math.max(pyTotal,py,Number(record.stars)||0);
+      }
     }
-    
-    if(isNaN(stars)) stars = 0;
-    const score = Math.min(100, Math.round((stars / cfg.maxStars) * 100));
-    
-    return { stars, maxStars: cfg.maxStars, score, details: detailsStr, isManual };
+    const levelSum=Object.values(levelBest).reduce((a,n)=>a+n,0);
+    const base=Math.max(levelSum,moduleTotal,pyTotal);
+    const stars=Math.max(base,fallback);
+    const detail=Object.entries(levelBest).filter(([,n])=>n>0).map(([k,n])=>`${k}:${n}★`);
+    const isManual=fallback>base;
+    const details=isManual?'✅ 舊版補登成績保留':detail.length?detail.join(', '):stars>0?'已取得單元成績':found?'尚無已得星星':'尚未找到雲端關卡紀錄';
+    return {stars,maxStars:cfg.maxStars,score:Math.min(100,Math.round(stars/cfg.maxStars*100)),details,isManual,found:found || stars>0};
   }
 
   function setupUI() {
     const tableWrap = document.querySelector('.tableWrap');
-    if (tableWrap) {
-        let prev = tableWrap.previousElementSibling;
-        while (prev) {
-            prev.style.display = 'none';
-            prev = prev.previousElementSibling;
-        }
+    if (!tableWrap) return;
+    let panel = document.querySelector('#customHeaderInfo');
+    if (!panel) {
+      panel = document.createElement('section');
+      panel.id = 'customHeaderInfo';
+      panel.className = 'unit-dashboard';
+      tableWrap.parentNode.insertBefore(panel, tableWrap);
+      panel.innerHTML = `
+        <h2 class="unit-page-title">📚 各單元獨立星星成績</h2>
+        <p class="unit-instructions">點選一個單元，查看該單元所有學生的星星與關卡明細。成績為唯讀顯示，不會修改學生紀錄。</p>
+        <div id="unitCards" class="unit-card-grid" role="group" aria-label="選擇單元"></div>
+        <div id="unit-panel" class="unit-active-panel"></div>`;
     }
-    if ($("#customHeaderInfo")) return;
+    // 隱藏舊版重複的單元切換與統計，保留原始資料和教師工具列。
+    const originalTabs=document.querySelector('#moduleTabs');
+    if(originalTabs) originalTabs.style.display="none";
+    const originalFocus=document.querySelector('.moduleFocus');
+    if(originalFocus) originalFocus.style.display="none";
+    const oldSummary=document.querySelector('.summary');
+    if(oldSummary) oldSummary.style.display="none";
+  }
 
-    const wrap = $("#app") || document.querySelector('.tableWrap')?.parentNode || document.body;
-    let uiHTML = `
-      <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom:24px;">
-         <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
-            <span style="font-size:24px;">📊</span>
-            <h1 style="font-size:24px; font-weight:bold; margin:0; color:#1e293b;">各單元學習進度 (v16.47 終極穩定版)</h1>
-         </div>
-         <p style="font-size:14px; color:#64748b; margin-bottom:20px;">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</p>
-         <div style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;" id="custom-tabs-container">
-    `;
-    
-    for (let k in UNIT_CONFIG) {
-        const u = UNIT_CONFIG[k];
-        const isActive = (k === currentUnit);
-        const bg = isActive ? '#2563eb' : '#ffffff';
-        const color = isActive ? '#ffffff' : '#475569';
-        const border = isActive ? '2px solid #1d4ed8' : '1px solid #cbd5e1';
-        const shadow = isActive ? 'box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);' : '';
-        
-        uiHTML += `<button class="unit-tab-btn" data-unit="${k}" style="background:${bg}; color:${color}; border:${border}; ${shadow} padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px; display:flex; align-items:center; gap:8px; transition:all 0.2s;">
-            <span>${u.icon}</span> ${u.name}
+  function renderUnitCards(rows){
+    const cards=document.querySelector('#unitCards');
+    if(!cards)return;
+    cards.innerHTML=Object.entries(UNIT_CONFIG).map(([key,u])=>{
+      const scores=rows.map(r=>getStudentUnitData(r,key));
+      const earned=scores.reduce((n,d)=>n+d.stars,0);
+      const avg=scores.length?(earned/scores.length).toFixed(1):'0.0';
+      const studentsWithStars=scores.filter(d=>d.stars>0).length;
+      const selected=key===currentUnit;
+      return `<button type="button" class="unit-score-card ${selected?'selected':''}" data-unit="${key}" aria-pressed="${selected}" aria-label="${esc(u.name)}，平均 ${avg} 顆星">
+          <span class="unit-score-heading"><span class="unit-score-icon">${u.icon}</span><span>${esc(u.name)}</span></span>
+          <span class="unit-score-number"><span class="unit-star-glyph">★</span>${avg}<span class="unit-score-suffix"> / ${u.maxStars} 平均星</span></span>
+          <span class="unit-score-foot">${studentsWithStars} / ${rows.length} 位學生有星星</span>
         </button>`;
-    }
-    
-    uiHTML += `</div><div id="unit-panel" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; padding:20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;"></div>`;
-    
-    let headerDiv = document.createElement("div");
-    headerDiv.id = "customHeaderInfo";
-    if (tableWrap) {
-        tableWrap.parentNode.insertBefore(headerDiv, tableWrap);
-    } else {
-        wrap.insertBefore(headerDiv, wrap.firstChild);
-    }
-    headerDiv.innerHTML = uiHTML;
-    
-    document.querySelectorAll(".unit-tab-btn").forEach(btn => {
-       btn.addEventListener("click", (e) => {
-           currentUnit = e.currentTarget.dataset.unit;
-           document.querySelector('#customHeaderInfo').remove();
-           render();
-       });
-    });
+    }).join('');
+    cards.querySelectorAll('[data-unit]').forEach(btn=>btn.addEventListener('click',()=>{
+      currentUnit=btn.dataset.unit;
+      render();
+    }));
   }
 
   function render(){
     setupUI();
     const rows = filtered();
     const cfgUnit = UNIT_CONFIG[currentUnit];
+    renderUnitCards(rows);
     
     let totalStarsSum = 0;
     
@@ -208,60 +242,43 @@
     const avg = rows.length ? (totalStarsSum/rows.length).toFixed(1) : "0.0";
     
     $("#unit-panel").innerHTML = `
-        <div>
-            <h2 style="margin:0 0 4px 0; font-size:20px; font-weight:bold; color:#1e293b;">${cfgUnit.name}</h2>
-            <p style="margin:0; font-size:13px; color:#64748b;">每位學生的本單元星星及各關卡紀錄</p>
-        </div>
-        <div style="text-align:right;">
-            <span style="font-size:28px; font-weight:bold; color:#2563eb;">${avg}</span>
-            <span style="font-size:13px; color:#64748b; margin-left:4px;">平均星星</span>
-        </div>
-    `;
+      <div class="unit-active-title"><div><h3>${cfgUnit.icon} ${esc(cfgUnit.name)}</h3>
+      <p>以下每列只顯示本單元成績；可切換上方單元卡查看其他課程。</p></div>
+      <div class="unit-active-average"><strong>★ ${avg}</strong><span>全班平均 / ${cfgUnit.maxStars} 星</span></div></div>`;
 
+    // Each subunit gets its own large, readable column. Keep horizontal scrolling.
+    const subs=SUBUNITS[currentUnit];
+    const summary=subs.map((sub,i)=>{
+      const values=mappedRows.map(r=>getSubunitData(r,currentUnit)[i]);
+      const withScore=values.filter(v=>v.observed && v.stars>0).length;
+      const complete=values.filter(v=>v.complete).length;
+      return `<div class="subunit-summary"><strong>${esc(sub.label)}</strong><span>★ ${withScore} 人有星星</span><small>${complete} 人滿星／${rows.length} 人</small></div>`;
+    }).join('');
+    const activePanel=$("#unit-panel");
+    if(activePanel)activePanel.insertAdjacentHTML('beforeend',`<div class="subunit-summary-grid" aria-label="各小關進度摘要">${summary}</div><p class="subunit-notice">— 表示尚無逐關紀錄，不能視為 0 星；若只找到舊版總星數，仍保留在「單元總星」欄，不會平均分配到各關。</p>`);
     const theadTr = document.querySelector(".tableWrap thead tr") || document.querySelector("table thead tr");
     if (theadTr) {
-        theadTr.innerHTML = `
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">班級</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">座號</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">姓名</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">維護</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">${cfgUnit.name.split('｜')[1] || cfgUnit.name}星星</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">各關卡星星</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">完成度</th>
-            <th style="padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; color:#475569;">最近更新</th>
-        `;
+      theadTr.innerHTML = `
+        <th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th>
+        <th class="unit-star-column">單元總星 ⭐</th>
+        ${subs.map(sub=>`<th class="subunit-head" title="${esc(sub.label)}">${esc(sub.label)}<span>滿分 ${sub.max}★</span></th>`).join('')}
+        <th>完成度</th><th>最近更新</th>`;
     }
-
     if($("#rows")) {
-      $("#rows").innerHTML = mappedRows.map(r=>`<tr style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:16px 12px; color:#334155;">${esc(r.className)}</td>
-        <td style="padding:16px 12px; color:#334155;">${esc(r.seatNo)}</td>
-        <td style="padding:16px 12px; color:#334155; font-weight:bold;">${esc(r.name)}</td>
-        <td style="padding:16px 12px;" class="maintainCol"><button class="manageBtn" style="padding:6px 12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; cursor:pointer;" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-        
-        <td style="padding:16px 12px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:20px;">⭐</span>
-                <span style="font-size:18px; font-weight:bold; color:#1e293b;">${r._d.stars}</span>
-                <span style="font-size:14px; color:#94a3b8;">/ ${r._d.maxStars}</span>
-            </div>
-            <div style="height:6px; background:#e2e8f0; border-radius:4px; margin-top:6px; width:80px; overflow:hidden;">
-                <div style="height:100%; background:#f59e0b; width:${r._d.score}%;"></div>
-            </div>
-        </td>
-        
-        <td style="padding:16px 12px; font-size:13px; color:${r._d.isManual ? '#10b981' : '#64748b'}; font-weight:${r._d.isManual ? 'bold' : 'normal'};">${esc(r._d.details)}</td>
-        
-        <td style="padding:16px 12px;">
-           <div style="font-weight:bold; color:${r._d.score===100?'#10b981':'#3b82f6'};">${r._d.score}%</div>
-           <div style="font-size:11px; color:#94a3b8;">${r._d.score===100?'✅ 已完成':'尚未開始'}</div>
-        </td>
-        
-        <td style="padding:16px 12px; font-size:13px; color:#64748b;">
-           ${r.updatedAt ? fmtTime(r.updatedAt) : '尚未同步'}
-           ${Number(r.duplicateCount||1)>1?`<br><span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px; font-size:10px; margin-top:4px; display:inline-block;">已合併 ${Number(r.duplicateCount)} 筆</span>`:""}
-        </td>
-      </tr>`).join("");
+      $("#rows").innerHTML = mappedRows.map(r=>{
+        const subScores=getSubunitData(r,currentUnit);
+        return `<tr class="student-score-row">
+        <td>${esc(r.className)}</td><td class="seat-num">${esc(r.seatNo)}</td>
+        <td class="student-name">${esc(r.name)}</td>
+        <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">維護</button></td>
+        <td class="unit-star-column"><div class="star-strong ${r._d.stars===0?'star-zero':''}">
+          <span class="star-symbol">★</span><strong>${r._d.stars}</strong><span class="star-maximum">/ ${r._d.maxStars}</span>
+        </div><div class="star-progress"><span style="width:${r._d.score}%"></span></div></td>
+        ${subScores.map(v=>`<td class="subunit-cell">${subunitBadge(v)}</td>`).join('')}
+        <td><span class="completion-percent">${r._d.score}%</span><span class="completion-label">${r._d.score===100?'✅ 單元滿星':r._d.stars>0?'進行中':r._d.found?'目前 0 星':'未找到雲端紀錄'}</span></td>
+        <td class="sync-time">${r.updatedAt ? fmtTime(r.updatedAt) : '無更新時間'}
+        ${Number(r.duplicateCount||1)>1?`<span class="dup-chip">合併顯示 ${Number(r.duplicateCount)} 筆</span>`:''}</td>
+      </tr>`;}).join('');
     }
 
     document.querySelectorAll(".manageBtn").forEach(btn=>{

@@ -48,6 +48,29 @@
       var p = this.me();
       if (!p) return { modules: {} };
       var d = parse(safeGet(progressKey(p)), null);
+      // v16.52: before the leading-zero fix, 1-9 used keys ending in -1 ... -9.
+      // Read both variants and merge only the same class/seat, preserving
+      // the highest star count for each level. Never remove the legacy key.
+      if (Number(p.seat) >= 1 && Number(p.seat) <= 9) {
+        var oldKey = PREFIX + '-' + term() + '-progress-' + p.cls + '-' + String(Number(p.seat));
+        var legacy = parse(safeGet(oldKey), null);
+        if (legacy && legacy.modules) {
+          if (!d || !d.modules) d = {modules:{}};
+          Object.keys(legacy.modules).forEach(function(mod){
+            var source = legacy.modules[mod] || {};
+            var target = d.modules[mod] || (d.modules[mod]={levels:{}});
+            target.levels = target.levels || {};
+            Object.keys(source.levels||{}).forEach(function(id){
+              var prev=target.levels[id]||{};
+              var incoming=source.levels[id]||{};
+              target.levels[id]=Object.assign({},incoming,prev,{
+                stars:Math.max(Number(incoming.stars)||0,Number(prev.stars)||0),
+                done:!!(incoming.done||prev.done)
+              });
+            });
+          });
+        }
+      }
       return d && d.modules ? d : { modules: {} };
     },
 
@@ -88,6 +111,7 @@
     
     syncFromCloud: async function() {
       if(!window.CourseDB || CourseDB.isAnonymous()) return;
+      if(!CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(this.me())) return;
       try {
         const r = await CourseDB.loadStudent();
         if (r) {
@@ -95,7 +119,18 @@
           if(!p) return;
           
           let localData = this.load();
-          const cloudMods = r.modules || (r.progress && r.progress._mods) || {}; 
+          // 先合併舊版紀錄，再合併 courseProgress；同一關僅保留最高星數。
+          const legacyMods = Object.assign({}, (r.progress && r.progress._mods)||{}, r.modules||{});
+          const modernMods = (r.courseProgress && r.courseProgress[term()] && r.courseProgress[term()].modules)||{};
+          const cloudMods = Object.assign({}, legacyMods);
+          for (const [mk,mv] of Object.entries(modernMods)) {
+            const prior = cloudMods[mk] || {};
+            cloudMods[mk] = Object.assign({}, prior, mv, {levels:Object.assign({},prior.levels||{},mv.levels||{})});
+            for(const [lk,lr] of Object.entries((prior.levels)||{})){
+              const newer = cloudMods[mk].levels[lk]||{};
+              cloudMods[mk].levels[lk] = {...lr,...newer,stars:Math.max(Number(lr.stars)||0,Number(newer.stars)||0)};
+            }
+          } 
           
           for(let mKey in cloudMods) {
             if(!localData.modules[mKey]) localData.modules[mKey] = { levels: {} };
@@ -146,7 +181,7 @@
     },
 
     syncToCloud: async function() {
-      if(!window.CourseDB || CourseDB.isAnonymous()) {
+      if(!window.CourseDB || CourseDB.isAnonymous() || !CourseDB.matchesStudentProfile || !CourseDB.matchesStudentProfile(this.me())) {
          window.dispatchEvent(new CustomEvent('sync:status', { detail: 'ANONYMOUS' }));
          if(window.UI && typeof window.UI.requireLogin === 'function') window.UI.requireLogin();
          return;
@@ -179,7 +214,7 @@
       try {
         pyState = JSON.parse(localStorage.getItem('course115_v3_progress') || '{}');
         for (let k in pyState) {
-           if (!k.startsWith('_')) {
+           if (/^p(?:10|[1-9])$/.test(k)) {
               let val = Number(pyState[k]);
               if (!isNaN(val)) pyStars += val;
            }
@@ -212,10 +247,40 @@
         progress: uploadProgress
       };
       
+      // v16.51 non-destructive fallback: merge cloud legacy progress before writing.
+      // The cloud can contain Python attempts and earlier unit metadata absent locally.
+      try {
+        const remoteBefore = await CourseDB.loadStudent();
+        if (remoteBefore && remoteBefore.progress) {
+          const rp = remoteBefore.progress;
+          for (const [key, value] of Object.entries(rp)) {
+            if (key === '_mods') {
+              const oldMods = value || {};
+              for (const [modKey, modData] of Object.entries(oldMods)) {
+                if (!uploadProgress._mods[modKey]) uploadProgress._mods[modKey] = modData;
+                else if (modData && modData.levels) {
+                  const dest = uploadProgress._mods[modKey];
+                  dest.levels = dest.levels || {};
+                  for (const [id, rec] of Object.entries(modData.levels)) {
+                    const current = dest.levels[id] || {};
+                    dest.levels[id] = {...rec, ...current,
+                      stars: Math.max(Number(rec.stars)||0,Number(current.stars)||0)};
+                  }
+                }
+              }
+            } else if (typeof value === 'number' && Number.isFinite(value)) {
+              uploadProgress[key] = Math.max(Number(uploadProgress[key])||0, value);
+            } else if (!(key in uploadProgress)) uploadProgress[key] = value;
+          }
+        }
+      } catch(e) { console.warn('Legacy progress pre-merge unavailable; upload skipped to protect history',e); return; }
       const cleanPayload = JSON.parse(JSON.stringify(payload));
       
       try {
         await CourseDB.saveStudent(cleanPayload);
+        // 正式統一進度：保存整個學期的各關卡紀錄，不覆蓋其他學期；
+        // Firebase 端合併每關最高星數。舊版欄位繼續保留供歷史版本讀取。
+        await CourseDB.saveCourseSnapshot(term(), {modules:mods}, p);
         window.dispatchEvent(new CustomEvent('sync:status', { detail: 'SYNC_OK' }));
       } catch(e) {
         console.warn("☁️ 雲端存檔失敗", e);

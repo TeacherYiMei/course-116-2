@@ -70,7 +70,7 @@
       
       configScript.onload = () => {
         const syncScript = document.createElement('script');
-        syncScript.src = sharedPath + 'firebase-sync.js';
+        syncScript.src = sharedPath + 'firebase-sync.js?v=16.50';
         syncScript.onload = () => resolve();
         syncScript.onerror = () => { console.error("無法載入 firebase-sync.js"); resolve(); };
         document.head.appendChild(syncScript);
@@ -84,7 +84,7 @@
     await loadFirebaseScripts();
     if(window.CourseDB) await CourseDB.ready;
 
-    if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous()) {
+    if (STORE.me() && window.CourseDB && !CourseDB.isAnonymous() && CourseDB.matchesStudentProfile?.(STORE.me())) {
       if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
          await window.STORE.syncFromCloud();
       }
@@ -128,8 +128,10 @@
       const name = form.name.value.trim();
       const pwd = form.pwd.value.trim();
 
-      const localErr = STORE.login(cls, seat, name);
-      if (localErr) { errEl.textContent = localErr; return; }
+      // 身分先驗證，再寫入本機 profile，避免密碼錯誤時覆蓋另一位學生的身份。
+      if(!/^9\d{2}$/.test(cls) || !/^\d{1,2}$/.test(seat) || Number(seat)<1 || Number(seat)>40 || !name){
+        errEl.textContent = '請確認班級、座號及姓名'; return;
+      }
       if (pwd.length < 6) { errEl.textContent = "密碼至少需要6個字元"; return; }
 
       errEl.textContent = "⏳ 連線中...";
@@ -140,6 +142,7 @@
         
         if (isLogin) {
           await CourseDB.signInStudentAccount(cls, seat, pwd);
+          STORE.login(cls, seat, name);
           
           if (window.STORE && typeof window.STORE.syncFromCloud === 'function') {
             await window.STORE.syncFromCloud();
@@ -149,6 +152,7 @@
             await window.mods?.auth?.signInAnonymously(window.auth);
           }
           await CourseDB.linkStudentAccount(cls, seat, pwd);
+          STORE.login(cls, seat, name);
         }
         
         await STORE.syncToCloud();

@@ -20,6 +20,10 @@
     async reconnect(){api.error=null;api.errorCode="";api.errorMessage="";return await initialize(true)},
     isAnonymous(){return !!currentUser?.isAnonymous},
     accountEmail(className,seatNo){return studentAccountEmail(className,seatNo)},
+    matchesStudentProfile(profile){
+      if(!profile || !currentUser || currentUser.isAnonymous)return false;
+      return String(currentUser.email||"").toLowerCase()===studentAccountEmail(profile.cls||profile.className,profile.seat||profile.seatNo).toLowerCase();
+    },
     async linkStudentAccount(className,seatNo,password){
       await api.ready;if(!currentUser||!auth||!authMod)throw Error("AUTH_NOT_READY");
       const email=studentAccountEmail(className,seatNo);
@@ -59,14 +63,43 @@
       api.stage="已切換為新學生";
       return {ok:true,uid:currentUser.uid};
     },
+    // v16.52: Keep the immutable identity already stored for this UID.
+    // Legacy students may have seatNo "1" while new login normalizes it to "01".
+    // Firestore rules deny any student write changing seatNo, name or className.
+    async existingIdentity(ref, profile){
+      const snap=await fs.getDoc(ref);
+      if(!snap.exists()) return {exists:false, identity:profile||{}, data:null};
+      const old=snap.data();
+      if(profile){
+        const oldCls=String(old.className||"").trim();
+        const newCls=String(profile.className||"").trim();
+        const oldSeat=Number(String(old.seatNo||"").trim());
+        const newSeat=Number(String(profile.seatNo||"").trim());
+        if(oldCls && newCls && oldCls!==newCls) throw Error("STUDENT_IDENTITY_MISMATCH: className");
+        if(old.seatNo!=null && profile.seatNo!=null &&
+           (!Number.isInteger(oldSeat)||!Number.isInteger(newSeat)||oldSeat!==newSeat))
+           throw Error("STUDENT_IDENTITY_MISMATCH: seatNo");
+      }
+      return {exists:true,data:old,identity:{
+        className:old.className,seatNo:old.seatNo,name:old.name
+      }};
+    },
     async saveStudent(payload){
       await api.ready;
       if(!api.configured||!currentUser||!db)return {ok:false};
       const ref=fs.doc(db,"students",currentUser.uid);
+      const requested={className:payload.className,seatNo:payload.seatNo,name:payload.name};
+      const existing=await api.existingIdentity(ref,requested);
+      const safePayload={...payload};
+      if(existing.exists){
+        // Never attempt an immutable profile change from a student session.
+        for(const field of ["className","seatNo","name"]){
+          if(existing.identity[field]!==undefined) safePayload[field]=existing.identity[field];
+          else delete safePayload[field];
+        }
+      }
       await fs.setDoc(ref,{
-        ...payload,
-        uid:currentUser.uid,
-        updatedAt:fs.serverTimestamp(),
+        ...safePayload,uid:currentUser.uid,updatedAt:fs.serverTimestamp(),
         lastSeenAt:fs.serverTimestamp()
       },{merge:true});
       return {ok:true};
@@ -90,7 +123,12 @@
       const prev=next[term].modules[mod].levels[levelId]||{};
       next[term].modules[mod].levels[levelId]={...prev,...record,stars:Math.max(Number(prev.stars||0),Number(record.stars||0)),updatedAt:Date.now()};
       const payload={courseProgress:next,courseProgressUpdatedAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
-      if(profile)Object.assign(payload,{className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")});
+      if(profile){
+        const requested={className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")};
+        const existing=await api.existingIdentity(ref,requested);
+        if(!existing.exists) Object.assign(payload,requested);
+        // Existing identity is immutable: leave all three fields unchanged.
+      }
       await fs.setDoc(ref,payload,{merge:true});
       return {ok:true,uid:currentUser.uid};
     },
@@ -121,7 +159,12 @@
         }
       }
       const payload={courseProgress:merged,courseProgressUpdatedAt:fs.serverTimestamp(),updatedAt:fs.serverTimestamp(),lastSeenAt:fs.serverTimestamp()};
-      if(profile)Object.assign(payload,{className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")});
+      if(profile){
+        const requested={className:String(profile.cls||profile.className||""),seatNo:String(profile.seat||profile.seatNo||""),name:String(profile.name||"")};
+        const existing=await api.existingIdentity(ref,requested);
+        if(!existing.exists) Object.assign(payload,requested);
+        // Existing identity is immutable: leave all three fields unchanged.
+      }
       await fs.setDoc(ref,payload,{merge:true});
       return {ok:true,uid:currentUser.uid};
     }

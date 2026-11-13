@@ -69,6 +69,7 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
         <option value="priority">優先核對 902 班 28 號</option>
       </select>
       <button id="refreshBtn" class="soft">重新檢查</button><button id="exportAuditBtn" class="soft" type="button">匯出稽核 CSV</button>
+      <button id="exportSnapshotBtn" class="soft" type="button">下載目前進度備份 JSON</button>
     </div>
 
     <div class="summary">
@@ -79,14 +80,21 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
     </div>
 
     <div class="note">
-      <b>唯讀稽核（v16.61）：</b>比較 Python 舊版 <span class="code">progress.p1～p10</span>、
+      <b>歷史對照與安全恢復準備（v16.62）：</b>比較 Python 舊版 <span class="code">progress.p1～p10</span>、
       <span class="code">stars</span>，與各版 <span class="code">modules.python</span>、
       <span class="code">progress._mods.python</span>、
       <span class="code">courseProgress.11601.modules.python</span>。
       同班同座號（含 1／01）若有多筆 UID，分別列出並提示人工核對。
       目前資料庫沒有提供不可變的歷史快照，因此「沒有標示異常」不代表從未掉星；
       若 30 顆已被覆寫成 3 顆且沒有其他紀錄，須由先前備份／原電腦查找。
-      本頁不會寫入、合併或重設學生進度。
+      本頁不會寫入、合併或重設學生進度。先保留完整原始資料，再由教師確認身分及證據；CSV 的星數不能直接視為逐關成績。
+    </div>
+    <div class="note" style="margin-top:12px;background:#f1f6ff;color:#254466">
+      <b>歷史檔核對（僅在瀏覽器內運算，不上傳 CSV）：</b>
+      <label for="historyFile">選取較早日期的教師稽核 CSV 或本次 CSV 進行對照：</label>
+      <input id="historyFile" type="file" accept=".csv,text/csv" style="display:block;margin:8px 0">
+      <div id="historyStatus" class="status">尚未載入歷史檔。只有不同日期的真實歷史匯出才能證明「當時星數較高」。</div>
+      <button id="exportComparisonBtn" class="soft" type="button" disabled>匯出差異對照 CSV</button>
     </div>
     <div id="dbStatus" class="status" style="margin-top:10px"></div>
   </div>
@@ -97,14 +105,20 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
         <tr>
           <th>班級</th><th>座號</th><th>姓名</th>
           <th>原始 UID（末 6 碼）</th><th>Python 總星</th><th>各來源最高星</th><th>逐關明細</th>
-          <th>來源差異與稽核結果</th><th>更新時間</th>
+          <th>來源差異與稽核結果</th><th>更新時間</th><th>安全核對</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
+  <section id="detailPanel" class="card hidden" aria-live="polite">
+    <h2>原始紀錄與安全恢復核對</h2>
+    <p class="status">詳細資料僅供授權教師查看。包含學生進度，下載後請妥善保存，不要公開分享。</p>
+    <div id="detailBody"></div>
+    <button id="closeDetail" class="soft" type="button">關閉明細</button>
+  </section>
 </section>
 </main>
-<script src="shared/teacher-audit.js?v=16.61"></script>
+<script src="shared/teacher-audit.js?v=16.62"></script>
 </body>
 </html>

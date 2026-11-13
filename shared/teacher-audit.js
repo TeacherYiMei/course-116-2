@@ -1,10 +1,12 @@
 (function(){
   'use strict';
   const cfg=window.COURSE115_FIREBASE_CONFIG||{};
-  let auth,db,mods,teacherProfile=null,records=[],audited=[];
+  let auth,db,mods,teacherProfile=null,records=[],audited=[],historic=[];
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const n=v=>{const x=Number(v);return Number.isFinite(x)?Math.max(0,Math.min(30,x)):0;};
+  const normSeat=x=>{const k=Number(String(x??'').trim());return Number.isFinite(k)&&k>0?String(k):'';};
+  const identity=r=>[String(r.className||'').trim(),normSeat(r.seatNo),String(r.name||'').trim()].join('::');
   const seatKey=r=>`${String(r.className||'').trim()}::${Number(String(r.seatNo||'').trim())}`;
   const isAdmin=()=>teacherProfile?.role==='admin';
   const classes=()=>isAdmin()?null:(Array.isArray(teacherProfile?.classes)?teacherProfile.classes.map(String):[]);
@@ -55,6 +57,25 @@
     });
     render();
   }
+  function pastMatch(r){
+    if(!historic.length)return null;
+    const uid=historic.find(x=>x.UID&&x.UID===String(r.id));
+    if(uid)return {row:uid,kind:'相同 UID'};
+    const candidates=historic.filter(x=>identity({className:x['班級'],seatNo:x['座號'],name:x['姓名']})===identity(r));
+    return candidates.length===1?{row:candidates[0],kind:'同班座號姓名（UID 未對上）'}:null;
+  }
+  function pastValue(x){
+    if(!x)return null;
+    const vals=[x['當前stars'],x['同班同座最高可讀星']].map(Number).filter(v=>Number.isFinite(v)&&v>=0&&v<=30);
+    return vals.length?Math.max(...vals):null;
+  }
+  function pastInfo(r){
+    const match=pastMatch(r);
+    if(!match)return historic.length?'歷史檔未找到唯一匹配':'未載入歷史檔';
+    const prev=pastValue(match.row);
+    if(prev===null)return '歷史數字無法解析';
+    return `${match.kind}：歷史最高 ${prev} 星，目前此 UID 最高 ${r.high} 星${prev>r.high?'；⚠️ 可能下降，需核對來源與日期':'；未見較高星數'}`;
+  }
   function filtered(){
     const cls=$('#classFilter').value,issue=$('#issueFilter').value;
     return audited.filter(r=>(!cls||String(r.className)===cls) && (issue==='all'||(issue==='issues'?r.issues.length>0:r.types.includes(issue))))
@@ -73,7 +94,77 @@
       <td class="issueList">${r.sources.map(s=>`<span class="reason">${esc(s.name)}：${s.value} 星${s.levels===null?'':`／${s.levels} 關有紀錄`}</span>`).join('')||'—'}</td>
       <td class="issueList">${r.issues.length?r.issues.map(t=>`<span class="reason"><span class="badge warn">待查</span> ${esc(t)}</span>`).join(''):'<span class="badge ok">目前各來源一致；不代表歷史上未掉星</span>'}</td>
       <td>${esc(stamp(r.updatedAt)||'—')}</td>
+      <td class="issueList"><span class="reason">${esc(pastInfo(r))}</span><button class="soft" type="button" data-detail="${esc(r.id)}">核對此 UID</button></td>
     </tr>`).join('');
+    $('#rows').querySelectorAll('[data-detail]').forEach(b=>b.addEventListener('click',()=>showDetail(b.dataset.detail)));
+  }
+  const saveFile=(text,name,mime)=>{
+    const blob=new Blob([text],{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  };
+  const safeValue=v=>{
+    if(v==null)return v;
+    if(Array.isArray(v))return v.map(safeValue);
+    if(typeof v==='object'){
+      if(typeof v.toDate==='function')return v.toDate().toISOString();
+      const res={};for(const [k,val] of Object.entries(v))res[k]=safeValue(val);return res;
+    }
+    return v;
+  };
+  function backupRecord(r){
+    return safeValue({uid:r.id,className:r.className,seatNo:r.seatNo,name:r.name,stars:r.stars,progress:r.progress,modules:r.modules,courseProgress:r.courseProgress,updatedAt:r.updatedAt});
+  }
+  function showDetail(id){
+    const r=audited.find(x=>x.id===id);if(!r)return;
+    const same=audited.filter(x=>seatKey(x)===seatKey(r));
+    const nameConflict=new Set(same.map(x=>String(x.name||'').trim())).size>1;
+    const other=same.filter(x=>x.id!==r.id);
+    const el=$('#detailBody');
+    el.innerHTML=`<p><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}</b>；UID：<span class="code">${esc(r.id)}</span></p>
+      <p>目前 UID：${r.high} 星；同班同座可讀最高：${r.best} 星。<b>${nameConflict?'⚠️ 同座姓名不同，嚴禁直接合併':'同座號不等於相同帳號，請先核對身分'}</b></p>
+      <p><b>歷史對照：</b>${esc(pastInfo(r))}</p>
+      <p><b>不同 UID：</b>${other.length?other.map(x=>`<span class="badge warn">…${esc(x.id.slice(-6))}｜${esc(x.name)}｜${x.high} 星</span>`).join(''):'無'}</p>
+      <p><b>目前可讀來源：</b>${r.sources.map(s=>`<span class="badge">${esc(s.name)}：${s.value} 星</span>`).join('')||'無'}</p>
+      <p class="note">恢復檢查：① 對照姓名與身分 ② 確認較高的逐關原始資料 ③ 先下載此 UID 進度備份 ④ 保留兩個 UID 原始文件。僅有總星數或截圖，不能證明 P1～P10 的逐關完成狀態；本頁不會自動寫入成績。</p>
+      <button type="button" class="primary" id="saveRecordBtn">下載此 UID 原始進度 JSON</button>`;
+    $('#saveRecordBtn').onclick=()=>saveFile(JSON.stringify({source:'116course-v16.62',savedAt:new Date().toISOString(),record:backupRecord(r)},null,2),`116course_進度備份_${String(r.className)}_${String(r.seatNo)}_${r.id.slice(-6)}.json`,'application/json;charset=utf-8');
+    $('#detailPanel').classList.remove('hidden');$('#detailPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function exportSnapshot(){
+    const payload={source:'116course-v16.62',savedAt:new Date().toISOString(),warning:'Contains personal student learning records. Keep private. Read-only backup; cannot restore directly.',records:records.map(backupRecord)};
+    saveFile(JSON.stringify(payload,null,2),'116course_原始進度備份_'+new Date().toISOString().slice(0,10)+'.json','application/json;charset=utf-8');
+  }
+  function parseCSV(s){
+    s=s.replace(/^\uFEFF/,'');
+    let data=[],row=[],cell='',quoted=false;
+    for(let i=0;i<s.length;i++){
+      const c=s[i];
+      if(c==='"'){
+        if(quoted&&s[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;
+      }else if(c===','&&!quoted){row.push(cell);cell='';}
+      else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&s[i+1]==='\n')i++;row.push(cell);cell='';if(row.some(x=>x!==''))data.push(row);row=[];}
+      else cell+=c;
+    }
+    if(quoted)throw Error('CSV 引號不完整');
+    if(cell||row.length){row.push(cell);data.push(row);}
+    const headers=data.shift()||[];
+    if(!['班級','座號','姓名','UID'].every(x=>headers.includes(x)))throw Error('不符合 v16.61 稽核 CSV 欄位');
+    return data.map(c=>Object.fromEntries(headers.map((k,i)=>[k,c[i]||''])));
+  }
+  async function loadHistory(file){
+    if(!file){historic=[];$('#historyStatus').textContent='尚未載入歷史檔';$('#exportComparisonBtn').disabled=true;render();return;}
+    try{
+      if(file.size>5_000_000)throw Error('CSV 太大，超過 5 MB');
+      historic=parseCSV(await file.text());
+      $('#historyStatus').textContent=`已在本機載入 ${historic.length} 筆資料：${file.name}。請確認這份檔案日期確實早於現在。`;
+      $('#exportComparisonBtn').disabled=false;render();
+    }catch(e){historic=[];$('#historyStatus').textContent='讀取失敗：'+e.message;$('#exportComparisonBtn').disabled=true;render();}
+  }
+  function exportComparison(){
+    const head=['班級','座號','姓名','UID','目前此UID最高星','歷史可讀最高星','匹配方式','待核對說明'];
+    const rows=filtered().map(r=>{const m=pastMatch(r);return [r.className,r.seatNo,r.name,r.id,r.high,m?pastValue(m.row):'',m?.kind||'',pastInfo(r)];});
+    const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+    saveFile('\ufeff'+[head,...rows].map(a=>a.map(q).join(',')).join('\r\n'),'116course_歷史對照_'+new Date().toISOString().slice(0,10)+'.csv','text/csv;charset=utf-8');
   }
   function csvExport(){
     const cols=['班級','座號','姓名','UID','當前stars','同班同座最高可讀星','各來源','異常／待查','最近更新'];
@@ -112,7 +203,7 @@
         import('https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js')]);
       const app=appMod.getApps().length?appMod.getApp():appMod.initializeApp(cfg);
       auth=authMod.getAuth(app);db=fsMod.getFirestore(app);mods={auth:authMod,fs:fsMod};
-      $('#refreshBtn').onclick=load;$('#classFilter').onchange=render;$('#issueFilter').onchange=render;$('#exportAuditBtn').onclick=csvExport;
+      $('#refreshBtn').onclick=load;$('#classFilter').onchange=render;$('#issueFilter').onchange=render;$('#exportAuditBtn').onclick=csvExport;$('#exportSnapshotBtn').onclick=exportSnapshot;$('#historyFile').onchange=e=>loadHistory(e.target.files[0]);$('#exportComparisonBtn').onclick=exportComparison;$('#closeDetail').onclick=()=>$('#detailPanel').classList.add('hidden');
       const login=async()=>{try{await authMod.signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value);await show();}catch(e){$('#loginError').textContent=e?.message||String(e);}};
       $('#loginBtn').onclick=login;$('#password').onkeydown=e=>{if(e.key==='Enter')login();};
       if(auth.currentUser)await show();

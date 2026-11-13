@@ -614,25 +614,6 @@
     }
   }
 
-  async function runRescueStudent(){
-    const className=$("#rescueClass").value.trim();
-    const seatNo=$("#rescueSeat").value.trim();
-    const name=$("#rescueName").value.trim();
-    if(!className||!seatNo||!name){$("#rescueStatus").textContent="請輸入班級、座號與姓名。";return;}
-    if(!canManageClass(className)){ $("#rescueStatus").textContent="你沒有維護此班級的權限。";return; }
-    const btn=$("#runRescueBtn");btn.disabled=true;btn.textContent="救援中…";
-    $("#rescueStatus").textContent="正在尋找帳號…";
-    try{
-      const data=await apiPost("/rescue-student",{className,seatNo,name});
-      $("#rescueResult").hidden=false;
-      $("#rescueResult").innerHTML=`<b>✅ 救援完成</b><br>登入帳號：<code>${esc(data.loginEmail||"")}</code><br>臨時密碼：<code>${esc(data.temporaryPassword||"")}</code>`;
-      $("#rescueStatus").textContent="請將臨時密碼交給學生登入。";
-      await loadRows();
-    }catch(e){
-      $("#rescueStatus").textContent="救援失敗："+(e?.message||"未知錯誤");
-    }finally{btn.disabled=false;btn.textContent="開始救援";}
-  }
-
   async function loadTrashRows(){
     const out=[];
     if(isAdmin()){
@@ -869,7 +850,6 @@
   $("#resetPasswordBtn").onclick=resetStudentPassword;
   $("#inspectAuthBtn").onclick=inspectStudentAuth;
   $("#trashStudentBtn").onclick=openTrash;
-  $("#runRescueBtn").onclick=runRescueStudent;
   $("#closeTrashBtn").onclick=()=>$("#trashDialog").close();
 
   init();

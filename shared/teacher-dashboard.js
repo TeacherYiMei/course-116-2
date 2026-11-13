@@ -356,7 +356,7 @@
       const owner=String(result.emailOwnerUid||"");
       const targetEmail=String(result.authEmail||"");
       const expected=String(result.expectedEmail||"");
-      const parts=[`選取 UID：${uid}`,`預期登入 Email：${expected}`,`此 UID 的 Auth Email：${targetEmail||"找不到 Auth 帳號"}`];
+      const parts=[`選取 UID：${uid}`,`預期登入 Email：${expected}`,`此 UID 的 Auth Email：${targetEmail||"尚未綁定 Email（可能是舊匿名帳號）"}`,`Worker Firebase 專案：${result.workerProjectId||"未回傳"}`,`登入方式：${(result.authProviderIds||[]).join(", ")||"匿名／未提供 provider"}`];
       if(!result.authUidExists){
         parts.push("⚠️ 此 Firestore UID 在 Authentication 找不到帳號，重設密碼無效，請先處理帳號對應。");
       }else if(owner&&owner!==uid){
@@ -366,7 +366,7 @@
       }else if(owner===uid){
         parts.push("✅ Email 已綁在選取的 UID，能進一步執行重設。");
       }else{
-        parts.push("⚠️ 尚未確認預期 Email 的擁有者，請核對後再重設。");
+        parts.push("ℹ️ 此 UID 尚未綁定預期登入 Email。若確認本人，可使用受控重設將 Email/密碼連結到現有 UID；不會建立新 UID。");
       }
       view.textContent=parts.join("\n");
       view.style.whiteSpace="pre-wrap";
@@ -420,7 +420,8 @@
           CLASS_NOT_AUTHORIZED:"教師沒有管理這個班級的權限。",
           INVALID_TEACHER_TOKEN:"教師登入已失效，請重新登入教師端。",
           ORIGIN_NOT_ALLOWED:"目前網站來源未列入 Worker 允許清單，需檢查 Worker 的 ALLOWED_ORIGIN。",
-          SERVICE_ACCOUNT_TOKEN_FAILED:"Worker 的 Google 服務帳號認證失敗，請檢查 Worker Secrets。"
+          SERVICE_ACCOUNT_TOKEN_FAILED:"Worker 的 Google 服務帳號認證失敗，請檢查 Worker Secrets。",
+          AUTH_RESET_BINDING_NOT_VERIFIED:"Authentication 已收到變更，但再次核對時 Email 沒有對應到選取的 UID。請勿使用這次密碼，請先查核 Firebase 專案及歷史 UID。"
         };
         throw Error(messages[data.error]||data.message||data.error||`後端回應 ${res.status}`);
       }
@@ -428,7 +429,9 @@
       $("#tempPasswordValue").textContent=data.temporaryPassword||"";
       $("#tempPasswordBox").hidden=false;
       $("#accountEmail").textContent=data.loginEmail||expectedStudentEmail(rec.className,rec.seatNo);
-      $("#accountStatus").textContent="✅ 登入帳號已校正，密碼也已重設。請把臨時密碼交給該學生。";
+      if(String(data.verifiedUid||"")!==String(rec.id||"")||String(data.verifiedEmailOwnerUid||"")!==String(rec.id||""))
+        throw Error("後端尚未證實登入 Email 屬於此 UID；請勿使用臨時密碼。");
+      $("#accountStatus").textContent="✅ 已再次查證登入 Email 屬於此 UID，密碼重設已完成。請把臨時密碼交給該學生。";
     }catch(e){
       console.error(e);
       $("#accountStatus").textContent="重設失敗："+(e?.message||String(e));

@@ -177,6 +177,10 @@
         errEl.style.color = "var(--bad)";
         if(e?.code === "auth/email-already-in-use" || e?.code === "auth/credential-already-in-use"){
           errEl.textContent = "此班級座號已被綁定，請按「已有帳號，登入」。";
+        } else if(e?.code === "auth/too-many-requests"){
+          errEl.textContent = "Firebase 暫時限制登入請求。請停止重試，並請老師確認帳號綁定；不要反覆產生新密碼。";
+        } else if(e?.code === "auth/user-not-found"){
+          errEl.textContent = "目前班級座號沒有可用的 Email/密碼帳號，請老師先核對舊匿名 UID 並完成綁定。";
         } else if(e?.code === "auth/invalid-credential" || e?.code === "auth/wrong-password"){
           errEl.textContent = "密碼錯誤，請重新輸入。";
         } else {

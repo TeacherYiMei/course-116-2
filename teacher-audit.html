@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Python 學習冒險｜教師異常檢查</title>
+<title>Python 學習冒險｜教師歷史成績核對</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#24324a}
@@ -38,7 +38,7 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
 <body>
 <header>
   <div>
-    <b>🔎 Python 學習冒險｜教師異常檢查</b>
+    <b>🔎 Python 學習冒險｜教師歷史成績核對</b>
     <div class="status">自動比對關卡紀錄、星星、評分與目前位置</div>
   </div>
   <a class="back" href="teacher.html">← 回教師端</a>
@@ -67,9 +67,11 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
         <option value="duplicate">只看重複紀錄</option>
         <option value="history">歷史星數／跨格式差異</option>
         <option value="priority">優先核對 902 班 28 號</option>
+        <option value="alias910">910 班 30／36 號歷史帳號</option>
       </select>
       <button id="refreshBtn" class="soft">重新檢查</button><button id="exportAuditBtn" class="soft" type="button">匯出稽核 CSV</button>
       <button id="exportSnapshotBtn" class="soft" type="button">下載目前進度備份 JSON</button>
+      <button id="export910AliasBtn" class="soft" type="button">下載 910 班 30／36 號核對檔</button>
     </div>
 
     <div class="summary">
@@ -96,8 +98,33 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
       <div id="historyStatus" class="status">尚未載入歷史檔。只有不同日期的真實歷史匯出才能證明「當時星數較高」。</div>
       <button id="exportComparisonBtn" class="soft" type="button" disabled>匯出差異對照 CSV</button>
     </div>
+    <div class="note" style="margin-top:12px;background:#eef8f7;color:#17564e">
+      <b>910 班歷史帳號特例（v16.63）：</b>910 班先闖關後建立密碼，30 號曾暫用 36 號。
+      本工具僅從已授權教師可讀取的雲端 UID 顯示兩座號記錄，並提供逐關最高星數的<b>候選</b>核對檔。
+      任何 36 號轉回 30 號或跨 UID 歷史合併，都必須先確認目前可登入的帳號、備份來源與學生身分，<b>不會自動修改帳號、密碼、座號或星星。</b>
+    </div>
     <div id="dbStatus" class="status" style="margin-top:10px"></div>
   </div>
+
+  <section id="restore910Panel" class="card hidden">
+    <h2>910 班 30／36 號｜受控成績恢復</h2>
+    <p class="note">此功能僅供管理員或獲授權的 910 班教師操作。30 號曾暫用 36 號，但必須先確認本人、正式可登入 UID，並下載備份。只合併經核對的同姓名記錄，不更改座號／姓名／密碼、不刪除任何 UID；其他學生一律不受影響。</p>
+    <div class="toolbar" style="margin:12px 0">
+      <button id="plan910Btn" type="button" class="soft">重新產生恢復預覽</button>
+      <button id="backup910Btn" type="button" class="soft">① 下載相關 UID 完整備份</button>
+      <button id="proposal910Btn" type="button" class="soft">下載候選逐關恢復方案</button>
+    </div>
+    <div id="restore910Preview" class="status">讀取學生資料後顯示恢復方案。</div>
+    <label class="field">② 請輸入已核對的學生姓名 <input id="restore910Name" type="text" autocomplete="off" placeholder="請輸入學生完整姓名" style="max-width:240px"></label>
+    <label class="field">③ 選擇經確認可登入的 910 班 30 號正式 UID
+      <select id="restore910Target" style="display:block;padding:10px;max-width:100%;margin:6px 0"><option value="">先選擇正式帳號</option></select>
+    </label>
+    <label class="field"><input type="checkbox" id="restore910Identity"> ④ 我已核對此學生本人，確認 36 號為其暫用帳號、正式 UID 與姓名一致</label>
+    <label class="field"><input type="checkbox" id="restore910Backup"> ⑤ 我已下載並妥善保存原始進度備份</label>
+    <label class="field">⑥ 輸入 <b>910-30</b> 確認此次操作 <input id="restore910Confirm" type="text" autocomplete="off" placeholder="910-30" style="max-width:180px"></label>
+    <button id="restore910Apply" class="primary" type="button" disabled>確認並恢復逐關星數（只增不減）</button>
+    <div id="restore910Status" class="status" aria-live="polite" style="margin-top:10px"></div>
+  </section>
 
   <div class="card tableWrap">
     <table>
@@ -119,6 +146,6 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
   </section>
 </section>
 </main>
-<script src="shared/teacher-audit.js?v=16.62"></script>
+<script src="shared/teacher-audit.js?v=16.63"></script>
 </body>
 </html>

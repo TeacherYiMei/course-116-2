@@ -5,7 +5,7 @@
   let currentRows=[];
   let manageRow=null;
   let currentAccountRecord=null;
-  let currentUnit="python"; // 預設顯示 Python
+  let currentUnit="unit1"; // 與目前 HTML 預設單元一致
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
@@ -138,58 +138,90 @@
     return {stars,maxStars,score:Math.round(stars/maxStars*100),completed,currentLevel};
   }
 
+  // v16.67：單元按鈕的 data-module（digital/python/platform/arduino）
+  // 對應原本成績資料鍵（unit1/python/unit3/aiot）。
+  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot"};
+  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino"};
+  const SUBUNITS={
+    unit1:[
+      {label:"1-1 二進位",parts:["x1","u1"],max:6},
+      {label:"1-2 文字",parts:["x2","u2"],max:6},
+      {label:"1-3 音訊",parts:["x3","u3"],max:6},
+      {label:"1-4 影像",parts:["x4","u4"],max:6}
+    ],
+    python:Array.from({length:10},(_,i)=>({label:`P${i+1}`,parts:[`P${i+1}`],max:3})),
+    unit3:Array.from({length:8},(_,i)=>({label:`G${i+1}`,parts:[`G${i+1}`],max:3})),
+    aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3}))
+  };
+  function getSubunitData(row,unitKey){
+    const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
+    const records=row.sourceRecords?.length?row.sourceRecords:[row];
+    const best={}, observed=new Set();
+    for(const rec of records){
+      for(const source of moduleSources(rec,kind)){
+        for(const [raw,detail] of Object.entries(obj(source.levels))){
+          const id=raw.toLowerCase(), n=Number(obj(detail).stars);
+          if(!Number.isFinite(n)||n<0)continue;
+          observed.add(id);
+          best[id]=Math.max(best[id]||0,safeStars(n,3));
+        }
+        if(kind==="python"){
+          for(const [raw,val] of Object.entries(obj(source.progress))){
+            if(!/^p(?:10|[1-9])$/i.test(raw))continue;
+            const id=raw.toLowerCase(),n=Number(val);
+            if(Number.isFinite(n)&&n>=0){observed.add(id);best[id]=Math.max(best[id]||0,safeStars(n,3));}
+          }
+        }
+      }
+      if(kind==="python"){
+        for(const [raw,val] of Object.entries(obj(rec.progress))){
+          if(!/^p(?:10|[1-9])$/i.test(raw))continue;
+          const id=raw.toLowerCase(), n=Number(val);
+          if(Number.isFinite(n)&&n>=0){observed.add(id);best[id]=Math.max(best[id]||0,safeStars(n,3));}
+        }
+      }
+    }
+    return SUBUNITS[unitKey].map(sub=>{
+      const parts=sub.parts.map(id=>id.toLowerCase());
+      const stars=Math.min(sub.max,parts.reduce((n,id)=>n+(best[id]||0),0));
+      return {...sub,stars,observed:parts.some(id=>observed.has(id)),complete:parts.every(id=>observed.has(id))&&stars>=sub.max};
+    });
+  }
+  function subunitBadge(item){
+    if(!item.observed)return '<div class="subunit-score unknown"><strong>—</strong><small>待確認</small><span>無逐關紀錄</span></div>';
+    return `<div class="subunit-score ${item.complete?"complete":item.stars?"partial":"empty"}"><strong>★ ${item.stars}</strong><small> / ${item.max}</small><span>${item.complete?"✓ 滿星":item.stars?"進行中":"0 星"}</span></div>`;
+  }
   function render(){
     const rows=filtered();
-    const cfgUnit = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.python;
-
-    let totalStarsSum = 0;
-    let totalScoreSum = 0;
-    let doneCount = 0;
-
-    const mappedRows = rows.map(r=>{
-      const uData = getStudentUnitData(r, currentUnit);
-      totalStarsSum += uData.stars;
-      totalScoreSum += uData.score;
-      if(uData.completed) doneCount++;
-
-      return {
-        ...r,
-        _uStars: uData.stars,
-        _uMax: uData.maxStars,
-        _uScore: uData.score,
-        _uCompleted: uData.completed,
-        _uLevel: uData.currentLevel
-      };
+    const cfgUnit=UNIT_CONFIG[currentUnit]||UNIT_CONFIG.unit1;
+    const mapped=rows.map(row=>({...row,_score:getStudentUnitData(row,currentUnit)}));
+    const sum=mapped.reduce((n,row)=>n+row._score.stars,0);
+    const mean=rows.length?(sum/rows.length).toFixed(1):"0.0";
+    const avgScore=rows.length?Math.round(mapped.reduce((n,r)=>n+r._score.score,0)/rows.length):0;
+    const done=mapped.filter(r=>r._score.completed).length;
+    $("#studentCount").textContent=String(rows.length);
+    $("#avgStars").textContent=mean;
+    $("#avgScore").textContent=String(avgScore);
+    $("#doneCount").textContent=String(done);
+    document.querySelectorAll(".moduleTab[data-module]").forEach(btn=>{
+      btn.setAttribute("aria-pressed",String(TAB_TO_UNIT[btn.dataset.module]===currentUnit));
     });
-
-    $("#studentCount").textContent=rows.length;
-    $("#avgStars").textContent=rows.length
-      ? (totalStarsSum/rows.length).toFixed(1)
-      : "0";
-    $("#avgScore").textContent=rows.length
-      ? Math.round(totalScoreSum/rows.length)
-      : "0";
-    $("#doneCount").textContent=doneCount;
-
-    $("#rows").innerHTML=mappedRows.map(r=>`<tr>
-      <td>${esc(r.className)}</td>
-      <td>${esc(r.seatNo)}</td>
-      <td>${esc(r.name)}</td>
-      <td class="maintainCol"><button class="manageBtn" data-id="${esc(r.id)}" type="button">🛠️ 維護</button></td>
-      <td>⭐ ${r._uStars}/${r._uMax}</td>
-      <td>${r._uScore}</td>
-      <td>${esc(r._uLevel)}</td>
-      <td><span class="badge ${r._uCompleted?"done":""}">${r._uCompleted?"已完成":"進行中"}</span></td>
-      <td>${esc(fmtTime(r.updatedAt))}</td>
-      <td>${Number(r.duplicateCount||1)>1?`<span class="badge">已合併顯示 ${Number(r.duplicateCount)} 筆</span>`:"1 筆"}</td>
-    </tr>`).join("");
-
-    document.querySelectorAll(".manageBtn").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const row=rows.find(x=>String(x.id)===String(btn.dataset.id));
-        if(row) openStudentManage(row);
-      });
-    });
+    const title=$("#moduleFocusTitle"), note=$("#moduleFocusNote"),avg=$("#moduleFocusAverage");
+    if(title)title.textContent=cfgUnit.name;
+    if(note)note.textContent="各小關星數依目前可讀取的歷史逐關紀錄顯示；只有總星數時不推算各關成績";
+    if(avg)avg.textContent=mean;
+    const starHead=$("#moduleStarHeader");
+    const subs=SUBUNITS[currentUnit]||[];
+    const head=document.querySelector(".moduleTable thead tr");
+    if(head)head.innerHTML=`<th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>單元總星</th>${subs.map(sub=>`<th class="subunit-head">${esc(sub.label)}<span>滿分 ${sub.max}★</span></th>`).join("")}<th>完成度</th><th>最近更新</th>`;
+    $("#rows").innerHTML=mapped.map(row=>{
+      const detail=getSubunitData(row,currentUnit),d=row._score;
+      return `<tr class="student-score-row"><td>${esc(row.className)}</td><td class="seat-num">${esc(row.seatNo)}</td><td class="student-name">${esc(row.name)}</td><td class="maintainCol"><button class="manageBtn" type="button" data-id="${esc(row.id)}">🛠️ 維護</button></td><td class="unit-star-column"><div class="star-strong ${d.stars?"":"star-zero"}"><span class="star-symbol">★</span><strong>${d.stars}</strong><span class="star-maximum">/ ${d.maxStars}</span></div><div class="star-progress"><span style="width:${Math.max(0,Math.min(100,d.score))}%"></span></div>${String(d.currentLevel).includes("需核對")?`<small>${esc(d.currentLevel)}</small>`:""}</td>${detail.map(item=>`<td class="subunit-cell">${subunitBadge(item)}</td>`).join("")}<td><span class="completion-percent">${d.score}%</span><span class="completion-label">${d.completed?"已滿星":d.stars?"進行中":"未找到有效星數"}</span></td><td class="sync-time">${esc(fmtTime(row.updatedAt)||"—")}</td></tr>`;
+    }).join("");
+    document.querySelectorAll(".manageBtn").forEach(btn=>btn.addEventListener("click",()=>{
+      const rec=rows.find(r=>String(r.id)===String(btn.dataset.id));
+      if(rec)openStudentManage(rec);
+    }));
   }
 
   function canManageClass(className){
@@ -771,15 +803,12 @@
       db=fsMod.getFirestore(app);
       mods={auth:authMod,fs:fsMod};
 
-      // 監聽四大單元切換按鈕事件
-      document.querySelectorAll(".unitTabBtn").forEach(btn=>{
+      // 目前 HTML 使用 moduleTab/data-module，不能再綁定不存在的 unitTabBtn。
+      document.querySelectorAll(".moduleTab[data-module]").forEach(btn=>{
         btn.addEventListener("click",()=>{
-          document.querySelectorAll(".unitTabBtn").forEach(b=>b.classList.remove("active"));
-          btn.classList.add("active");
-          currentUnit = btn.dataset.unit;
-          const cfgUnit = UNIT_CONFIG[currentUnit];
-          const headerTitle = document.querySelector("header b");
-          if(headerTitle && cfgUnit) headerTitle.textContent = cfgUnit.title;
+          const target=TAB_TO_UNIT[btn.dataset.module];
+          if(!target)return;
+          currentUnit=target;
           render();
         });
       });

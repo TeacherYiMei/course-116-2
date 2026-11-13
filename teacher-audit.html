@@ -65,8 +65,10 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
         <option value="stars">只看星星不符</option>
         <option value="gap">只看跳關</option>
         <option value="duplicate">只看重複紀錄</option>
+        <option value="history">歷史星數／跨格式差異</option>
+        <option value="priority">優先核對 902 班 28 號</option>
       </select>
-      <button id="refreshBtn" class="soft">重新檢查</button>
+      <button id="refreshBtn" class="soft">重新檢查</button><button id="exportAuditBtn" class="soft" type="button">匯出稽核 CSV</button>
     </div>
 
     <div class="summary">
@@ -77,9 +79,14 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
     </div>
 
     <div class="note">
-      <b>判定原則：</b>Python 主線共有 26 個挑戰。教師端會以 <span class="code">progress</span> 各關完成數重新計算應有星星，
-      再比對資料庫中的 <span class="code">stars</span>、<span class="code">score</span>、<span class="code">completed</span>、
-      <span class="code">currentStation/currentChallenge</span>。也會檢查「前一關尚未完成，後面卻已有進度」的跳關情形。
+      <b>唯讀稽核（v16.61）：</b>比較 Python 舊版 <span class="code">progress.p1～p10</span>、
+      <span class="code">stars</span>，與各版 <span class="code">modules.python</span>、
+      <span class="code">progress._mods.python</span>、
+      <span class="code">courseProgress.11601.modules.python</span>。
+      同班同座號（含 1／01）若有多筆 UID，分別列出並提示人工核對。
+      目前資料庫沒有提供不可變的歷史快照，因此「沒有標示異常」不代表從未掉星；
+      若 30 顆已被覆寫成 3 顆且沒有其他紀錄，須由先前備份／原電腦查找。
+      本頁不會寫入、合併或重設學生進度。
     </div>
     <div id="dbStatus" class="status" style="margin-top:10px"></div>
   </div>
@@ -89,8 +96,8 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
       <thead>
         <tr>
           <th>班級</th><th>座號</th><th>姓名</th>
-          <th>資料庫星星</th><th>依關卡重算</th><th>評分</th>
-          <th>目前位置</th><th>異常原因</th><th>更新時間</th>
+          <th>原始 UID（末 6 碼）</th><th>Python 總星</th><th>各來源最高星</th><th>逐關明細</th>
+          <th>來源差異與稽核結果</th><th>更新時間</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -98,6 +105,6 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
   </div>
 </section>
 </main>
-<script src="shared/teacher-audit.js?v=15"></script>
+<script src="shared/teacher-audit.js?v=16.61"></script>
 </body>
 </html>

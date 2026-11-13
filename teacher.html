@@ -279,6 +279,9 @@ dialog.manageDialog::backdrop{background:#22314a80}
       如果老師曾經更正過學生班級或座號，舊登入帳號可能仍維持原值。
     </div>
 
+    <h3>帳號對應檢查（不修改資料）</h3>
+    <button id="inspectAuthBtn" class="soft" type="button">🔎 檢查此 UID 與登入 Email</button>
+    <div id="inspectAuthResult" class="accountNote" role="status" aria-live="polite">重設前請先確認目前 UID 與登入帳號一致。910 班存在多個歷史 UID，請勿任意更動。</div>
     <h3>密碼維護</h3>
     <button id="resetPasswordBtn" class="dangerBtn" type="button">🛠️ 修復登入帳號＋重設密碼</button>
 
@@ -318,5 +321,5 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.55"></script>
+<script src="shared/teacher-dashboard.js?v=16.65"></script>
 </body></html>

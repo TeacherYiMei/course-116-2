@@ -45,38 +45,23 @@
     return Object.values(progress||{}).reduce((n,v)=>n+Number(v||0),0);
   }
 
+  // 同班同座號不同姓名不合併。跨 UID 同姓名只供教師核對，不寫回任何帳號。
   function mergeDuplicateStudents(rows){
     const groups=new Map();
+    const normSeat=s=>String(parseInt(String(s||""),10)||String(s||"").trim());
     for(const row of rows){
-      const key=`${String(row.className||"").trim()}::${String(row.seatNo||"").trim()}`;
+      const key=`${String(row.className||"").trim()}::${normSeat(row.seatNo)}::${String(row.name||"").trim()}`;
       if(!groups.has(key)) groups.set(key,[]);
       groups.get(key).push(row);
     }
-
     return [...groups.values()].map(group=>{
       group.sort((a,b)=>
-        Number(b.stars||0)-Number(a.stars||0) ||
-        progressSum(b.progress)-progressSum(a.progress)
+        unitSnapshot(b,"python")-unitSnapshot(a,"python") ||
+        Number(b.stars||0)-Number(a.stars||0)
       );
       const best={...group[0]};
       best.duplicateCount=group.length;
-      best.sourceRecords=group.map(r=>({
-        id:r.id,
-        className:String(r.className||""),
-        seatNo:String(r.seatNo||""),
-        name:String(r.name||""),
-        stars:Number(r.stars||0),
-        totalStars:Number(r.totalStars||30),
-        score:Number(r.score||0),
-        progress:r.progress||{},
-        modules:r.modules||{},
-        currentStation:String(r.currentStation||""),
-        currentChallenge:r.currentChallenge||"",
-        completed:!!r.completed,
-        certificateUnlocked:!!r.certificateUnlocked,
-        updatedAt:r.updatedAt||null,
-        lastSeenAt:r.lastSeenAt||null
-      }));
+      best.sourceRecords=group.map(r=>({...r}));
       return best;
     });
   }
@@ -99,46 +84,58 @@
       .sort(seatSort);
   }
 
-  // 取得指定學生在特定單元的星星、評分與進度
-  function getStudentUnitData(r, unitKey){
-    const modsData = r.modules || {};
-    
-    if(unitKey === "python"){
-      const stars = Number(r.stars || modsData.python?.stars || 0);
-      const maxStars = 30;
-      const score = Number(r.score || (maxStars ? Math.round(stars/maxStars*100) : 0));
-      const completed = !!r.completed || stars >= maxStars;
-      const station = r.currentStation || modsData.python?.currentStation || "";
-      const chal = r.currentChallenge || modsData.python?.currentChallenge || "";
-      const currentLevel = `${station} ${chal ? `・第 ${chal} 題` : ""}`.trim() || "尚未開始";
-      return { stars, maxStars, score, completed, currentLevel };
+  // v16.66：同一 UID 跨版本讀取；只影響教師版顯示，不寫入 Firestore。
+  const safeStars=(v,max=3)=>Math.max(0,Math.min(max,Number(v)||0));
+  const obj=v=>v && typeof v==="object" && !Array.isArray(v)?v:{};
+  function moduleSources(r,kind){
+    const p=obj(r.progress), mods=obj(r.modules), old=obj(p._mods);
+    const cp=obj(obj(obj(r.courseProgress)["11601"]).modules);
+    const aliases=kind==="digital"?["digital","unit1"]:
+      kind==="platform"?["platform","unit3"]:
+      kind==="arduino"?["arduino","aiot"]:["python"];
+    return aliases.flatMap(key=>[obj(mods[key]),obj(old[key]),obj(cp[key])]);
+  }
+  function unitSnapshot(r,unitKey){
+    const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
+    const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:30;
+    const sources=moduleSources(r,kind);
+    const ids=kind==="python"?Array.from({length:10},(_,i)=>`P${i+1}`):
+      kind==="digital"?["x1","u1","x2","u2","x3","u3","x4","u4"]:
+      kind==="platform"?Array.from({length:8},(_,i)=>`G${i+1}`):Array.from({length:5},(_,i)=>`S${i+1}`);
+    const p=obj(r.progress);
+    const byLevel=ids.map(id=>{
+      const fromLevels=sources.map(s=>safeStars(obj(obj(s.levels)[id]).stars));
+      if(kind==="python"){
+        const k=id.toLowerCase();
+        fromLevels.push(safeStars(p[k]));
+        sources.forEach(s=>fromLevels.push(safeStars(obj(s.progress)[k])));
+      }
+      return Math.max(0,...fromLevels);
+    }).reduce((a,b)=>a+b,0);
+    const summary=Math.max(0,...sources.map(s=>safeStars(s.stars,max)));
+    const root=kind==="python"?Math.max(safeStars(r.stars,max),
+      ids.reduce((n,id)=>n+safeStars(p[id.toLowerCase()]),0)):0;
+    // summary 是歷史總數的保底值；逐關缺失時不可拿 0 覆蓋它。
+    return Math.min(max,Math.max(byLevel,summary,root));
+  }
+  function getStudentUnitData(r,unitKey){
+    if(unitKey==="all"){
+      const pieces=["unit1","python","unit3","aiot"].map(k=>getStudentUnitData(r,k));
+      const stars=pieces.reduce((n,s)=>n+s.stars,0),maxStars=93;
+      return {stars,maxStars,score:Math.round(stars/maxStars*100),
+        completed:pieces.every(p=>p.completed),currentLevel:`數位:${pieces[0].stars}★ | Py:${pieces[1].stars}★ | 系統:${pieces[2].stars}★ | AIoT:${pieces[3].stars}★`};
     }
-
-    if(unitKey === "unit1" || unitKey === "unit3" || unitKey === "aiot"){
-      const unitObj = modsData[unitKey] || {};
-      const cfgUnit = UNIT_CONFIG[unitKey];
-      const maxStars = cfgUnit.maxStars;
-      const stars = Number(unitObj.stars || 0);
-      const score = Math.round(stars / maxStars * 100);
-      const completed = !!unitObj.completed || stars >= maxStars;
-      const currentLevel = unitObj.currentLevel || (stars > 0 ? "進行中" : "尚未開始");
-      return { stars, maxStars, score, completed, currentLevel };
-    }
-
-    if(unitKey === "all"){
-      const d1 = getStudentUnitData(r, "unit1");
-      const d2 = getStudentUnitData(r, "python");
-      const d3 = getStudentUnitData(r, "unit3");
-      const d4 = getStudentUnitData(r, "aiot");
-      const stars = d1.stars + d2.stars + d3.stars + d4.stars;
-      const maxStars = 93;
-      const score = Math.round(stars / maxStars * 100);
-      const completed = d1.completed && d2.completed && d3.completed && d4.completed;
-      const currentLevel = `數位:${d1.stars}★ | Py:${d2.stars}★ | 系統:${d3.stars}★ | AIoT:${d4.stars}★`;
-      return { stars, maxStars, score, completed, currentLevel };
-    }
-
-    return { stars: 0, maxStars: 30, score: 0, completed: false, currentLevel: "尚未開始" };
+    const maxStars=UNIT_CONFIG[unitKey]?.maxStars||30;
+    const records=r.sourceRecords?.length?r.sourceRecords:[r];
+    const scores=records.map(rec=>unitSnapshot(rec,unitKey));
+    const stars=Math.max(0,...scores);
+    const candidate=records.length>1 && scores.some(v=>v!==stars);
+    const raw=obj(r.modules)[unitKey];
+    const completed=stars>=maxStars || (!candidate && !!obj(raw).completed);
+    let currentLevel=stars?"進行中":"尚未開始";
+    if(candidate) currentLevel=`跨 UID 星數不同・需核對（此為最高可讀 ${stars}★）`;
+    else if(unitKey==="python" && r.currentStation) currentLevel=String(r.currentStation);
+    return {stars,maxStars,score:Math.round(stars/maxStars*100),completed,currentLevel};
   }
 
   function render(){

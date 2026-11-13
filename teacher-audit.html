@@ -89,7 +89,7 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
       同班同座號（含 1／01）若有多筆 UID，分別列出並提示人工核對。
       目前資料庫沒有提供不可變的歷史快照，因此「沒有標示異常」不代表從未掉星；
       若 30 顆已被覆寫成 3 顆且沒有其他紀錄，須由先前備份／原電腦查找。
-      本頁不會寫入、合併或重設學生進度。先保留完整原始資料，再由教師確認身分及證據；CSV 的星數不能直接視為逐關成績。
+      本頁的一般稽核功能不會寫入；910 班特殊恢復按鈕須核對身分、指定 UID 並備份後才會寫入。先保留完整原始資料，再由教師確認身分及證據；CSV 的星數不能直接視為逐關成績。
     </div>
     <div class="note" style="margin-top:12px;background:#f1f6ff;color:#254466">
       <b>歷史檔核對（僅在瀏覽器內運算，不上傳 CSV）：</b>
@@ -107,8 +107,8 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
   </div>
 
   <section id="restore910Panel" class="card hidden">
-    <h2>910 班 30／36 號｜受控成績恢復</h2>
-    <p class="note">此功能僅供管理員或獲授權的 910 班教師操作。30 號曾暫用 36 號，但必須先確認本人、正式可登入 UID，並下載備份。只合併經核對的同姓名記錄，不更改座號／姓名／密碼、不刪除任何 UID；其他學生一律不受影響。</p>
+    <h2>910 班 30／36 號｜Python＋數位時代成績合併</h2>
+    <p class="note">此功能僅供管理員或獲授權的 910 班教師操作。30 號曾暫用 36 號，但必須先確認本人、正式可登入 UID，並下載備份。只合併經核對的同姓名記錄，逐關取最高星數；目標 UID 必須先和 Firebase Authentication 的登入 Email 核對，不更改座號／姓名／密碼、不刪除任何 UID；其他學生一律不受影響。</p>
     <div class="toolbar" style="margin:12px 0">
       <button id="plan910Btn" type="button" class="soft">重新產生恢復預覽</button>
       <button id="backup910Btn" type="button" class="soft">① 下載相關 UID 完整備份</button>
@@ -116,13 +116,13 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
     </div>
     <div id="restore910Preview" class="status">讀取學生資料後顯示恢復方案。</div>
     <label class="field">② 請輸入已核對的學生姓名 <input id="restore910Name" type="text" autocomplete="off" placeholder="請輸入學生完整姓名" style="max-width:240px"></label>
-    <label class="field">③ 選擇經確認可登入的 910 班 30 號正式 UID
+    <label class="field">③ 指定 910 班 30 號的正式 UID（須先核對 Authentication 對應，無法由此處修復登入）
       <select id="restore910Target" style="display:block;padding:10px;max-width:100%;margin:6px 0"><option value="">先選擇正式帳號</option></select>
     </label>
     <label class="field"><input type="checkbox" id="restore910Identity"> ④ 我已核對此學生本人，確認 36 號為其暫用帳號、正式 UID 與姓名一致</label>
     <label class="field"><input type="checkbox" id="restore910Backup"> ⑤ 我已下載並妥善保存原始進度備份</label>
     <label class="field">⑥ 輸入 <b>910-30</b> 確認此次操作 <input id="restore910Confirm" type="text" autocomplete="off" placeholder="910-30" style="max-width:180px"></label>
-    <button id="restore910Apply" class="primary" type="button" disabled>確認並恢復逐關星數（只增不減）</button>
+    <button id="restore910Apply" class="primary" type="button" disabled>確認並合併 Python／數位時代逐關星數（只增不減）</button>
     <div id="restore910Status" class="status" aria-live="polite" style="margin-top:10px"></div>
   </section>
 
@@ -146,6 +146,6 @@ th{background:#f7f8fb;position:sticky;top:0;z-index:2}
   </section>
 </section>
 </main>
-<script src="shared/teacher-audit.js?v=16.63"></script>
+<script src="shared/teacher-audit.js?v=16.69"></script>
 </body>
 </html>

@@ -213,6 +213,30 @@
       }obj[k]=v;
     }return obj;
   }
+  const digitalKeys=['x1','u1','x2','u2','x3','u3','x4','u4'];
+  function digitalFromRecord(r){
+    const roots=[r.modules?.digital?.levels,r.progress?._mods?.digital?.levels,
+      r.courseProgress?.['11601']?.modules?.digital?.levels];
+    const out={};
+    for(const key of digitalKeys){
+      for(const root of roots){const v=root?.[key];if(!v||typeof v!=='object')continue;
+        const prev=out[key];if(!prev || max3(v.stars)>max3(prev.stars))out[key]=v;
+      }
+    }return out;
+  }
+  function mergeDigitalSources(live){
+    const out={};for(const key of digitalKeys){
+      const options=live.map(r=>digitalFromRecord(r)[key]).filter(Boolean);
+      if(!options.length)continue;
+      const best=Math.max(...options.map(v=>max3(v.stars)));
+      const most=options.find(v=>max3(v.stars)===best);
+      const tasks={};let tries=0,done=false,score=0;
+      for(const ob of options){tries=Math.max(tries,Number(ob.tries)||0);done=done||ob.done===true;score=Math.max(score,Number(ob.score)||0);
+        for(const [task,flag] of Object.entries(ob.extra?.tasks||{}))if(flag)tasks[task]=flag;
+      }
+      out[key]={...most,stars:best,tries,done,...(score||most.score?{score:score||most.score}:{}),...(Object.keys(tasks).length?{extra:{...(most.extra||{}),tasks}}:{})};
+    }return out;
+  }
   const sameName=(a,b)=>String(a||'').normalize('NFC').trim()===String(b||'').normalize('NFC').trim();
   const canRestore910=()=>isAdmin()||(teacherProfile?.role==='teacher'&&classes()?.includes('910'));
   function restoreCandidates(){
@@ -221,7 +245,7 @@
     const targets=verifiedName?all.filter(r=>Number(r.seatNo)===30 && sameName(r.name,verifiedName)):[];
     const sources=verifiedName?all.filter(r=>sameName(r.name,verifiedName)):[];
     const levels={};for(let i=1;i<=10;i++)levels['p'+i]=Math.max(0,...sources.map(r=>pythonFromRecord(r)['p'+i]));
-    return {all,targets,sources,levels,total:Object.values(levels).reduce((a,b)=>a+b,0)};
+    const digital=mergeDigitalSources(sources);return {all,targets,sources,levels,total:Object.values(levels).reduce((a,b)=>a+b,0),digital,digitalTotal:Object.values(digital).reduce((n,v)=>n+max3(v.stars),0)};
   }
   function refresh910(){
     const box=$('#restore910Panel');if(!box)return;
@@ -231,7 +255,7 @@
     picker.innerHTML='<option value="">請選擇已確認可登入的 30 號 UID</option>'+x.targets.map(r=>`<option value="${esc(r.id)}">…${esc(r.id.slice(-6))}｜現有 ${pythonTotal(r)} 星｜更新 ${esc(stamp(r.updatedAt)||'未知')}</option>`).join('');
     if(x.targets.some(r=>r.id===old))picker.value=old;
     const verifiedName=String($('#restore910Name').value||'').trim();const min=x.all.filter(r=>verifiedName&&!sameName(r.name,verifiedName));
-    $('#restore910Preview').innerHTML=`<p><b>同姓名來源：${x.sources.length} 筆 UID｜候選 ${x.total}/30 星</b>（P1～P10 逐關最高，不將總星直接相加）</p>
+    $('#restore910Preview').innerHTML=`<p><b>同姓名來源：${x.sources.length} 筆 UID｜Python 候選 ${x.total}/30 星；數位時代 ${x.digitalTotal}/24 星</b>（P1～P10 逐關最高，不將總星直接相加）</p>
     <p>${Object.entries(x.levels).map(([k,v])=>`<span class="badge">${esc(k.toUpperCase())}: ★${v}</span>`).join('')}</p>
     <p>30 號候選正式 UID：${x.targets.length} 筆；排除姓名不符記錄：${min.length} 筆。<b>必須由授權教師確認哪個 UID 真的可登入。</b></p>`;
     validateRestore();
@@ -252,15 +276,15 @@
   function download910Proposal(){
     const x=restoreCandidates();saveFile(JSON.stringify({source:'116course-v16.64-proposal',savedAt:new Date().toISOString(),
       status:'待教師確認正式 UID；尚未變更任何 Firebase 文件',sourceUIDs:x.sources.map(r=>r.id),
-      targetUID:$('#restore910Target').value||null,proposedLevels:x.levels,total:x.total,
+      targetUID:$('#restore910Target').value||null,proposedLevels:x.levels,total:x.total,digitalLevels:x.digital,digitalTotal:x.digitalTotal,
       excludedUIDs:x.all.filter(r=>!sameName(r.name,$('#restore910Name').value)).map(r=>r.id)},null,2),
-      '116course_910_30_36_候選恢復方案.json','application/json;charset=utf-8');
+      '116course_910_30_36_Python與數位時代候選恢復方案.json','application/json;charset=utf-8');
   }
   async function apply910Restore(){
     validateRestore();if($('#restore910Apply').disabled)return;
     const uid=$('#restore910Target').value;
     const preview=restoreCandidates();const current=preview.targets.find(r=>r.id===uid);
-    if(!current||!confirm(`僅對 910 班 30 號 UID …${uid.slice(-6)} 恢復星數（不刪除舊 UID）。\n你已確認此帳號可登入，且已備份嗎？`))return;
+    if(!current||!confirm(`僅對 910 班 30 號 UID …${uid.slice(-6)} 恢復星數（不刪除舊 UID）。\n你已確認此 UID 是要保留的 30 號正式帳號，且已備份嗎？`))return;
     const status=$('#restore910Status');status.textContent='正在重新驗證雲端 UID 與逐關成績…';
     $('#restore910Apply').disabled=true;
     try{
@@ -278,18 +302,29 @@
         if(!target||Number(target.seatNo)!==30)throw Error('目標不是 910 班 30 號，禁止寫入');
         const levels={};for(let i=1;i<=10;i++)levels['p'+i]=Math.max(...live.map(r=>pythonFromRecord(r)['p'+i]));
         const total=Object.values(levels).reduce((a,b)=>a+b,0);
-        // 只更新 Python 個別欄位；保留 target 的數位時代、其他單元與原始 metadata。
+        const digital=mergeDigitalSources(live);const digitalTotal=Object.values(digital).reduce((n,v)=>n+max3(v.stars),0);
+        // 只更新 Python、數位時代各關較高成績；保留其他單元及原始 metadata。
         const patch={stars:Math.max(n(target.stars),total),'modules.python.stars':Math.max(n(target.modules?.python?.stars),total),
           'progress._mods.python.stars':Math.max(n(target.progress?._mods?.python?.stars),total)};
         for(const [k,v] of Object.entries(levels)){
           patch['progress.'+k]=v;
           patch['modules.python.progress.'+k]=v;
           patch['progress._mods.python.progress.'+k]=v;
+          const oldLevel=target.courseProgress?.['11601']?.modules?.python?.levels?.[k.toUpperCase()];
+          if(v>max3(oldLevel?.stars))patch['courseProgress.11601.modules.python.levels.'+k.toUpperCase()]={stars:v};
         }
+        for(const [k,v] of Object.entries(digital)){
+          for(const root of ['modules.digital.levels.','progress._mods.digital.levels.','courseProgress.11601.modules.digital.levels.']){
+            const existing=root.startsWith('modules.')?target.modules?.digital?.levels?.[k]:root.startsWith('progress.')?target.progress?._mods?.digital?.levels?.[k]:target.courseProgress?.['11601']?.modules?.digital?.levels?.[k];
+            if(max3(v.stars)>max3(existing?.stars))patch[root+k]=v;
+          }
+        }
+        patch['modules.digital.stars']=Math.max(Number(target.modules?.digital?.stars)||0,digitalTotal);
+        patch['progress._mods.digital.stars']=Math.max(Number(target.progress?._mods?.digital?.stars)||0,digitalTotal);
         tx.update(mods.fs.doc(db,'students',uid),patch);
-        return {total,levels,targetUID:uid,sourceUIDs:live.map(r=>r.id)};
+        return {total,levels,digitalTotal,targetUID:uid,sourceUIDs:live.map(r=>r.id)};
       });
-      status.textContent=`恢復寫入成功：目標 UID …${uid.slice(-6)}，Python ${result.total}/30 星。請以該學生帳號登入確認，並回教師端核對。所有來源 UID 均已保留。`;
+      status.textContent=`恢復寫入成功：目標 UID …${uid.slice(-6)}，Python ${result.total}/30 星、數位時代 ${result.digitalTotal}/24 星。請以該學生帳號登入確認，並回教師端核對。所有來源 UID 均已保留。`;
       // 在學習資料更新成功後仍保留確認資訊，讓老師可以自行另存備份。
       await load();
     }catch(e){status.textContent='未能完成寫入：'+(e?.message||String(e))+'。任何不確定狀況請重新下載備份並核對，不要重複操作。';}

@@ -371,7 +371,7 @@
       view.textContent=parts.join("\n");
       view.style.whiteSpace="pre-wrap";
     }catch(e){
-      view.textContent="檢查失敗："+(e?.message||String(e))+"。若顯示 NOT_FOUND，請確認 Worker 也已部署 v16.65。";
+      view.textContent="檢查失敗："+(e?.message||String(e))+"。請先修復此診斷，不要繼續產生一次性密碼。";
     }finally{btn.disabled=false;}
   }
 
@@ -581,7 +581,15 @@
       body:JSON.stringify(payload||{})
     });
     let data={};try{data=await res.json();}catch(e){}
-    if(!res.ok||!data.ok)throw Error(data.message||data.error||`後端回應 ${res.status}`);
+    if(!res.ok||!data.ok){
+      const code=String(data.error||data.message||`HTTP_${res.status}`);
+      if(res.status===404 && code.includes("NOT_FOUND")){
+        let workerHost="";
+        try{workerHost=new URL(endpoint).origin;}catch(_){workerHost="後端網址格式有誤";}
+        throw Error(`Worker 路由查無結果（HTTP 404 / ${code}）。檢查請求：${workerHost}${path}。請在 Cloudflare 確認此網址對應目前部署的 Worker，以及該 Worker 包含此 API；這不代表學生 UID 不存在。`);
+      }
+      throw Error(`後端 HTTP ${res.status}：${code}`);
+    }
     return data;
   }
 

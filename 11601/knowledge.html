@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>知識闖關特攻隊｜116 資訊科技</title><link rel="stylesheet" href="../shared/theme.css">
+<link rel="stylesheet" href="https://teacheryimei.github.io/course115-2/review.css">
+<style>.reviewWrap{max-width:1150px;margin:auto;padding:22px}.hero h1{font-size:2.1rem}.kn-auth{margin:24px auto;padding:24px;background:#fff8df;border-radius:16px;max-width:730px;text-align:center;line-height:1.8}.kn-auth a{font-weight:900;color:#0b6591}.kn-star{font-size:1.2rem;color:#bb760a;font-weight:900}.kn-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.kn-top a{text-decoration:none;color:#154a77;font-weight:900}.kn-foot{margin:20px 0;color:#64748b;font-size:.92rem}.kn-hidden{display:none!important}.stationCard{border-top:5px solid #10a4b4}.studentTag{font-weight:900}</style>
+<script src="config.js"></script><script src="../shared/firebase-config.js?v=16.70"></script><script src="../shared/firebase-sync.js?v=16.70"></script><script src="../shared/semester.js"></script><script src="../shared/store.js?v=16.60"></script><script src="../shared/ui.js?v=16.70"></script>
+</head><body><main class="reviewWrap">
+<div class="kn-top"><a href="hub.html">← 返回 116 闖關地圖</a><span class="kn-star" id="knTotal">⭐ 0 / 12</span></div>
+<div class="topbar"><div class="studentTag" id="studentTag">讀取學習帳號…</div><div class="profileBar"><button type="button" id="editProfileBtn" class="softBtn kn-hidden">帳號</button><a href="hub.html" class="softBtn" id="homeLink">闖關地圖</a></div></div>
+<section class="hero"><div class="heroIcon">🚀</div><div><div class="eyebrow">116 資訊科技 · 知識挑戰</div><h1>知識闖關特攻隊</h1><p>四大特攻站、40 道任務！每題完成就查看解析，答錯題可以再練習，集滿通關星星。</p></div></section>
+<div id="knAuth" class="kn-auth kn-hidden" role="status">🔐 請先在 116 闖關地圖使用原本的學習帳號登入，再返回這裡。<p><a href="hub.html">返回闖關地圖</a></p></div>
+<div id="knGame" class="kn-hidden">
+<section id="mapView"><div class="sectionTitle"><h2>🗺️ 特攻隊任務地圖</h2><p>每站 10 題；錯題只重練未答對的部分。全對就取得三星，原成績不會因重練降低。</p></div><div id="stationGrid" class="stationGrid"></div><div id="finalTreasure" class="finalTreasure hidden"><div class="treasureIcon">🏆</div><h2>🎉 知識特攻王達成！</h2><p>你完成四站挑戰，獲得知識特攻王徽章！</p></div></section>
+<section id="quizView" class="quizView hidden"><div class="quizHeader"><button id="backToMap" class="softBtn" type="button">← 返回任務地圖</button><div><div id="stationName" class="eyebrow"></div><h2 id="stationTitle"></h2></div><div id="progressPill" class="progressPill"></div></div><div class="progressBar"><div id="progressFill"></div></div><article class="questionCard"><div class="questionMeta"><span id="questionNo"></span><span id="topicTag" class="topicTag"></span></div><h3 id="questionText"></h3><div id="options" class="options"></div><div class="questionActions"><button id="checkBtn" class="primaryBtn" type="button" disabled>確認答案</button><button id="nextBtn" class="primaryBtn hidden" type="button">下一題 →</button></div><div id="feedback" class="feedback hidden" aria-live="polite"></div></article></section>
+<dialog id="stationDoneDialog" class="resultDialog"><div class="resultIcon">🌟</div><h2 id="doneTitle">特攻站完成</h2><p id="doneSummary"></p><div id="wrongTopics" class="wrongTopics"></div><div class="dialogActions"><button id="retryStationBtn" class="softBtn" type="button">再挑戰</button><button id="continueBtn" class="primaryBtn" type="button">繼續挑戰 →</button></div></dialog>
+</div>
+<dialog id="profileDialog" class="profileDialog"><h2>使用原有學習帳號</h2><p>請回到 116 闖關地圖登入，這裡不會另外建立學生帳號。</p><label>班級<input id="profileClass" readonly></label><label>座號<input id="profileSeat" readonly></label><label>姓名<input id="profileName" readonly></label><input id="profilePassword" type="password" disabled hidden><div id="profileError"></div><div class="dialogActions"><button type="button" id="logoutBtn" class="kn-hidden">登出</button><button type="button" id="saveProfileBtn" disabled>請先使用主站帳號</button><a href="hub.html" class="primaryBtn" style="text-decoration:none">返回闖關地圖</a></div></dialog>
+<footer class="kn-foot">四站的星星獨立於其他單元計算；目前雲端同步狀態以 116 主站帳號提示為準。</footer>
+</main>
+<script src="knowledge-bridge.js?v=1"></script>
+<script src="https://teacheryimei.github.io/course115-2/review.js"></script>
+<script>KNOWLEDGE_BRIDGE.start();</script>
+</body></html>

@@ -14,7 +14,8 @@
     python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端" },
     unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端" },
     aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" },
-    extension: { name: "跨章延伸｜數位科技任務中心", maxStars: 18, title: "🧭 跨章延伸挑戰｜教師端" }
+    extension: { name:"跨章延伸｜數位科技任務中心", maxStars:18, title:"🧭 數位科技任務中心｜教師端" },
+    knowledge: { name:"知識闖關特攻隊", maxStars:12, title:"🚀 知識闖關特攻隊｜教師端" }
   };
 
   const configured=()=>!!(
@@ -88,25 +89,34 @@
   // v16.66：同一 UID 跨版本讀取；只影響教師版顯示，不寫入 Firestore。
   const safeStars=(v,max=3)=>Math.max(0,Math.min(max,Number(v)||0));
   const obj=v=>v && typeof v==="object" && !Array.isArray(v)?v:{};
+  // 舊站紀錄唯讀，絕不直接寫入或覆蓋。
+  function legacyKnowledgeStar(row,id){
+    const item=obj(obj(row._legacyKnowledge).stations)[id];
+    if(!item)return 0;
+    if(item.completed)return 3;
+    const first=Number(item.firstRoundCorrect||0);
+    return Math.max(0,Math.min(2,Math.floor(first/4)));
+  }
+
   function moduleSources(r,kind){
     const p=obj(r.progress), mods=obj(r.modules), old=obj(p._mods);
     const cp=obj(obj(obj(r.courseProgress)["11601"]).modules);
     const aliases=kind==="digital"?["digital","unit1"]:
       kind==="platform"?["platform","unit3"]:
-      kind==="arduino"?["arduino","aiot"]:kind==="extension"?["extension"]:["python"];
+      kind==="arduino"?["arduino","aiot"]:kind==="extension"?["extension"]:kind==="knowledge"?["knowledge"]:["python"];
     return aliases.flatMap(key=>[obj(mods[key]),obj(old[key]),obj(cp[key])]);
   }
   function unitSnapshot(r,unitKey){
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
-    const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:unitKey==="extension"?18:30;
+    const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:unitKey==="extension"?18:unitKey==="knowledge"?12:30;
     const sources=moduleSources(r,kind);
     const ids=kind==="python"?Array.from({length:10},(_,i)=>`P${i+1}`):
       kind==="digital"?["x1","u1","x2","u2","x3","u3","x4","u4"]:
-      kind==="platform"?Array.from({length:8},(_,i)=>`G${i+1}`):
-      kind==="extension"?Array.from({length:6},(_,i)=>`E${i+1}`):Array.from({length:5},(_,i)=>`S${i+1}`);
+      kind==="platform"?Array.from({length:8},(_,i)=>`G${i+1}`):kind==="extension"?Array.from({length:6},(_,i)=>`E${i+1}`):kind==="knowledge"?Array.from({length:4},(_,i)=>`R${i+1}`):Array.from({length:5},(_,i)=>`S${i+1}`);
     const p=obj(r.progress);
     const byLevel=ids.map(id=>{
       const fromLevels=sources.map(s=>safeStars(obj(obj(s.levels)[id]).stars));
+      if(kind==="knowledge")fromLevels.push(...(r.sourceRecords?.length?r.sourceRecords:[r]).map(x=>legacyKnowledgeStar(x,id)));
       if(kind==="python"){
         const k=id.toLowerCase();
         fromLevels.push(safeStars(p[k]));
@@ -142,8 +152,8 @@
 
   // v16.67：單元按鈕的 data-module（digital/python/platform/arduino）
   // 對應原本成績資料鍵（unit1/python/unit3/aiot）。
-  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension"};
-  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension"};
+  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension",knowledge:"knowledge"};
+  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension",knowledge:"knowledge"};
   const SUBUNITS={
     unit1:[
       {label:"1-1 二進位",parts:["x1","u1"],max:6},
@@ -154,13 +164,15 @@
     python:Array.from({length:10},(_,i)=>({label:`P${i+1}`,parts:[`P${i+1}`],max:3})),
     unit3:Array.from({length:8},(_,i)=>({label:`G${i+1}`,parts:[`G${i+1}`],max:3})),
     aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
-    extension:Array.from({length:6},(_,i)=>({label:`E${i+1}`,parts:[`E${i+1}`],max:3}))
+    extension:Array.from({length:6},(_,i)=>({label:`E${i+1}`,parts:[`E${i+1}`],max:3})),
+    knowledge:Array.from({length:4},(_,i)=>({label:`K${i+1}｜10題`,parts:[`R${i+1}`],max:3}))
   };
   function getSubunitData(row,unitKey){
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
     const records=row.sourceRecords?.length?row.sourceRecords:[row];
     const best={}, observed=new Set();
     for(const rec of records){
+      if(kind==="knowledge"){ for(let k=1;k<=4;k++){const id=`r${k}`,s=legacyKnowledgeStar(rec,`R${k}`);if(obj(rec._legacyKnowledge).stations?.[`R${k}`]){observed.add(id);best[id]=Math.max(best[id]||0,s)}} }
       for(const source of moduleSources(rec,kind)){
         for(const [raw,detail] of Object.entries(obj(source.levels))){
           const id=raw.toLowerCase(), n=Number(obj(detail).stars);
@@ -718,6 +730,30 @@
     return snap.docs.map(d=>({id:d.id,...d.data()}));
   }
 
+  // 只讀取舊站的 midtermStudents。只以完全相同 UID 自動比對；不跨 UID 合併。
+  async function readLegacyKnowledge(){
+    try{
+      const f=mods.fs, col=f.collection(db,"midtermStudents");
+      let docs=[];
+      if(isAdmin()){
+        const snap=await f.getDocs(col);docs=snap.docs;
+      }else{
+        const cls=allowedClasses();
+        for(const c of cls){
+          const q=f.query(col,f.where("className","==",String(c)));
+          const snap=await f.getDocs(q);docs.push(...snap.docs);
+        }
+      }
+      const byUID=new Map(docs.map(d=>[d.id,d.data()]));
+      currentRows.forEach(row=>{
+        const sources=row.sourceRecords||[row];
+        sources.forEach(rec=>{const old=byUID.get(rec.id);if(old && String(old.className)===String(rec.className) && Number(old.seatNo)===Number(rec.seatNo) && String(old.name)===String(rec.name))rec._legacyKnowledge=old;});
+        if(row.id && byUID.has(row.id))row._legacyKnowledge=byUID.get(row.id);
+      });
+      return {ok:true,count:byUID.size};
+    }catch(e){console.warn("舊站紀錄唯讀查詢失敗（不影響主站）",e);return {ok:false,error:e?.code||e?.message};}
+  }
+
   async function loadRows(){
     $("#dbStatus").textContent="讀取資料中…";
     try{
@@ -739,6 +775,7 @@
         currentRows=[...seen.values()];
       }
       currentRows=mergeDuplicateStudents(currentRows);
+      const legacyStatus=await readLegacyKnowledge();
       buildClassFilter();
       render();
       $("#dbStatus").textContent=`最後更新：${new Date().toLocaleTimeString("zh-TW")}`;

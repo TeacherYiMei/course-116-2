@@ -58,5 +58,32 @@ window.addEventListener('store:change',refreshExtensionMap);
 window.addEventListener('pageshow',refreshExtensionMap);
 window.addEventListener('focus',refreshExtensionMap);
 </script>
+
+<style>
+.knowledge-card{border-top:6px solid #0c9db8!important;background:linear-gradient(130deg,#fff,#effcff);text-decoration:none}
+.knowledge-card .kn-badge{background:#cdf8f3;color:#075d69;border-radius:40px;padding:6px 12px;font-weight:900}
+.knowledge-card .kn-progress{height:12px;background:#dcebef;border-radius:30px;overflow:hidden;margin-top:12px}
+.knowledge-card .kn-progress i{height:100%;background:#06a8ba;display:block;transition:width .3s}
+</style>
+<script>
+(function(){
+ function showKnowledge(){
+   const root=document.querySelector('#hub > section.grid.g2');
+   if(!root || !window.STORE)return;
+   let el=document.querySelector('#knowledge-map-card');
+   if(!el){el=document.createElement('a');el.id='knowledge-map-card';el.className='card pop knowledge-card';el.href='knowledge.html';root.appendChild(el)}
+   const keys=['R1','R2','R3','R4'];const levels=keys.map(k=>STORE.level('knowledge',k)||{});
+   const stars=levels.reduce((n,r)=>n+Math.max(0,Math.min(3,Number(r.stars)||0)),0);
+   const done=levels.filter(r=>r.done).length;
+   el.innerHTML='<div class="row between"><span class="kn-badge">🚀 四站知識挑戰</span><span class="tiny soft bold">'+(done===4?'🎉 全部完成':done?'進行中':'尚未開始')+'</span></div>'+
+   '<div class="row mt2"><span style="font-size:2.8rem">🧠</span><div><h2 class="black">知識闖關特攻隊</h2><p class="small soft">4 站 · 40 題 · 錯題重新挑戰</p></div></div>'+
+   '<p class="small mt1">二進位、編碼、影音數位化與電腦硬體，答對後看解析，完成四站收集特攻徽章。</p>'+
+   '<div class="row between mt2 small bold"><span>⭐ '+stars+' / 12 · '+Math.round(stars/12*100)+'%</span><span>'+done+' / 4 站</span></div><div class="kn-progress"><i style="width:'+(stars/12*100)+'%"></i></div>';
+ }
+ window.addEventListener('load',()=>{setTimeout(showKnowledge,0);setTimeout(showKnowledge,700)});
+ window.addEventListener('storage',showKnowledge);
+ window.addEventListener('focus',showKnowledge);
+})();
+</script>
 </body>
 </html>

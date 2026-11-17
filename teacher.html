@@ -112,6 +112,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .moduleTab[data-module="python"][aria-pressed="true"]{background:#15803d;border-color:#15803d}
 .moduleTab[data-module="platform"][aria-pressed="true"]{background:#7e22ce;border-color:#7e22ce}
 .moduleTab[data-module="arduino"][aria-pressed="true"]{background:#c2410c;border-color:#c2410c}
+.moduleTab[data-module="knowledge"][aria-pressed="true"]{background:#0f8199;border-color:#0f8199}
 .moduleFocus{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-radius:14px;padding:14px 18px;margin:8px 0 14px;background:#eff6ff;border:1px solid #bfdbfe}
 .moduleFocus strong{font-size:21px}.moduleFocus .focusCount{font-size:23px;font-weight:950;color:#1d4ed8}
 .moduleFocus small{font-size:14px;color:#475569}
@@ -175,6 +176,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
     <button class="moduleTab" type="button" data-module="platform" aria-pressed="false">🖥️ 單元三｜系統平臺</button>
     <button class="moduleTab" type="button" data-module="arduino" aria-pressed="false">💡 5016B 專題</button>
     <button class="moduleTab" type="button" data-module="extension" aria-pressed="false">🧭 跨章延伸挑戰</button>
+<button type="button" class="moduleTab" data-module="knowledge">🚀 知識闖關特攻隊</button>
   </div>
   <div class="moduleFocus"><div><strong id="moduleFocusTitle">單元一｜數位時代</strong><br><small id="moduleFocusNote">每位學生的本單元星星及各關卡紀錄</small></div><div><span class="focusCount" id="moduleFocusAverage">0</span> <small>平均星星</small></div></div>
   <div class="tableWrap moduleTable"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th id="moduleStarHeader">單元一星星</th><th>各關卡星星</th><th>完成度</th><th>最近更新</th></tr></thead><tbody id="rows"></tbody></table></div>

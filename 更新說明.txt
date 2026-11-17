@@ -1,16 +1,7 @@
-116course｜知識闖關特攻隊｜整合更新
+v16.74 教師版各單元星數來源診斷（唯讀）
 
-GitHub 只上傳 ZIP 中以下 5 個檔案（依原路徑覆蓋／新增）：
-  11601/hub.html
-  11601/knowledge.html（新增）
-  11601/knowledge-bridge.js（新增）
-  teacher.html
-  shared/teacher-dashboard.js
-
-內容：116 地圖新增「知識闖關特攻隊」第五／第六卡；沿用原 course115-2 四站 40 題與錯題重練規則；學習紀錄寫入 11601 / knowledge 模組 R1~R4，各站最多3星，共12星；教師版獨立單元可切換，並唯讀比對 midtermStudents 同 UID 的歷史紀錄。其他四個原單元與跨章延伸不變。
-
-注意：
-1. 題庫及原始闖關流程的 JavaScript 與 CSS 目前從 https://teacheryimei.github.io/course115-2/ 載入。學生入口與進度／教師版已整合，但仍依賴該原始檔案持續公開可用。若要把題庫也完全移入 116 儲存庫，後續需取得 course115-2 的 review.js、review.css 完整原始碼。
-2. 不另建帳號：需先登入 116 主站的 Firebase 穩定學習帳號；未登入者會提示返回主站。
-3. 舊資料只讀取同一 UID、班級座號姓名皆吻合的紀錄，不會任意合併不同 UID；不會刪除 course115-2 舊資料。
-4. 已做靜態與 ZIP 檢查，尚未用正式 Firebase 及瀏覽器驗證。先用測試帳號完成 R1，確認教師版顯示3星及重登入後仍保留成績，再對全班開放。
+覆蓋 course-116-2/shared/teacher-dashboard.js 一個檔案。
+在教師版各單元，點學生姓名旁的「🔎 診斷」，會列出同班同座同姓名多 UID 的星數、逐關紀錄以及舊 midtermStudents 對應資料，並標示不同 UID 與不同姓名。
+不修改 Firebase，不會補登成績或重設密碼。
+顯示 0 顆不表示從未闖關：學生端未同步的本機紀錄無法直接由教師端取得。請先備份原本程式與資料，部署後 Ctrl+Shift+R 重新整理。
+本版本已通過 node --check，尚未實測正式 Firebase。

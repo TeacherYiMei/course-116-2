@@ -8,19 +8,19 @@
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="config.js"></script>
 <script src="../shared/firebase-config.js?v=16.35"></script>
-<script src="../shared/firebase-sync.js?v=16.59"></script>
+<script src="../shared/firebase-sync.js?v=16.50"></script>
 <script src="../shared/semester.js"></script>
-<script src="../shared/store.js?v=16.60"></script>
-<script src="../shared/ui.js?v=16.59"></script>
+<script src="../shared/store.js?v=16.51"></script>
+<script src="../shared/ui.js?v=16.50"></script>
 <script src="../shared/k12.js"></script>
 <script src="../shared/learncard.js"></script>
-<script src="../shared/hub.js?v=16.60"></script>
-</head>
+<script src="../shared/hub.js?v=16.35"></script>
+<style>.extension-entry{margin-top:20px;padding:22px;border:2px solid #c4b5fd;border-radius:18px;background:linear-gradient(100deg,#f5f3ff,#eff6ff)}.extension-entry a{font-weight:800;font-size:1.1em}.extension-entry p{line-height:1.7}.extension-entry strong{color:#6d28d9}</style></head>
 <body>
 <main class="wrap">
   <div class="row small" style="margin-bottom:1rem"><a class="back" href="../index.html?stay">← 總入口</a></div>
-  <div id="hub"><p class="soft">載入中…</p></div>
+  <div id="hub"><p class="soft">載入中…</p></div><section class="extension-entry" aria-label="跨章延伸挑戰"><h2>🧭 新增延伸挑戰｜數位科技任務中心</h2><p>串聯數位時代、Python、系統平臺，共 6 站、18 顆獨立星星。Python 必須自行打字，不提供完整可複製程式。</p><p id="extensionHubProgress">延伸成績讀取中…</p><a href="extension.html">進入跨章任務中心 →</a></section>
 </main>
-<script>UI.requireLogin(function () { HUB.render(); });</script>
+<script>function drawExtensionSummary(){if(!STORE.me())return;var s=STORE.moduleStars('extension');document.getElementById('extensionHubProgress').textContent='★ '+Math.min(18,s)+' / 18｜'+(s>=18?'🏆 跨章整合大師':'挑戰進行中');}UI.requireLogin(function(){HUB.render();drawExtensionSummary();});window.addEventListener('store:change',drawExtensionSummary);</script>
 </body>
 </html>

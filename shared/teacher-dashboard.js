@@ -13,7 +13,8 @@
     unit1:  { name: "單元一：數位時代", maxStars: 24, title: "💾 單元一：數位時代｜教師端" },
     python: { name: "單元二：進入 Python 的世界", maxStars: 30, title: "👩‍🏫 Python 學習進度｜教師端" },
     unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端" },
-    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" }
+    aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" },
+    extension: { name: "跨章延伸｜數位科技任務中心", maxStars: 18, title: "🧭 跨章延伸挑戰｜教師端" }
   };
 
   const configured=()=>!!(
@@ -92,16 +93,17 @@
     const cp=obj(obj(obj(r.courseProgress)["11601"]).modules);
     const aliases=kind==="digital"?["digital","unit1"]:
       kind==="platform"?["platform","unit3"]:
-      kind==="arduino"?["arduino","aiot"]:["python"];
+      kind==="arduino"?["arduino","aiot"]:kind==="extension"?["extension"]:["python"];
     return aliases.flatMap(key=>[obj(mods[key]),obj(old[key]),obj(cp[key])]);
   }
   function unitSnapshot(r,unitKey){
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
-    const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:30;
+    const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:unitKey==="extension"?18:30;
     const sources=moduleSources(r,kind);
     const ids=kind==="python"?Array.from({length:10},(_,i)=>`P${i+1}`):
       kind==="digital"?["x1","u1","x2","u2","x3","u3","x4","u4"]:
-      kind==="platform"?Array.from({length:8},(_,i)=>`G${i+1}`):Array.from({length:5},(_,i)=>`S${i+1}`);
+      kind==="platform"?Array.from({length:8},(_,i)=>`G${i+1}`):
+      kind==="extension"?Array.from({length:6},(_,i)=>`E${i+1}`):Array.from({length:5},(_,i)=>`S${i+1}`);
     const p=obj(r.progress);
     const byLevel=ids.map(id=>{
       const fromLevels=sources.map(s=>safeStars(obj(obj(s.levels)[id]).stars));
@@ -140,8 +142,8 @@
 
   // v16.67：單元按鈕的 data-module（digital/python/platform/arduino）
   // 對應原本成績資料鍵（unit1/python/unit3/aiot）。
-  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot"};
-  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino"};
+  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension"};
+  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension"};
   const SUBUNITS={
     unit1:[
       {label:"1-1 二進位",parts:["x1","u1"],max:6},
@@ -151,7 +153,8 @@
     ],
     python:Array.from({length:10},(_,i)=>({label:`P${i+1}`,parts:[`P${i+1}`],max:3})),
     unit3:Array.from({length:8},(_,i)=>({label:`G${i+1}`,parts:[`G${i+1}`],max:3})),
-    aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3}))
+    aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
+    extension:Array.from({length:6},(_,i)=>({label:`E${i+1}`,parts:[`E${i+1}`],max:3}))
   };
   function getSubunitData(row,unitKey){
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;

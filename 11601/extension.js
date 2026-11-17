@@ -56,10 +56,45 @@
  function checkQuiz(id){
   const q=questionSet(id);let correct=0,lines=[];
   q.forEach(([label,answer],i)=>{const val=$('#extq'+i).value;const ok=normalized(val)===normalized(answer);correct+=ok?1:0;lines.push(`第 ${i+1} 題：${ok?'✓ 正確':'✗ 再想想'}`);});
+  const previous=stars(id);
   STORE.saveLevel('extension',id,{stars:correct,done:correct===3,score:Math.round(correct/3*100)});
-  $('#extFeedback').textContent=`本次 ${correct}/3 題正確。\n${lines.join('\n')}\n已保留歷次最高星數：★ ${stars(id)}/3；雲端同步狀態以主站提示為準。`;
-  updateNavOnly();
+  const result=`本次 ${correct}/3 題正確。\n${lines.join('\n')}\n已保留歷次最高星數：★ ${stars(id)}/3；雲端同步狀態以主站提示為準。`;
+  render();$('#extFeedback').textContent=result;
+  showReward(id,correct,previous);
  }
+
+ function showReward(id,earned,previous){
+  const current=stars(id), total=sum(), task=TASKS.find(t=>t.id===id);
+  const gained=Math.max(0,current-previous);
+  const finished=current===3, newlyFinished=previous<3&&finished;
+  const nextIndex=TASKS.findIndex(t=>t.id===id)+1;
+  const next=TASKS[nextIndex];
+  document.querySelector('#extReward')?.remove();
+  const layer=document.createElement('div');
+  layer.id='extReward';layer.className='ext-reward-overlay';
+  layer.innerHTML=`<div class="ext-reward-card" role="dialog" aria-modal="true" aria-labelledby="extRewardTitle" tabindex="-1">
+    <div class="ext-sparkles" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--i:${i}">✦</i>`).join('')}</div>
+    <div class="ext-reward-icon" aria-hidden="true">${finished?'🏆':current>0?'🌟':'💪'}</div>
+    <div class="ext-reward-eyebrow">${finished?'挑戰成功！':current>0?'繼續加油！':'再試一次！'}</div>
+    <h2 id="extRewardTitle">${esc(task.title)}</h2>
+    <div class="ext-reward-stars" aria-label="本關共獲得 ${current} 顆星">${[1,2,3].map((n)=>`<span class="${n<=current?'won':'empty'}" style="--n:${n}" aria-hidden="true">★</span>`).join('')}</div>
+    <div class="ext-reward-count">本關累積 <strong>${current} / 3</strong> 顆星</div>
+    <p class="ext-reward-message">${gained>0?`🎉 這次新獲得 <b>${gained} 顆星</b>！`:finished?'✨ 已獲得滿星，紀錄會繼續保留！':earned>0?'星星已累積；再次練習也不會扣星。':'錯誤不會扣除已獲得的星星。'}</p>
+    ${newlyFinished?'<div class="ext-reward-pass">✅ 第一次完成本站，正式過關！</div>':''}
+    <div class="ext-reward-total">🧭 延伸挑戰累積：<strong>${total} / 18 ★</strong></div>
+    <div class="ext-reward-actions"><button type="button" class="ext-button ext-reward-close">返回本關</button>${next?'<button type="button" class="ext-button ext-reward-next">挑戰下一站 →</button>':'<a class="ext-button ext-reward-link" href="hub.html">返回闖關地圖 →</a>'}</div>
+    <small>成績以原有最高星數保存；雲端同步狀態請依主站提示確認。</small>
+   </div>`;
+  document.body.appendChild(layer);
+  const close=()=>{layer.remove();document.removeEventListener('keydown',onKey)};
+  const onKey=(e)=>{if(e.key==='Escape')close()};
+  document.addEventListener('keydown',onKey);
+  layer.querySelector('.ext-reward-close').onclick=close;
+  layer.querySelector('.ext-reward-next')?.addEventListener('click',()=>{close();active=next.id;render();window.scrollTo({top:0,behavior:'smooth'});});
+  layer.addEventListener('click',e=>{if(e.target===layer)close()});
+  layer.querySelector('.ext-reward-card').focus();
+ }
+
  function updateNavOnly(){const old=$('#extFeedback')?.textContent;render();if(old)$('#extFeedback').textContent=old;}
  async function ensurePython(){
   if(!pythonReady)pythonReady=PYRUN.init(CONFIG.PYODIDE_URL).catch(e=>{pythonReady=null;throw e;});
@@ -88,9 +123,11 @@
     if(ok)correct++;
     feedback.push(`測試 ${i+1}：${ok?'✓ 通過':'✗ 未通過'}${r.error?'（執行錯誤）':''}`);
    }
+   const previous=stars(id);
    STORE.saveLevel('extension',id,{stars:correct,done:correct===3,score:Math.round(correct*100/3)});
    msg.textContent=`本次通過 ${correct}/3 組測試；歷次最高 ★ ${stars(id)}/3。\n${feedback.join('\n')}\n若失敗，請檢查輸入型態、輸出格式與運算邏輯。`;
    const old=msg.textContent;render();$('#extFeedback').textContent=old;
+   showReward(id,correct,previous);
   }catch(e){msg.textContent=`執行環境尚未成功載入，未評分或改動成績。請檢查網路：${String(e.message||e).slice(0,120)}`;}
   finally{const btn=$('#extCheck');if(btn)btn.disabled=false;}
  }

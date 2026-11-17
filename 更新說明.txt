@@ -1,6 +1,5 @@
-修正：跨章延伸挑戰原先被放在四個單元卡片下方，現在改成首頁第五張卡片。
-只需上傳覆蓋 11601/hub.html。
-前提：已部署上一版跨章延伸完整更新包，且 11601/extension.html、extension.js、extension.css 已存在。
-本修補不修改 Firebase 資料、四個舊單元及排名公式。
-更新後 Ctrl+Shift+R 並查看四張單元卡片下方的第五張紫色卡片。
-未實測正式 Firebase。
+跨章延伸挑戰｜得星頒獎畫面更新
+
+將 11601 目錄內的三個檔案依原路徑覆蓋 GitHub：extension.js、extension.css、extension.html。
+新增結算頒獎視窗、星星逐顆亮起、過關提示、新增星數與累積星數、下一站按鈕；保留原本的 STORE.saveLevel 與教師端資料格式。不需更新教師端／Firebase。
+提醒：成績同步狀態依原站雲端提示為準；需實機測試。

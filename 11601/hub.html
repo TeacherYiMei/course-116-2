@@ -15,12 +15,48 @@
 <script src="../shared/k12.js"></script>
 <script src="../shared/learncard.js"></script>
 <script src="../shared/hub.js?v=16.35"></script>
-<style>.extension-entry{margin-top:20px;padding:22px;border:2px solid #c4b5fd;border-radius:18px;background:linear-gradient(100deg,#f5f3ff,#eff6ff)}.extension-entry a{font-weight:800;font-size:1.1em}.extension-entry p{line-height:1.7}.extension-entry strong{color:#6d28d9}</style></head>
+<style>
+.extension-card{border-top:6px solid #7c3aed!important;background:linear-gradient(140deg,#fff,#f5f3ff)}
+.extension-card .ext-chip{display:inline-block;border-radius:999px;background:#ede9fe;color:#6d28d9;padding:6px 13px;font-size:.82rem;font-weight:800}
+.extension-card .ext-stat{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-weight:800;font-size:.9rem}
+.extension-card .ext-bar{height:12px;background:#e5e7eb;border-radius:12px;overflow:hidden;margin-top:10px}
+.extension-card .ext-bar i{display:block;height:100%;background:#7c3aed;border-radius:12px}
+</style></head>
 <body>
 <main class="wrap">
   <div class="row small" style="margin-bottom:1rem"><a class="back" href="../index.html?stay">← 總入口</a></div>
-  <div id="hub"><p class="soft">載入中…</p></div><section class="extension-entry" aria-label="跨章延伸挑戰"><h2>🧭 新增延伸挑戰｜數位科技任務中心</h2><p>串聯數位時代、Python、系統平臺，共 6 站、18 顆獨立星星。Python 必須自行打字，不提供完整可複製程式。</p><p id="extensionHubProgress">延伸成績讀取中…</p><a href="extension.html">進入跨章任務中心 →</a></section>
+  <div id="hub"><p class="soft">載入中…</p></div>
 </main>
-<script>function drawExtensionSummary(){if(!STORE.me())return;var s=STORE.moduleStars('extension');document.getElementById('extensionHubProgress').textContent='★ '+Math.min(18,s)+' / 18｜'+(s>=18?'🏆 跨章整合大師':'挑戰進行中');}UI.requireLogin(function(){HUB.render();drawExtensionSummary();});window.addEventListener('store:change',drawExtensionSummary);</script>
+<script>
+function drawExtensionCard(){
+  if (!window.STORE || !STORE.me()) return;
+  var root=document.querySelector('#hub > section.grid.g2');
+  if (!root) return;
+  var s=Math.max(0,Math.min(18,Number(STORE.moduleStars('extension')||0)));
+  var pct=Math.round(s/18*100);
+  var done=0;
+  ['E1','E2','E3','E4','E5','E6'].forEach(function(id){
+    try { if (STORE.levelStars('extension',id)>=3) done++; }catch(e){}
+  });
+  var status=s>=18?'✅ 完成':s>0?'進行中':'尚未開始';
+  var card=document.getElementById('extension-map-card');
+  if (!card){
+    card=document.createElement('a');card.id='extension-map-card';
+    card.className='card pop extension-card';card.href='extension.html';
+    card.style.cssText='text-decoration:none;border-top:6px solid #7c3aed';
+    root.appendChild(card);
+  }
+  card.innerHTML='<div class="row between"><span class="ext-chip">🧭 跨章延伸 · 統整挑戰</span><span class="tiny bold soft">'+status+'</span></div>'+
+    '<div class="row mt2" style="align-items:flex-start;flex-wrap:nowrap"><div style="font-size:2.4rem;line-height:1">🧭</div><div><h2 style="font-size:1.25rem" class="black">數位科技任務中心</h2><p class="small soft bold">6 站 · 18 顆星 · 3 種跨章徽章</p></div></div>'+
+    '<p class="small mt1">統整數位時代、Python、系統平臺，進行跨章任務。Python 自行輸入程式，不提供複製答案。</p>'+
+    '<div class="ext-stat"><span>⭐ '+s+' / 18 · '+pct+'%</span><span class="soft">'+done+' / 6 關</span></div>'+
+    '<div class="ext-bar"><i style="width:'+pct+'%"></i></div>';
+}
+function refreshExtensionMap(){setTimeout(drawExtensionCard,0)}
+UI.requireLogin(function(){HUB.render();drawExtensionCard();});
+window.addEventListener('store:change',refreshExtensionMap);
+window.addEventListener('pageshow',refreshExtensionMap);
+window.addEventListener('focus',refreshExtensionMap);
+</script>
 </body>
 </html>

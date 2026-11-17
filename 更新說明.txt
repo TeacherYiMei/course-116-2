@@ -1,0 +1,6 @@
+修正：跨章延伸挑戰原先被放在四個單元卡片下方，現在改成首頁第五張卡片。
+只需上傳覆蓋 11601/hub.html。
+前提：已部署上一版跨章延伸完整更新包，且 11601/extension.html、extension.js、extension.css 已存在。
+本修補不修改 Firebase 資料、四個舊單元及排名公式。
+更新後 Ctrl+Shift+R 並查看四張單元卡片下方的第五張紫色卡片。
+未實測正式 Firebase。

@@ -1570,6 +1570,21 @@ async function tryRunOnly(){
   }
 }
 
+// v16.76：對固定輸出題實際比對結果，而非只確認 for/range 語法存在。
+function validateObservedOutput(rule,result){
+  const out=String(result?.text||'').replace(/\r/g,'').trim();
+  if(!out)return {ok:false,msg:'需要顯示實際輸出，請檢查 print() 與結果。'};
+  const nums=out.split('\n').map(x=>x.trim()).filter(Boolean);
+  let expected=null;
+  if(rule==='p8_1to5')expected=['1','2','3','4','5'];
+  if(rule==='p8_even')expected=['2','4','6','8','10'];
+  if(rule==='p8_countdown')expected=['5','4','3','2','1','出發！'];
+  if(expected && (nums.length!==expected.length || nums.some((x,i)=>x!==expected[i]))){
+    return {ok:false,msg:'請檢查數字的起點、終點、步進與每行的輸出順序。'};
+  }
+  return {ok:true};
+}
+
 async function checkChallenge(l,j,s){
   const b=$("#checkChallenge"),runBtn=$("#tryRun"),o=$("#out"),f=$("#fb"),c=$("#code").value;
   b.disabled=true;
@@ -1596,6 +1611,12 @@ async function checkChallenge(l,j,s){
 
     const result=await executeInteractive(c,true);
     o.textContent=result.text||"程式執行完成，但目前沒有輸出內容。";
+    // 額外確認程式輸出；只改善正常判題，不代表瀏覽器端是可信任的正式成績來源。
+    const checkedOutput=validateObservedOutput(s.rule,result);
+    if(!checkedOutput.ok){
+      f.innerHTML=`<div class="feedback wait">🔎 <b>程式能執行，但結果尚未符合題目。</b><br><small>${esc(checkedOutput.msg)}</small></div>`;
+      return;
+    }
 
     // v16.26：先完成本機過關，再做同步；同步失敗不能阻擋學生過關。
     freeDone[challengeKey(l.id,j)]=true;

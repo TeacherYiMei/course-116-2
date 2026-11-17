@@ -823,6 +823,53 @@
     }catch(e){legacyKnowledgeDocs=[];legacyKnowledgeError=String(e?.code||e?.message||"未知錯誤");console.warn("舊站紀錄唯讀查詢失敗（不影響主站）",e);return {ok:false,error:legacyKnowledgeError};}
   }
 
+  // v16.76：唯讀稽核，不以完成速度或沒有明細直接指控學生。
+  function integrityAuditRows(){
+    const cls=String($('#classFilter')?.value||'').trim();
+    const rows=filtered();
+    const units=['unit1','python','unit3','aiot','extension','knowledge'];
+    return rows.flatMap(student=>units.map(unit=>{
+      const info=getStudentUnitData(student,unit);
+      const parts=getSubunitData(student,unit);
+      const documented=parts.filter(p=>p.observed).length;
+      const hasConflict=(student.sourceRecords||[]).length>1;
+      const flags=[];
+      if(info.stars>0 && documented===0)flags.push('有總星數，沒有逐關明細');
+      if(info.stars===info.maxStars && documented<parts.length)flags.push('滿星但逐關證據不完整');
+      if(hasConflict)flags.push('同名多 UID，需核對來源');
+      return {cls:student.className,seat:student.seatNo,name:student.name,
+        unit:UNIT_CONFIG[unit]?.name||unit,stars:info.stars,max:info.maxStars,
+        documented,total:parts.length,flags};
+    })).filter(x=>x.flags.length);
+  }
+  function openIntegrityAudit(){
+    const all=integrityAuditRows();
+    const dlg=document.createElement('dialog');
+    dlg.style.cssText='max-width:min(980px,96vw);max-height:85vh;overflow:auto;border:1px solid #b8c7df;border-radius:14px;padding:22px';
+    const rows=all.slice(0,200);
+    dlg.innerHTML=`<h2>🔎 星星紀錄完整性稽核</h2><p>本次列出 ${all.length} 筆需要核對的單元紀錄。<strong>這些標記不能證明作弊</strong>，也可能來自舊版資料、跨 UID 或同步失敗。</p>
+    <p>只讀取目前教師已授權的班級；不更動學生星星。</p>
+    <div style="overflow:auto;max-height:50vh"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>單元</th><th>星數</th><th>可見逐關</th><th>待核對原因</th></tr></thead><tbody>
+    ${rows.map(x=>`<tr>${[x.cls,x.seat,x.name,x.unit,`${x.stars}/${x.max}`,`${x.documented}/${x.total}`,x.flags.join('、')].map(v=>`<td style="border-top:1px solid #ddd;padding:6px">${esc(v)}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div><p style="font-size:12px">最多先顯示 200 筆，下載可包含全部紀錄。</p>
+    <button type="button" id="integrityCsvBtn">下載待核對 CSV</button> <button type="button" id="integrityCloseBtn">關閉</button>`;
+    document.body.appendChild(dlg);dlg.showModal();
+    dlg.querySelector('#integrityCloseBtn').onclick=()=>dlg.close();
+    dlg.addEventListener('close',()=>dlg.remove());
+    dlg.querySelector('#integrityCsvBtn').onclick=()=>{
+      const header=['班級','座號','姓名','單元','星星','滿分','已見逐關','逐關總數','待核對原因'];
+      const lines=[header,...all.map(x=>[x.cls,x.seat,x.name,x.unit,x.stars,x.max,x.documented,x.total,x.flags.join('；')])];
+      const csv='\ufeff'+lines.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+      const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));link.download='116course_星星稽核_待核對.csv';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+    };
+  }
+  function installIntegrityAuditButton(){
+    if(document.querySelector('#integrityAuditBtn'))return;
+    const refresh=document.querySelector('#refreshBtn');if(!refresh)return;
+    const btn=document.createElement('button');btn.id='integrityAuditBtn';btn.type='button';btn.textContent='🔎 成績可信度稽核';btn.style.marginLeft='8px';
+    refresh.insertAdjacentElement('afterend',btn);btn.addEventListener('click',openIntegrityAudit);
+  }
+
   async function loadRows(){
     $("#dbStatus").textContent="讀取資料中…";
     try{
@@ -931,6 +978,7 @@
           $("#dashboard").classList.remove("hidden");
           $("#logoutBtn").classList.remove("hidden");
           renderTeacherIdentity();
+          installIntegrityAuditButton();
           await loadRows();
         }else{
           $("#loginError").textContent="這個帳號尚未被設定為教師或管理者。";

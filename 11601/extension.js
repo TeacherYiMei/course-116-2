@@ -25,6 +25,42 @@
     E4:[['負責實際執行算術與邏輯運算的硬體單元是哪一個？','算術與邏輯單元'],['關機後仍保存檔案的裝置：RAM 還是 SSD？','SSD'],['多人同時在線上協作文件，主要利用哪一種平臺？','雲端系統平臺']]
   };questions[id]=q[id];return q[id];
  }
+
+ // 六種不同的先學再闖教材：範例皆與正式題目和 Python 隱藏測資不同。
+ function learningSection(id){
+  const head=(tag,title,subtitle)=>`<section class="ext-lesson ext-lesson-${id.toLowerCase()}" aria-label="${esc(title)}"><div class="ext-lesson-top"><span class="ext-lesson-tag">${tag}｜先學再闖</span><h3>${title}</h3><p>${subtitle}</p></div>`;
+  const end='</section>';
+  if(id==='E1')return head('🧩 拆解圖解','二進位積木工坊','先用不同數字練習，再去解題。')+`
+    <div class="ext-lesson-columns"><div><strong>十進位 13 怎麼表示？</strong><div class="ext-bitboard" aria-label="13 的二進位權值圖"><span>8<br>1</span><span>4<br>1</span><span>2<br>0</span><span>1<br>1</span></div><p>8＋4＋1＝13，所以 13 的二進位是 <b>1101</b>。</p></div><div><strong>儲存成 8 位元</strong><p>不足 8 位時，在左邊補 0。</p><div class="ext-example-large"><code>00001101</code></div><p>每個位元只有 0、1 兩種狀態；8 位元共有 2<sup>8</sup> 種組合。</p></div></div>
+    <details><summary>想一想：為什麼不是把 13 寫成 0013？</summary><p>二進位只能出現 0 和 1，必須先換算數值，再補前導 0。</p></details>`+end;
+  if(id==='E2')return head('🔡 對照觀察','文字編碼小實驗','相同的符號，在字元與數字之間要先分清楚。')+`
+    <div class="ext-lesson-columns"><div><div class="ext-lesson-demo-letter">a <span>→</span> 97</div><p>英文字元 <b>a</b> 在 ASCII 表中對應十進位 <b>97</b>；大寫、小寫的編碼不同。</p></div><div><strong>輸入「7」不代表整數 7</strong><p>Python 用 <code>input()</code> 取得的是字串；若要做數學運算，需要 <code>int()</code> 等型態轉換。</p><p>中文等多國文字則需能表示更廣泛字元的 <b>Unicode</b>。</p></div></div>
+    <div class="ext-lesson-tip">觀念檢查：ASCII 是文字的對照編碼，不是把字母依序編成 1、2、3。</div>`+end;
+  if(id==='E3')return head('🎚️ 操作試算','影音資料量實驗室','操作不同的數據，觀察容量怎麼變，之後再自行解正式題。')+`
+    <p><strong>聲音：</strong>每秒取樣次數 × 每個樣本的位元組數 × 聲道數 × 秒數</p>
+    <div class="ext-demo-controls"><label>取樣頻率 <select id="demoHz"><option value="4000">4,000 Hz</option><option value="6000">6,000 Hz</option><option value="12000">12,000 Hz</option></select></label><label>量化位元 <select id="demoBits"><option value="16">16 位元</option><option value="8">8 位元</option></select></label><label>聲道 <select id="demoChannels"><option value="1">單聲道</option><option value="2">雙聲道</option></select></label></div>
+    <div id="demoSoundResult" class="ext-lesson-result" aria-live="polite"></div>
+    <p><strong>影像：</strong>像素總數 × 每像素位元數 ÷ 8＝未壓縮位元組數。例如 8×8 像素、每像素 2 位元，容量為 <b>16 位元組</b>。</p><details><summary>為什麼算完要除以 8？</summary><p>8 bits（位元）＝1 byte（位元組）；題目如果問位元組，必須換算。</p></details>`+end;
+  if(id==='E4')return head('🖥️ 情境圖解','電腦的工作接力賽','從一次「鍵盤輸入、螢幕輸出」理解五大單元。')+`
+    <div class="ext-process"><div>⌨️<strong>輸入</strong><small>鍵盤傳入資料</small></div><span>→</span><div>🧠<strong>控制＋運算</strong><small>CPU 協調並處理</small></div><span>→</span><div>🖥️<strong>輸出</strong><small>螢幕呈現結果</small></div></div>
+    <div class="ext-lesson-columns"><div><strong>RAM 與儲存裝置</strong><p>RAM 用來暫時保存正在使用的資料，關機後通常不保留；USB 隨身碟、SSD 等輔助儲存裝置可長期保存檔案。</p></div><div><strong>作業系統與雲端</strong><p>作業系統協調硬體與軟體；像班級線上共編文件，資料與服務可由遠端伺服器提供。</p></div></div>`+end;
+  if(id==='E5')return head('🐍 程式流程','寫出你自己的轉換器','只提供解題流程及零散語法線索，不能複製完整程式。')+`
+    <div class="ext-process"><div>①<strong>輸入</strong><small>讀取數值</small></div><span>→</span><div>②<strong>轉換</strong><small>由文字成整數</small></div><span>→</span><div>③<strong>格式化</strong><small>補足八位</small></div><span>→</span><div>④<strong>輸出</strong><small>顯示字串</small></div></div>
+    <div class="ext-lesson-columns"><div><strong>只看示例，不是本關測資</strong><p>十進位 <b>9</b> → 二進位 <b>1001</b> → 八位表示 <b>00001001</b>。</p></div><div><strong>可用的語法線索</strong><p><code>input()</code>　<code>int()</code>　<code>bin()</code>　<code>format()</code>　<code>print()</code></p><p>把它們依流程自行組合，不提供可以直接貼上的程式。</p></div></div>
+    <details><summary>寫不出來？點我查看思考提示</summary><p>先想：<code>input()</code> 取得什麼型態？再想要輸出 8 個 0／1，該如何指定寬度？最後只輸出結果，不加其他文字。</p></details>`+end;
+  if(id==='E6')return head('🛠️ 任務拆解','設計你的音訊容量計算器','跨章應用：結合數位化公式、Python 變數、輸入與運算。')+`
+    <div class="ext-lesson-columns"><div><strong>不同的練習情境</strong><p>錄音 3 秒、取樣頻率 4,000 Hz、16 位元、單聲道：</p><p>一個樣本＝16÷8＝2 bytes；所以資料量＝4,000×2×1×3＝<b>24,000 bytes</b>。</p></div><div><strong>程式拆解卡</strong><ol><li>用 4 個變數分別接收數字。</li><li>將輸入文字轉成整數。</li><li>先把 bit 轉成 byte。</li><li>乘上頻率、聲道和秒數。</li><li>只輸出數字供測試。</li></ol></div></div>
+    <details><summary>錯誤診斷：出現 TypeError 怎麼辦？</summary><p>檢查是否直接把 <code>input()</code> 的字串拿來做除法或乘法，數值運算前先進行型態轉換。</p></details>`+end;
+  return '';
+ }
+ function connectLesson(id){
+  if(id!=='E3')return;
+  const update=()=>{
+   const hz=Number($('#demoHz')?.value),bits=Number($('#demoBits')?.value),channels=Number($('#demoChannels')?.value);
+   const out=$('#demoSoundResult');if(out)out.textContent=`範例：${hz} × (${bits} ÷ 8) × ${channels} × 3 秒 = ${hz*(bits/8)*channels*3} 位元組`;
+  };
+  ['#demoHz','#demoBits','#demoChannels'].forEach(sel=>$(sel)?.addEventListener('change',update));update();
+ }
  function render(){
   if(!STORE.me())return;
   const me=STORE.me();$('#extIdentity').textContent=`目前學生：${me.cls} 班 ${Number(me.seat)} 號 ${me.name}`;
@@ -33,6 +69,7 @@
   $('#extNav').querySelectorAll('button').forEach(b=>b.onclick=()=>{active=b.dataset.id;render();});
   const t=TASKS.find(t=>t.id===active);
   let html=`<h2>${esc(t.title)}</h2><p>${esc(t.desc)}</p><p>本關最高 <b>3 顆星</b>。曾經取得的星星不會因為再次練習而降低。</p>`;
+  html+=learningSection(t.id);
   if(t.kind==='quiz'){
    html+=`<div class="ext-help">以教材觀念自行計算、作答；每個正確答案獲得 1 顆星。系統記錄同一關歷次最高成績。</div>`;
    html+=questionSet(t.id).map((q,i)=>`<div class="ext-question"><label for="extq${i}">${i+1}. ${esc(q[0])}</label><input id="extq${i}" autocomplete="off" spellcheck="false" aria-label="第${i+1}題作答"></div>`).join('');
@@ -44,6 +81,7 @@
   }
   html+=`<div class="ext-feedback" id="extFeedback" role="status" aria-live="polite">準備好就開始挑戰。</div>`;
   $('#extTask').innerHTML=html;
+  connectLesson(t.id);
   if(t.kind==='python'){
     const ta=$('#extCode');ta.value=lastCode[t.id]||STORE.draft('ext-code-'+t.id)||'';
     ta.addEventListener('input',()=>{lastCode[t.id]=ta.value;STORE.draft('ext-code-'+t.id,ta.value);});

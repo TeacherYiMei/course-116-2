@@ -77,7 +77,7 @@
   } else {
    html+=t.id==='E5'?`<div class="ext-help">任務規格：使用 input() 接收一個 0～255 的整數，輸出剛好 8 位數的二進位字串。範例：輸入 5 → 輸出 00000101。<br>提示：先將文字轉成數字，再使用 bin() 或 format() 處理二進位與補 0；請自己組合程式，不提供完整答案。</div>`:
    `<div class="ext-help">任務規格：依序輸入四個整數：取樣頻率 Hz、每樣本位元數、聲道數、秒數。輸出未壓縮 PCM 的資料量（整數位元組，僅輸出數字）。假設位元深度是 8 的倍數。範例：輸入 8000、8、1、2 → 輸出 16000。<br>提示：一個樣本的位元組數＝位元數÷8；容量＝頻率×每樣本位元組×聲道×秒數。</div>`;
-   html+=`<p class="ext-warning">⌨️ 請自行輸入 Python。此編輯區會阻止貼上與拖入程式碼；提供概念提示但不提供可複製完整答案。此設計無法技術上完全阻止外部工具或人工轉錄。</p><label for="extCode"><b>Python 程式編輯區</b></label><textarea id="extCode" class="ext-code" autocomplete="off" spellcheck="false" placeholder="# 請從這裡自己輸入 Python 程式"></textarea><button class="ext-button" id="extCheck">▶ 執行三組測試並記錄成果</button><p id="extRuntime">首次啟動需載入 Python 執行環境（需連線）。</p>`;
+   html+=`<p class="ext-warning">⌨️ 在下方編輯區撰寫 Python 程式，完成後執行測試。</p><label for="extCode"><b>Python 程式編輯區</b></label><textarea id="extCode" class="ext-code" autocomplete="off" spellcheck="false" placeholder="# 請從這裡自己輸入 Python 程式"></textarea><button class="ext-button" id="extCheck">▶ 執行三組測試並記錄成果</button><p id="extRuntime">首次啟動需載入 Python 執行環境（需連線）。</p>`;
   }
   html+=`<div class="ext-feedback" id="extFeedback" role="status" aria-live="polite">準備好就開始挑戰。</div>`;
   $('#extTask').innerHTML=html;

@@ -212,6 +212,13 @@
     const rows=filtered();
     const cfgUnit=UNIT_CONFIG[currentUnit]||UNIT_CONFIG.unit1;
     const mapped=rows.map(row=>({...row,_score:getStudentUnitData(row,currentUnit)}));
+    const bySeat=new Map();
+    const seatKey=r=>`${String(r.className||'').trim()}::${parseInt(String(r.seatNo||''),10)||String(r.seatNo||'').trim()}`;
+    mapped.forEach(r=>{const k=seatKey(r);const a=bySeat.get(k)||[];a.push(r);bySeat.set(k,a)});
+    mapped.forEach(r=>{
+      const siblings=bySeat.get(seatKey(r))||[];
+      r._identityConflict=siblings.some(other=>String(other.name||'').trim()!==String(r.name||'').trim());
+    });
     const sum=mapped.reduce((n,row)=>n+row._score.stars,0);
     const mean=rows.length?(sum/rows.length).toFixed(1):"0.0";
     const avgScore=rows.length?Math.round(mapped.reduce((n,r)=>n+r._score.score,0)/rows.length):0;
@@ -233,7 +240,7 @@
     if(head)head.innerHTML=`<th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>單元總星</th>${subs.map(sub=>`<th class="subunit-head">${esc(sub.label)}<span>滿分 ${sub.max}★</span></th>`).join("")}<th>完成度</th><th>最近更新</th>`;
     $("#rows").innerHTML=mapped.map(row=>{
       const detail=getSubunitData(row,currentUnit),d=row._score;
-      return `<tr class="student-score-row"><td>${esc(row.className)}</td><td class="seat-num">${esc(row.seatNo)}</td><td class="student-name">${esc(row.name)}</td><td class="maintainCol"><button class="manageBtn" type="button" data-id="${esc(row.id)}">🛠️ 維護</button> <button class="progressAuditBtn" type="button" data-id="${esc(row.id)}" style="padding:5px 8px;border:1px solid #8da4c9;border-radius:7px;background:#f0f5ff;color:#173b73;margin-top:4px">🔎 診斷</button></td><td class="unit-star-column"><div class="star-strong ${d.stars?"":"star-zero"}"><span class="star-symbol">★</span><strong>${d.stars}</strong><span class="star-maximum">/ ${d.maxStars}</span></div><div class="star-progress"><span style="width:${Math.max(0,Math.min(100,d.score))}%"></span></div>${String(d.currentLevel).includes("需核對")?`<small>${esc(d.currentLevel)}</small>`:""}</td>${detail.map(item=>`<td class="subunit-cell">${subunitBadge(item)}</td>`).join("")}<td><span class="completion-percent">${d.score}%</span><span class="completion-label">${d.completed?"已滿星":d.stars?"進行中":"未找到有效星數"}</span></td><td class="sync-time">${esc(fmtTime(row.updatedAt)||"—")}</td></tr>`;
+      return `<tr class="student-score-row"><td>${esc(row.className)}</td><td class="seat-num">${esc(row.seatNo)}</td><td class="student-name">${esc(row.name)}${row._identityConflict?'<div style="color:#9a3412;font-size:12px;font-weight:600">⚠ 同座不同姓名，請核對 UID</div>':''}${row._legacyCrossUID&&currentUnit==='knowledge'?'<div style="color:#1d4ed8;font-size:12px">舊站同名紀錄（UID 不同，唯讀）</div>':''}</td><td class="maintainCol"><button class="manageBtn" type="button" data-id="${esc(row.id)}">🛠️ 維護</button> <button class="progressAuditBtn" type="button" data-id="${esc(row.id)}" style="padding:5px 8px;border:1px solid #8da4c9;border-radius:7px;background:#f0f5ff;color:#173b73;margin-top:4px">🔎 診斷</button></td><td class="unit-star-column"><div class="star-strong ${d.stars?"":"star-zero"}"><span class="star-symbol">★</span><strong>${d.stars}</strong><span class="star-maximum">/ ${d.maxStars}</span></div><div class="star-progress"><span style="width:${Math.max(0,Math.min(100,d.score))}%"></span></div>${String(d.currentLevel).includes("需核對")?`<small>${esc(d.currentLevel)}</small>`:""}${row._legacyCrossUID&&currentUnit==='knowledge'?'<small style="color:#1d4ed8">含舊站候選星數，尚未寫回主站</small>':''}</td>${detail.map(item=>`<td class="subunit-cell">${subunitBadge(item)}</td>`).join("")}<td><span class="completion-percent">${d.score}%</span><span class="completion-label">${d.completed?"已滿星":d.stars?"進行中":"未找到有效星數"}</span></td><td class="sync-time">${esc(fmtTime(row.updatedAt)||"—")}</td></tr>`;
     }).join("");
     document.querySelectorAll(".manageBtn").forEach(btn=>btn.addEventListener("click",()=>{
       const rec=rows.find(r=>String(r.id)===String(btn.dataset.id));
@@ -253,6 +260,7 @@
     const oldMatches=legacyKnowledgeDocs.filter(x=>String(x.className||"").trim()===cls && Number(x.seatNo)===seat);
     const same=oldMatches.filter(x=>String(x.name||"").trim()===name);
     const other=oldMatches.filter(x=>String(x.name||"").trim()!==name);
+    const sameSeatCloud=currentRows.filter(x=>String(x.className||'').trim()===cls && Number(x.seatNo)===seat && String(x.name||'').trim()!==name);
     const euid=new Set(list.map(x=>String(x.id||x.uid||"")));
     const rows=SUBUNITS[currentUnit]||[];
     const native=list.map((rec,i)=>{
@@ -269,7 +277,7 @@
     }).join('');
     document.getElementById('progressAuditDialog')?.remove();
     const dlg=document.createElement('dialog');dlg.id='progressAuditDialog';dlg.style.cssText='width:min(760px,94vw);max-height:86vh;overflow:auto;border:1px solid #ccd6e8;border-radius:18px;padding:24px;box-shadow:0 18px 60px #0004';
-    dlg.innerHTML=`<h2 style="margin:0 0 9px">🔎 學習成績來源診斷（唯讀）</h2><p><b>${esc(cls)} 班 ${esc(row.seatNo)} 號｜${esc(name)}</b>｜${esc(UNIT_CONFIG[currentUnit].name)}</p><p style="background:#fff8dc;border-radius:9px;padding:10px">注意：目前顯示 0★ 只代表教師版在可讀取紀錄中未找到星數，不表示學生從未闖關。不要用 0★ 覆蓋本機資料。此視窗完全不修改學生資料。</p><h3>116 主站紀錄（${list.length} 個 UID）</h3>${native}<h3>舊複習站同班同座（${oldMatches.length} 筆）</h3>${legacyKnowledgeError?`<p style="color:#a33">讀取舊站失敗：${esc(legacyKnowledgeError)}</p>`:''}${same.length?old:'<p>沒有找到同班、同座且同姓名的舊站紀錄。</p>'}${other.length?`<p style="color:#a33">⚠️ 另有 ${other.length} 筆同座、不同姓名紀錄，已排除自動合併。</p>`:''}<p style="font-size:13px;color:#456">若學生端仍顯示星星但此處沒有：請在原電腦先下載進度備份，並檢查上方雲端同步狀態。若舊站不同 UID 有星星，須確認帳號身分後再恢復，不應直接相加。</p><button type="button" class="progressAuditClose" style="padding:9px 22px;border:0;border-radius:9px;background:#244b9c;color:white">關閉</button>`;
+    dlg.innerHTML=`<h2 style="margin:0 0 9px">🔎 學習成績來源診斷（唯讀）</h2><p><b>${esc(cls)} 班 ${esc(row.seatNo)} 號｜${esc(name)}</b>｜${esc(UNIT_CONFIG[currentUnit].name)}</p><p style="background:#fff8dc;border-radius:9px;padding:10px">注意：目前顯示 0★ 只代表教師版在可讀取紀錄中未找到星數，不表示學生從未闖關。不要用 0★ 覆蓋本機資料。此視窗完全不修改學生資料。</p><h3>116 主站紀錄（${list.length} 個 UID）</h3>${native}<h3>舊複習站同班同座（${oldMatches.length} 筆）</h3>${legacyKnowledgeError?`<p style="color:#a33">讀取舊站失敗：${esc(legacyKnowledgeError)}</p>`:''}${same.length?old:'<p>沒有找到同班、同座且同姓名的舊站紀錄。</p>'}${other.length?`<p style="color:#a33">⚠️ 舊站另有 ${other.length} 筆同座、不同姓名紀錄，已排除合併。</p>`:''}${sameSeatCloud.length?`<p style="color:#a33">⚠️ 主站有 ${sameSeatCloud.length} 筆同座不同姓名的學生：${esc(sameSeatCloud.map(x=>x.name+'（UID '+String(x.id||'').slice(0,8)+'…）').join('、'))}。不能視為同一位學生。</p>`:''}${row._legacyCrossUID?'<p style="color:#1d4ed8">舊站同名成績來自另一個 UID；本版僅供教師核對，未同步到學生帳號或 Firebase。</p>':''}<p style="font-size:13px;color:#456">若學生端仍顯示星星但此處沒有：請在原電腦先下載進度備份，並檢查上方雲端同步狀態。若舊站不同 UID 有星星，須確認帳號身分後再恢復，不應直接相加。</p><button type="button" class="progressAuditClose" style="padding:9px 22px;border:0;border-radius:9px;background:#244b9c;color:white">關閉</button>`;
     document.body.appendChild(dlg);
     dlg.querySelector('.progressAuditClose').addEventListener('click',()=>dlg.close());
     dlg.addEventListener('close',()=>dlg.remove());
@@ -783,11 +791,33 @@
       }
       legacyKnowledgeDocs=docs.map(d=>({id:d.id,...d.data()}));
       legacyKnowledgeError="";
-      const byUID=new Map(docs.map(d=>[d.id,d.data()]));
+      const byUID=new Map(legacyKnowledgeDocs.map(d=>[d.id,d]));
+      // v16.75：舊站與主站 UID 可能不同，僅在完整身分一致且來源唯一時，
+      // 在教師端顯示「舊站候選星數」；不更動任何 Firebase 紀錄。
+      const ident=x=>`${String(x.className||'').trim()}::${parseInt(String(x.seatNo||''),10)||String(x.seatNo||'').trim()}::${String(x.name||'').trim()}`;
+      const legacyByIdentity=new Map();
+      legacyKnowledgeDocs.forEach(old=>{
+        const key=ident(old);
+        const arr=legacyByIdentity.get(key)||[];
+        arr.push(old);legacyByIdentity.set(key,arr);
+      });
       currentRows.forEach(row=>{
         const sources=row.sourceRecords||[row];
-        sources.forEach(rec=>{const old=byUID.get(rec.id);if(old && String(old.className)===String(rec.className) && Number(old.seatNo)===Number(rec.seatNo) && String(old.name)===String(rec.name))rec._legacyKnowledge=old;});
-        if(row.id && byUID.has(row.id))row._legacyKnowledge=byUID.get(row.id);
+        sources.forEach(rec=>{
+          delete rec._legacyKnowledge;
+          delete rec._legacyCrossUID;
+          const direct=byUID.get(rec.id);
+          if(direct && ident(direct)===ident(rec)){
+            rec._legacyKnowledge=direct;
+          }else{
+            const matches=legacyByIdentity.get(ident(rec))||[];
+            if(matches.length===1){
+              rec._legacyKnowledge=matches[0];
+              rec._legacyCrossUID=String(matches[0].id)!==String(rec.id);
+            }
+          }
+        });
+        if(sources.some(rec=>rec._legacyCrossUID))row._legacyCrossUID=true;
       });
       return {ok:true,count:byUID.size};
     }catch(e){legacyKnowledgeDocs=[];legacyKnowledgeError=String(e?.code||e?.message||"未知錯誤");console.warn("舊站紀錄唯讀查詢失敗（不影響主站）",e);return {ok:false,error:legacyKnowledgeError};}

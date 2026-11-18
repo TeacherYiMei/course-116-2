@@ -150,6 +150,29 @@ dialog.manageDialog::backdrop{background:#22314a80}
 .level-detail{min-width:230px;line-height:1.9;color:#475569}.level-pill{display:inline-block;background:#fff3c4;color:#7c5200;font-size:14px;font-weight:850;border:1px solid #f3d47b;border-radius:8px;padding:2px 8px;margin:2px 5px 2px 0}
 .completion-percent{display:block;font-size:20px;font-weight:900;color:#1d4ed8}.completion-label{display:block;font-size:12px;color:#64748b}.sync-time{font-size:13px!important;color:#64748b}.dup-chip{display:block;font-size:11px;background:#e2e8f0;border-radius:8px;padding:3px 6px;margin-top:4px}.manageBtn{padding:8px 10px;background:#e8edf7;color:#334155;border:1px solid #cbd5e1}
 @media(max-width:740px){.unit-card-grid{grid-template-columns:1fr}.unit-score-number{font-size:32px}.unit-active-title{align-items:flex-start}.unit-active-average strong{font-size:26px}.moduleTable td{font-size:15px;padding:10px 8px}}
+/* v16.78: 桌機成績表在視窗內完整呈現，移除表格內的第二條垂直捲軸。 */
+@media(min-width:1100px){
+  main{max-width:none;width:100%;padding:14px 18px}
+  main>.card{padding:16px}
+  .moduleTable{max-height:none;overflow:visible!important}
+  .moduleTable table{width:100%;table-layout:fixed}
+  .moduleTable th,.moduleTable td{min-width:0;padding:8px 5px;font-size:13px;white-space:normal;overflow-wrap:anywhere}
+  .moduleTable th:nth-child(1){width:6%}
+  .moduleTable th:nth-child(2){width:5%}
+  .moduleTable th:nth-child(3){width:9%}
+  .moduleTable th.maintainCol,.moduleTable td.maintainCol{width:100px;min-width:0}
+  .moduleTable .maintainCol button{display:block!important;width:100%;min-width:0;min-height:28px;padding:4px 3px;font-size:12px;margin:2px 0!important}
+  .moduleTable .unit-star-column{min-width:0}
+  .moduleTable .star-strong strong{font-size:25px}
+  .moduleTable .star-strong .star-symbol{font-size:22px}
+  .moduleTable .star-maximum{font-size:12px}
+  .moduleTable th.subunit-head,.moduleTable td.subunit-cell{min-width:0;padding:6px 3px}
+  .moduleTable .subunit-score{padding:5px 2px;white-space:normal;gap:1px}
+  .moduleTable .subunit-score strong{font-size:21px}
+  .moduleTable .subunit-score small,.moduleTable .subunit-score span{font-size:11px}
+  .moduleTable .completion-percent{font-size:17px}
+  .moduleTable .sync-time{font-size:11px!important;overflow-wrap:anywhere}
+}
 </style>
 </head>
 <body>

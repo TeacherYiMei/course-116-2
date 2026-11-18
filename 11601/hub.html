@@ -80,7 +80,16 @@ window.addEventListener('focus',refreshExtensionMap);
    '<p class="small mt1">二進位、編碼、影音數位化與電腦硬體，答對後看解析，完成四站收集特攻徽章。</p>'+
    '<div class="row between mt2 small bold"><span>⭐ '+stars+' / 12 · '+Math.round(stars/12*100)+'%</span><span>'+done+' / 4 站</span></div><div class="kn-progress"><i style="width:'+(stars/12*100)+'%"></i></div>';
  }
- window.addEventListener('load',()=>{setTimeout(showKnowledge,0);setTimeout(showKnowledge,700)});
+ // 登入可能比 load 後 700ms 更晚完成；監聽地圖真正渲染的時刻。
+ // 僅在卡片尚未建立時觀察 DOM，避免更新卡片內容造成循環觸發。
+ const hubRoot=document.getElementById('hub');
+ const mapObserver=new MutationObserver(()=>{
+   if(!document.getElementById('knowledge-map-card'))showKnowledge();
+ });
+ if(hubRoot)mapObserver.observe(hubRoot,{childList:true,subtree:true});
+ window.addEventListener('load',showKnowledge);
+ window.addEventListener('store:change',showKnowledge);
+ window.addEventListener('pageshow',showKnowledge);
  window.addEventListener('storage',showKnowledge);
  window.addEventListener('focus',showKnowledge);
 })();

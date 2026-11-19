@@ -50,6 +50,19 @@ CARDGAME.mount = function (opts) {
   function trouble(e, fb) {   // 伺服器回錯誤：❤️ 用完 → 結束；局過期 → 回小卡；其他 → 顯示原因
     fb = fb || document.getElementById('fb');
     if (e && e.err === 'dead') return outOfHearts(fb, 'button.pick, #tf button, #lab button');
+    if (e && e.err === 'need-repair' && G && !G.practice) {
+      var gRepair = G, allRepair = gRepair.lv.stages ? gRepair.lv.stages[gRepair.st].rounds : gRepair.lv.rounds;
+      var suggested = [e.focus, e.round, e.r, gRepair.deadR].find(function (v) {
+        return v != null && String(v).trim() !== '' && Number.isInteger(Number(v)) && Number(v) >= 0 && Number(v) < allRepair.length;
+      });
+      var focusRepair = suggested == null ? 0 : Number(suggested);
+      if (fb) {
+        fb.innerHTML = '<div class="note warn pop">🩹 這一階需要先完成修復練習，才能重新挑戰。原有星星不會被清除。</div>' +
+          '<div class="row mt2"><button class="btn primary" id="need-repair-go" type="button">進入修復站</button></div>';
+        document.getElementById('need-repair-go').onclick = function () { start(gRepair.i, gRepair.st, focusRepair); };
+      }
+      return;
+    }
     var again = e && (e.err === 'run-expired' || e.err === 'done');
     if (fb) fb.innerHTML = '<div class="note bad pop">⚠️ ' + esc(API.msg(e)) + '</div>' + (again ? '<div class="row mt2"><button class="btn primary" id="rs">重新開始這一關</button></div>' : '');
     if (again) { var g = G; document.getElementById('rs').onclick = function () { start(g.i, g.st); }; }

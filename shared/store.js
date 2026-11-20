@@ -131,7 +131,10 @@
           
           let localData = this.load();
           // 先合併舊版紀錄，再合併 courseProgress；同一關僅保留最高星數。
-          const legacyMods = Object.assign({}, (r.progress && r.progress._mods)||{}, r.modules||{});
+          // 舊版 _mods 沒有學期標記，只允許上學期回收歷史紀錄。
+          // 下學期若讀取 _mods，會把兩學期同名的 arduino 等單元混在一起。
+          const legacyMods = term()==='11601'
+            ? Object.assign({}, (r.progress && r.progress._mods)||{}, r.modules||{}) : {};
           const modernMods = (r.courseProgress && r.courseProgress[term()] && r.courseProgress[term()].modules)||{};
           const cloudMods = Object.assign({}, legacyMods);
           for (const [mk,mv] of Object.entries(modernMods)) {
@@ -215,6 +218,30 @@
             for (let lKey in m.levels) { sum += (m.levels[lKey].stars || 0); }
           }
           m.stars = sum;
+        }
+      }
+
+      // 116-2 只寫入有學期鍵的 courseProgress.11602。
+      // 不可再以 courseId=python 將下學期模組塞進舊 progress._mods。
+      if (term() === '11602') {
+        try {
+          const written = await CourseDB.saveCourseSnapshot('11602', {modules:mods}, p);
+          if (!written || written.ok !== true) throw Error('COURSE_WRITE_NOT_CONFIRMED');
+          const checked = await CourseDB.loadCourseSnapshot('11602', p);
+          for (const [modId, mod] of Object.entries(mods)) {
+            for (const [levelId, level] of Object.entries(mod.levels || {})) {
+              const cloud = checked?.modules?.[modId]?.levels?.[levelId];
+              if (Number(level.stars || 0) > Number(cloud?.stars || 0))
+                throw Error('COURSE_CLOUD_READBACK_MISMATCH:' + modId + '/' + levelId);
+            }
+          }
+          safeDel(pendingKey(p));
+          window.dispatchEvent(new CustomEvent('sync:status', {detail:'SYNC_OK'}));
+          return {ok:true};
+        } catch (e) {
+          const reason=String(e?.code||e?.message||'UNKNOWN').slice(0,120);
+          window.dispatchEvent(new CustomEvent('sync:status', {detail:{status:'SYNC_FAIL',reason}}));
+          return {ok:false,reason};
         }
       }
 

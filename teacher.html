@@ -173,10 +173,14 @@ dialog.manageDialog::backdrop{background:#22314a80}
   .moduleTable .completion-percent{font-size:17px}
   .moduleTable .sync-time{font-size:11px!important;overflow-wrap:anywhere}
 }
+.term-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.term-tab{border:2px solid #cbd5e1;background:#fff;color:#334155;border-radius:12px;padding:10px 18px;font-weight:900}
+.term-tab[aria-pressed="true"]{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.term-hint{color:#475569;font-size:14px;font-weight:650;margin-bottom:8px}
 </style>
 </head>
 <body>
-<header><div><b>👩‍🏫 116 全站學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.68 教師版畫面精簡</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全學年學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.80 上下學期整合</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -193,7 +197,13 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <div class="card">
   <h2 style="margin:0 0 8px">📚 各單元學習進度</h2>
   <div class="status" style="font-size:15px">請選擇單元，獨立查看該單元每位學生的星星與關卡完成情形；切換單元不會修改學生資料。</div>
-  <div class="moduleTabs" id="moduleTabs" role="group" aria-label="選擇學習單元">
+  <div class="term-tabs" role="group" aria-label="選擇學期">
+    <button type="button" class="term-tab" data-teacher-term="11601" aria-pressed="true">📘 上學期</button>
+    <button type="button" class="term-tab" data-teacher-term="11602" aria-pressed="false">📗 下學期</button>
+    <button type="button" class="term-tab" data-teacher-term="year" aria-pressed="false">🏆 全學年</button>
+  </div>
+  <p class="term-hint" id="teacherTermStatus">116-1 上學期</p>
+  <div class="moduleTabs" id="moduleTabs" data-term-group="11601" role="group" aria-label="選擇上學期學習單元">
     <button class="moduleTab" type="button" data-module="digital" aria-pressed="true">🔢 單元一｜數位時代</button>
     <button class="moduleTab" type="button" data-module="python" aria-pressed="false">🐍 單元二｜Python</button>
     <button class="moduleTab" type="button" data-module="platform" aria-pressed="false">🖥️ 單元三｜系統平臺</button>
@@ -201,6 +211,15 @@ dialog.manageDialog::backdrop{background:#22314a80}
     <button class="moduleTab" type="button" data-module="extension" aria-pressed="false">🧭 跨章延伸挑戰</button>
 <button type="button" class="moduleTab" data-module="knowledge">🚀 知識闖關特攻隊</button>
   </div>
+  <div class="moduleTabs hidden" data-term-group="11602" role="group" aria-label="選擇下學期學習單元">
+    <button type="button" class="moduleTab" data-module="media">🎬 多媒體與 AI</button>
+    <button type="button" class="moduleTab" data-module="network">🌐 網路世界</button>
+    <button type="button" class="moduleTab" data-module="data">🕵️ 資料偵探</button>
+    <button type="button" class="moduleTab" data-module="sheet">📊 試算表實作</button>
+    <button type="button" class="moduleTab" data-module="cipher">🔐 密碼特務</button>
+    <button type="button" class="moduleTab" data-module="arduino2">💡 5016B 守護站 2.0</button>
+  </div>
+  <p class="term-hint hidden" data-term-group="year">全學年總覽分別統計兩學期星數，不把未標註學期的舊資料當成下學期成績。</p>
   <div class="moduleFocus"><div><strong id="moduleFocusTitle">單元一｜數位時代</strong><br><small id="moduleFocusNote">每位學生的本單元星星及各關卡紀錄</small></div><div><span class="focusCount" id="moduleFocusAverage">0</span> <small>平均星星</small></div></div>
   <div class="tableWrap moduleTable"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th id="moduleStarHeader">單元一星星</th><th>各關卡星星</th><th>完成度</th><th>最近更新</th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
@@ -335,5 +354,5 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.73-ext"></script>
+<script src="shared/teacher-dashboard.js?v=16.80"></script>
 </body></html>

@@ -8,6 +8,9 @@
   let legacyKnowledgeDocs=[];
   let legacyKnowledgeError="";
   let currentUnit="unit1"; // 與目前 HTML 預設單元一致
+  let currentTerm="11601"; // 教師選擇，與學生進度所屬學期分開管理
+  const FIRST_UNITS=["unit1","python","unit3","aiot","extension","knowledge"];
+  const SECOND_UNITS=["media","network","data","sheet","cipher","arduino2"];
   const $=s=>document.querySelector(s);
 
   const UNIT_CONFIG = {
@@ -17,7 +20,14 @@
     unit3:  { name: "單元三：系統平臺大冒險", maxStars: 24, title: "🖥️ 單元三：系統平臺大冒險｜教師端" },
     aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" },
     extension: { name:"跨章延伸｜數位科技任務中心", maxStars:18, title:"🧭 數位科技任務中心｜教師端" },
-    knowledge: { name:"知識闖關特攻隊", maxStars:12, title:"🚀 知識闖關特攻隊｜教師端" }
+    knowledge: { name:"知識闖關特攻隊", maxStars:12, title:"🚀 知識闖關特攻隊｜教師端" },
+    media: {name:"單元四：多媒體與 AI",maxStars:30},
+    network: {name:"單元五：網路世界",maxStars:30},
+    data: {name:"單元六：資料偵探",maxStars:12},
+    sheet: {name:"單元六：試算表實作",maxStars:15},
+    cipher: {name:"單元六：密碼特務",maxStars:18},
+    arduino2: {name:"下學期：5016B 守護站 2.0",maxStars:15},
+    year: {name:"116 全學年學習總覽",maxStars:243}
   };
 
   const configured=()=>!!(
@@ -101,6 +111,11 @@
   }
 
   function moduleSources(r,kind){
+    if(SECOND_UNITS.includes(kind)){
+      // 下學期只能採信有 11602 學期標記的雲端紀錄；絕不混入舊版 _mods。
+      const modules=obj(obj(obj(r.courseProgress)["11602"]).modules);
+      return [obj(modules[kind==="arduino2"?"arduino":kind])];
+    }
     const p=obj(r.progress), mods=obj(r.modules), old=obj(p._mods);
     const cp=obj(obj(obj(r.courseProgress)["11601"]).modules);
     const aliases=kind==="digital"?["digital","unit1"]:
@@ -109,6 +124,15 @@
     return aliases.flatMap(key=>[obj(mods[key]),obj(old[key]),obj(cp[key])]);
   }
   function unitSnapshot(r,unitKey){
+    if(SECOND_UNITS.includes(unitKey)){
+      const conf=UNIT_CONFIG[unitKey];
+      const levels=obj(moduleSources(r,unitKey)[0].levels);
+      const ids=SUBUNITS[unitKey].filter(sub=>sub.max>0).flatMap(sub=>sub.parts);
+      const detailed=ids.reduce((n,id)=>n+safeStars(obj(levels[id]).stars),0);
+      // 下學期不得從未分學期的舊總星數推估，以免挪用上學期資料。
+      const summary=safeStars(moduleSources(r,unitKey)[0].stars,conf.maxStars);
+      return Math.min(conf.maxStars,Math.max(detailed,summary));
+    }
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
     const max=unitKey==="unit1"||unitKey==="unit3"?24:unitKey==="aiot"?15:unitKey==="extension"?18:unitKey==="knowledge"?12:30;
     const sources=moduleSources(r,kind);
@@ -133,6 +157,15 @@
     return Math.min(max,Math.max(byLevel,summary,root));
   }
   function getStudentUnitData(r,unitKey){
+    if(unitKey==="year"){
+      const first=FIRST_UNITS.map(k=>getStudentUnitData(r,k));
+      const second=SECOND_UNITS.map(k=>getStudentUnitData(r,k));
+      const scores=first.concat(second);
+      const stars=scores.reduce((n,v)=>n+v.stars,0),maxStars=243;
+      return {stars,maxStars,score:Math.round(stars/maxStars*100),
+        completed:scores.every(v=>v.completed),
+        currentLevel:`上學期 ${first.reduce((n,v)=>n+v.stars,0)}★／123★；下學期 ${second.reduce((n,v)=>n+v.stars,0)}★／120★`};
+    }
     if(unitKey==="all"){
       const pieces=["unit1","python","unit3","aiot"].map(k=>getStudentUnitData(r,k));
       const stars=pieces.reduce((n,s)=>n+s.stars,0),maxStars=93;
@@ -144,7 +177,7 @@
     const scores=records.map(rec=>unitSnapshot(rec,unitKey));
     const stars=Math.max(0,...scores);
     const candidate=records.length>1 && scores.some(v=>v!==stars);
-    const raw=obj(r.modules)[unitKey];
+    const raw=SECOND_UNITS.includes(unitKey)?obj(obj(obj(obj(r.courseProgress)["11602"]).modules)[unitKey==="arduino2"?"arduino":unitKey]):obj(r.modules)[unitKey];
     const completed=stars>=maxStars || (!candidate && !!obj(raw).completed);
     let currentLevel=stars?"進行中":"尚未開始";
     if(candidate) currentLevel=`跨 UID 星數不同・需核對（此為最高可讀 ${stars}★）`;
@@ -154,7 +187,7 @@
 
   // v16.67：單元按鈕的 data-module（digital/python/platform/arduino）
   // 對應原本成績資料鍵（unit1/python/unit3/aiot）。
-  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension",knowledge:"knowledge"};
+  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension",knowledge:"knowledge",media:"media",network:"network",data:"data",sheet:"sheet",cipher:"cipher",arduino2:"arduino2"};
   const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension",knowledge:"knowledge"};
   const SUBUNITS={
     unit1:[
@@ -167,17 +200,29 @@
     unit3:Array.from({length:8},(_,i)=>({label:`G${i+1}`,parts:[`G${i+1}`],max:3})),
     aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
     extension:Array.from({length:6},(_,i)=>({label:`E${i+1}`,parts:[`E${i+1}`],max:3})),
-    knowledge:Array.from({length:4},(_,i)=>({label:`K${i+1}｜10題`,parts:[`R${i+1}`],max:3}))
+    knowledge:Array.from({length:4},(_,i)=>({label:`K${i+1}｜10題`,parts:[`R${i+1}`],max:3})),
+    media:[...Array.from({length:4},(_,i)=>({label:`M${i+1}`,parts:[`M${i+1}`],max:3})),...Array.from({length:6},(_,i)=>({label:`A${i+1}`,parts:[`A${i+1}`],max:3})),...Array.from({length:5},(_,i)=>({label:`W${i+1}｜作品`,parts:[`W${i+1}`],max:0}))],
+    network:Array.from({length:10},(_,i)=>({label:`N${i+1}`,parts:[`N${i+1}`],max:3})),
+    data:Array.from({length:4},(_,i)=>({label:`D${i+1}`,parts:[`D${i+1}`],max:3})),
+    sheet:Array.from({length:5},(_,i)=>({label:`T${i+1}`,parts:[`T${i+1}`],max:3})),
+    cipher:Array.from({length:6},(_,i)=>({label:`K${i+1}`,parts:[`K${i+1}`],max:3})),
+    arduino2:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
+    year:[{label:"上學期",parts:[],max:123},{label:"下學期",parts:[],max:120}]
   };
   function getSubunitData(row,unitKey){
+    if(unitKey==="year")return [FIRST_UNITS,SECOND_UNITS].map((units,i)=>{
+      const max=i===0?123:120,stars=units.reduce((n,k)=>n+getStudentUnitData(row,k).stars,0);
+      return {label:i===0?"上學期":"下學期",stars,max,observed:stars>0,complete:stars>=max};
+    });
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;
     const records=row.sourceRecords?.length?row.sourceRecords:[row];
-    const best={}, observed=new Set();
+    const best={}, observed=new Set(),finished=new Set();
     for(const rec of records){
       if(kind==="knowledge"){ for(let k=1;k<=4;k++){const id=`r${k}`,s=legacyKnowledgeStar(rec,`R${k}`);if(obj(rec._legacyKnowledge).stations?.[`R${k}`]){observed.add(id);best[id]=Math.max(best[id]||0,s)}} }
       for(const source of moduleSources(rec,kind)){
         for(const [raw,detail] of Object.entries(obj(source.levels))){
           const id=raw.toLowerCase(), n=Number(obj(detail).stars);
+          if(obj(detail).done){observed.add(id);finished.add(id);}
           if(!Number.isFinite(n)||n<0)continue;
           observed.add(id);
           best[id]=Math.max(best[id]||0,safeStars(n,3));
@@ -201,14 +246,20 @@
     return SUBUNITS[unitKey].map(sub=>{
       const parts=sub.parts.map(id=>id.toLowerCase());
       const stars=Math.min(sub.max,parts.reduce((n,id)=>n+(best[id]||0),0));
+      if(sub.max===0)return {...sub,stars:0,observed:parts.some(id=>observed.has(id)),complete:parts.every(id=>finished.has(id))};
       return {...sub,stars,observed:parts.some(id=>observed.has(id)),complete:parts.every(id=>observed.has(id))&&stars>=sub.max};
     });
   }
   function subunitBadge(item){
     if(!item.observed)return '<div class="subunit-score unknown"><strong>—</strong><small>待確認</small><span>無逐關紀錄</span></div>';
+    if(item.max===0)return `<div class="subunit-score ${item.complete?'complete':'partial'}"><strong>${item.complete?'✓':'…'}</strong><small>作品任務</small><span>${item.complete?'已完成':'進行中'}</span></div>`;
     return `<div class="subunit-score ${item.complete?"complete":item.stars?"partial":"empty"}"><strong>★ ${item.stars}</strong><small> / ${item.max}</small><span>${item.complete?"✓ 滿星":item.stars?"進行中":"0 星"}</span></div>`;
   }
   function render(){
+    document.querySelectorAll('[data-teacher-term]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.teacherTerm===currentTerm)));
+    document.querySelectorAll('[data-term-group]').forEach(el=>el.classList.toggle('hidden',el.dataset.termGroup!==currentTerm));
+    const termStatus=$('#teacherTermStatus');
+    if(termStatus)termStatus.textContent=currentTerm==='year'?'全學年｜上下學期分開核對後加總':currentTerm==='11601'?'116-1 上學期':'116-2 下學期';
     const rows=filtered();
     const cfgUnit=UNIT_CONFIG[currentUnit]||UNIT_CONFIG.unit1;
     const mapped=rows.map(row=>({...row,_score:getStudentUnitData(row,currentUnit)}));
@@ -268,7 +319,7 @@
         const q=getSubunitData({...rec,sourceRecords:[rec]},currentUnit).find(x=>x.label===sub.label);
         return q?.observed?`${sub.label}: ${q.stars}/${q.max}`:`${sub.label}: 未見逐關`;
       });
-      return `<div style="padding:12px;border:1px solid #dbe5f2;border-radius:12px;margin:8px 0;background:#f7faff"><b>來源 ${i+1}｜UID ${esc(rec.id||rec.uid||'未知')}</b><div style="font-size:13px;margin:5px 0">${esc(rec.className)} 班 ${esc(rec.seatNo)} 號｜${esc(rec.name)}</div><div style="font-size:13px">${esc(rows.map((_,j)=>items[j]).join(' · '))}</div><div style="font-size:13px;margin-top:4px">此來源最高可讀：${unitSnapshot(rec,currentUnit)} / ${UNIT_CONFIG[currentUnit].maxStars} ★</div></div>`;
+      return `<div style="padding:12px;border:1px solid #dbe5f2;border-radius:12px;margin:8px 0;background:#f7faff"><b>來源 ${i+1}｜UID ${esc(rec.id||rec.uid||'未知')}</b><div style="font-size:13px;margin:5px 0">${esc(rec.className)} 班 ${esc(rec.seatNo)} 號｜${esc(rec.name)}</div><div style="font-size:13px">${esc(rows.map((_,j)=>items[j]).join(' · '))}</div><div style="font-size:13px;margin-top:4px">此來源最高可讀：${currentUnit==='year'?getStudentUnitData(rec,'year').stars:unitSnapshot(rec,currentUnit)} / ${UNIT_CONFIG[currentUnit].maxStars} ★</div></div>`;
     }).join('');
     const old=same.map(rec=>{
       const ss=['R1','R2','R3','R4'].map(k=>`${k}: ${legacyKnowledgeStar({_legacyKnowledge:rec},k)}★`).join(' / ');
@@ -827,7 +878,7 @@
   function integrityAuditRows(){
     const cls=String($('#classFilter')?.value||'').trim();
     const rows=filtered();
-    const units=['unit1','python','unit3','aiot','extension','knowledge'];
+    const units=currentTerm==='11602'?SECOND_UNITS:currentTerm==='year'?FIRST_UNITS.concat(SECOND_UNITS):FIRST_UNITS;
     return rows.flatMap(student=>units.map(unit=>{
       const info=getStudentUnitData(student,unit);
       const parts=getSubunitData(student,unit);
@@ -913,6 +964,7 @@
       const uData = getStudentUnitData(r, currentUnit);
       const cfgUnit = UNIT_CONFIG[currentUnit];
       return {
+        "學期":currentTerm==='11601'?'116-1 上學期':currentTerm==='11602'?'116-2 下學期':'116 全學年',
         "班級":r.className||"",
         "座號":Number(r.seatNo||0),
         "姓名":r.name||"",
@@ -922,14 +974,15 @@
         "評分":uData.score,
         "完成狀態":uData.completed?"已完成":"進行中",
         "目前進度":uData.currentLevel,
-        "最近更新":fmtTime(r.updatedAt)
+        "最近更新":fmtTime(r.updatedAt),
+        ...Object.fromEntries(getSubunitData(r,currentUnit).map(x=>[x.label+(x.max===0?"狀態":"星數"),x.max===0?(x.complete?"完成":x.observed?"進行中":"待核對"):x.observed?x.stars:"待核對"]))
       };
     });
 
     const ws=XLSX.utils.json_to_sheet(data);
     const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,`${cls}班_${currentUnit}`);
-    XLSX.writeFile(wb,`學習進度_${cls}班_${currentUnit}.xlsx`);
+    XLSX.utils.book_append_sheet(wb,ws,`${cls}班_${currentTerm}_${currentUnit}`.slice(0,31));
+    XLSX.writeFile(wb,`學習進度_${cls}班_${currentTerm}_${currentUnit}.xlsx`);
   }
 
   async function init(){
@@ -957,6 +1010,15 @@
           const target=TAB_TO_UNIT[btn.dataset.module];
           if(!target)return;
           currentUnit=target;
+          render();
+        });
+      });
+      document.querySelectorAll('[data-teacher-term]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const term=btn.dataset.teacherTerm;
+          if(!['11601','11602','year'].includes(term))return;
+          currentTerm=term;
+          currentUnit=term==='11601'?'unit1':term==='11602'?'media':'year';
           render();
         });
       });

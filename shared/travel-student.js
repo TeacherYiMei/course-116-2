@@ -1,7 +1,7 @@
 /* 旅拍小導演 v16.84：影片留在本機，僅同步「學生端未核驗」技術檢測分數。 */
 const $=id=>document.getElementById(id),cfg=window.COURSE115_FIREBASE_CONFIG;
 const fileInput=$('travelFile'),button=$('travelSubmit'),statusBox=$('travelStatus'),resultBox=$('travelGrade');
-let identity=null,uid=null,busy=false,db=null,fs=null;
+let identity=null,uid=null,busy=false,db=null,fs=null,cloudAvailable=false;
 function say(s,bad=false){statusBox.textContent=s;statusBox.style.color=bad?'#b91c1c':'#126f6a';}
 function escapeText(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function connect(){
@@ -23,10 +23,21 @@ async function connect(){
     const p=snap.data();
     if(String(p.className)!==String(profile.cls)||Number(p.seatNo)!==Number(profile.seat)||String(p.name)!==String(profile.name))throw Error('帳號與班級／座號／姓名不一致');
     identity={className:p.className,seatNo:p.seatNo,name:p.name};uid=user.uid;
-    $('travelAuth').textContent=`☁️ ${p.className} 班 ${p.seatNo} 號 ${p.name}｜可同步技術檢測紀錄（非教師認證成績）。`;
-    const prior=await fs.getDoc(fs.doc(db,'travelAutoChecks',uid));
-    if(prior.exists())say(`上次技術檢測 ${prior.data().score} 分，可重新挑戰。`);
-  }catch(e){$('travelAuth').textContent='目前僅能本機練習；雲端身分確認失敗：'+(e.code||e.message);}
+    // 學生身分已確認；旅拍新集合的存取權限須獨立檢查。
+    // 尤其部署了新版網頁卻未發布 Firestore Rules 時，不應誤報成帳號登入失敗。
+    try{
+      const prior=await fs.getDoc(fs.doc(db,'travelAutoChecks',uid));
+      cloudAvailable=true;
+      $('travelAuth').textContent=`☁️ ${p.className} 班 ${p.seatNo} 號 ${p.name}｜已連線，可同步旅拍技術檢測分數。`;
+      if(prior.exists())say(`上次技術檢測 ${prior.data().score} 分，可重新挑戰。`);
+    }catch(e){
+      cloudAvailable=false;
+      const denied=String(e.code||'').includes('permission-denied');
+      $('travelAuth').textContent=denied
+        ?`✅ 已確認 ${p.className} 班 ${p.seatNo} 號 ${p.name}。🐣 本機技術闖關可正常使用；教師版同步尚未開通，需由老師發布「travelAutoChecks」的 Firestore 安全規則。`
+        :`✅ 已確認學生身分。本機技術闖關可使用；目前無法讀取雲端紀錄（${e.code||'網路異常'}），稍後可重試。`;
+    }
+  }catch(e){$('travelAuth').textContent='🐣 本機技術闖關可使用，但尚未完成學生雲端身分確認：'+(e.code||e.message);}
 }
 function readVideo(file){return new Promise((resolve,reject)=>{
   const video=document.createElement('video'),url=URL.createObjectURL(file);
@@ -89,7 +100,7 @@ button.addEventListener('click',async()=>{
     catch(e){say('部分影格無法分析，這部分採保守分數：'+e.message);}
     const result=window.TRAVEL_GRADER.grade({duration:media.duration,width:media.width,height:media.height,size:file.size,...sampled});
     show(result);
-    if(uid&&identity){
+    if(uid&&identity&&cloudAvailable){
       try{
         await fs.setDoc(fs.doc(db,'travelAutoChecks',uid),{
           studentUid:uid,...identity,term:'11602',unit:'media',score:result.score,passed:result.passed,
@@ -99,7 +110,9 @@ button.addEventListener('click',async()=>{
         });
         say('✅ 技術檢測完成！已同步至教師版（學生端、未核驗）。');
       }catch(e){say('檢測完成，但雲端同步失敗：'+(e.code||e.message),true);}
-    }else say('✅ 本機技術檢測完成。登入學生帳號後才能同步。');
+    }else say(uid
+      ?'✅ 本機技術檢測已完成。教師版同步尚未開通；請老師確認 Firestore 規則後再進行一次檢測。'
+      :'✅ 本機技術檢測已完成。正式登入學生帳號後才可同步。');
   }catch(e){say('檢測失敗：'+(e.message||e),true);}
   finally{if(media){media.video.pause();media.video.removeAttribute('src');media.video.load();URL.revokeObjectURL(media.url);}busy=false;button.disabled=false;p.style.display='none';}
 });

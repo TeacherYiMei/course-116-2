@@ -39,10 +39,10 @@ window.CONFIG = {
     { w: 2, t: 'AI 前導關：AI 是什麼、機器真的能學習嗎', levels: ['A1', 'A2'], href: 'media.html#ai' },
     { w: 3, t: 'AI 前導關：演算法、生成式 AI 怎麼寫句子', levels: ['A3', 'A4'], href: 'media.html#ai' },
     { w: 4, t: 'AI 前導關：好好問、用心查；AI 倫理', levels: ['A5', 'A6'], href: 'media.html#ai' },
-    { w: 5, t: '廣告工作站 第 1 節：決定主題、三句文案', levels: ['W1', 'W2'], href: 'media.html#W1' },
-    { w: 6, t: '廣告工作站 第 2 節：拍攝重點＋實拍', levels: ['W3'], href: 'media.html#W3' },
-    { w: 7, t: '廣告工作站 第 3 節：配樂', levels: ['W4'], href: 'media.html#W4' },
-    { w: 8, t: '廣告工作站 第 4 節：剪輯、試看、說明卡', levels: ['W5'], href: 'media.html#W5' },
+    { w: 5, t: '90 秒旅拍①：選主題、景點與故事分鏡', levels: [], href: 'canva-travel.html#step1' },
+    { w: 6, t: '90 秒旅拍②：用 Canva 匯入素材、排列時間軸', levels: [], href: 'canva-travel.html#step2' },
+    { w: 7, t: '90 秒旅拍③：文字、動畫、特效、轉場與音樂', levels: [], href: 'canva-travel.html#step4' },
+    { w: 8, t: '90 秒旅拍④：試看修片、匯出 MP4、成果分享', levels: [], href: 'canva-travel.html#step8' },
     { w: 9, t: '單元五 網路世界：範圍與設備、線材、封包', levels: ['N1', 'N2', 'N3'], href: 'network.html' },
     { w: 10, t: '網路世界：IP、IPv6、網址與 DNS', levels: ['N4', 'N5', 'N6'], href: 'network.html' },
     { w: 11, t: '網路世界：電子郵件、無線網路', levels: ['N7', 'N8'], href: 'network.html' },
@@ -71,9 +71,9 @@ window.CONFIG = {
   /* 闖關地圖的卡片（順序即顯示順序）
      maxStars 是進度條的分母，一定要和這門課真的能拿到的星數一致。 */
   MODULES: [
-    { id: 'media', no: '四', title: '多媒體專題：30 秒廣告', sub: '4 個概念關卡＋6 個 AI 素養關卡＋好好用 AI 廣告工作站', icon: '🎬', color: 'u1',
+    { id: 'media', no: '四', title: '多媒體專題：90 秒旅拍', sub: '4 個概念關卡＋6 個 AI 素養關卡＋Canva 旅拍剪輯教室', icon: '🎬', color: 'u1',
       href: 'media.html', maxStars: 30, levels: ['M1', 'M2', 'M3', 'M4', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'W1', 'W2', 'W3', 'W4', 'W5'],
-      desc: '學會「好好用 AI」：和 AI 一起發想主角、寫三句文案、規劃鏡頭和配樂，最後自己實拍剪輯一支 30 秒廣告，讓平凡物品變主角。', chapter: '第 1 章' },
+      desc: '從旅途故事分鏡、素材整理到 Canva 影片剪輯，一步步學會字幕、文字動畫、視覺特效、轉場、配樂與音效，完成 90 秒旅拍。', chapter: '第 1 章' },
     { id: 'network', no: '五', title: '網路世界', sub: '10 關 · 三星三階：基礎 → 操作 → 挑戰🎲', icon: '🌐', color: 'u2',
       href: 'network.html', maxStars: 30, levels: ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10'],
       desc: '網路線材、封包快遞、IP 與 IPv6、網址拆解、無線網路、網速計算，還有結帳時「嗶」的祕密。', chapter: '第 2 章' },

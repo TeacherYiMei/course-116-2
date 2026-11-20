@@ -21,7 +21,7 @@
     aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" },
     extension: { name:"跨章延伸｜數位科技任務中心", maxStars:18, title:"🧭 數位科技任務中心｜教師端" },
     knowledge: { name:"知識闖關特攻隊", maxStars:12, title:"🚀 知識闖關特攻隊｜教師端" },
-    media: {name:"單元四：多媒體與 AI",maxStars:30},
+    media: {name:"單元四：90 秒旅拍與 AI",maxStars:30},
     network: {name:"單元五：網路世界",maxStars:30},
     data: {name:"單元六：資料偵探",maxStars:12},
     sheet: {name:"單元六：試算表實作",maxStars:15},

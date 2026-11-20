@@ -8,12 +8,12 @@
 (function () {
   var esc = UI.esc, MOD = 'media', STEPS = window.MEDIA_STEPS;
   var AIT = (window.CONFIG && CONFIG.AI_TOOL) || { name: '老師指定的 AI 工具', url: '', login: '' };   // 學校指定的 AI 工具（config.js）
-  UI.topbar('#topbar', { title: '🎬 多媒體專題：30 秒廣告', kicker: '單元四 · 3下 第 1 章 · 好好用 AI' });
+  UI.topbar('#topbar', { title: '🎬 多媒體專題：90 秒旅拍', kicker: '單元四 · 3下 第 1 章 · Canva 影片創作' });
   /* 兩組闖關（概念 M1～M4、AI 素養 A1～A6）共用 cardgame 引擎，引擎用固定的元素 id，
      所以同一時間只掛一組：切到哪個分頁就掛哪一組、清掉另一組。 */
   function mountGames() {
     var a = document.getElementById('ai-games'); if (a) a.innerHTML = '';
-    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '先看懂影片規格，再和 AI 一起拍一支 30 秒廣告' });
+    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '學會影片格式、時間軸、著作權，再剪輯你的 90 秒旅拍' });
   }
   mountGames();
 
@@ -27,7 +27,7 @@
       { t: 'games', icon: '🎮', title: '概念闖關', ds: '畫質、影片格式、時間軸、後製與著作權', got: starsOf(M), max: M.length * 3, unit: '⭐' },
       { t: 'demo', icon: '📺', title: '看示範', ds: '拆解示範廣告的 ' + ((D.moves || []).length || 8) + ' 個手法', note: '課堂一起看' },
       { t: 'ai', icon: '🤖', title: 'AI 前導關', ds: 'AI 素養六關：先認識 AI，再請它幫忙', got: starsOf(AI), max: AI.length * 3, unit: '⭐' },
-      { t: 'studio', icon: '🎬', title: '廣告工作站', ds: '好好用 AI，拍一支 30 秒廣告', got: W, max: STEPS.length, unit: '步' }
+      { t: 'studio', icon: '🎬', title: '90 秒旅拍', ds: 'Canva 剪輯教學：文字、特效、轉場、配樂與輸出', note: '8 堂實作' }
     ];
     document.getElementById('ucards').innerHTML = C.map(function (c, i) {
       var pct = c.max ? Math.round(c.got / c.max * 100) : 0;
@@ -41,7 +41,7 @@
   }
   window.addEventListener('store:change', function () { if (STORE.me()) drawCards(); });
   /* 每一部分的結尾：← 上一部分／下一部分 →（和其他單元的「上一課／下一課」同一組樣式） */
-  var TAB_NAMES = { games: '🎮 概念闖關', demo: '📺 看示範', ai: '🤖 AI 前導關', studio: '🎬 廣告工作站' };
+  var TAB_NAMES = { games: '🎮 概念闖關', demo: '📺 看示範', ai: '🤖 AI 前導關', studio: '🎬 90 秒旅拍' };
   function tabPager(t) {
     var i = TABS.indexOf(t), P = TABS[i - 1], N = TABS[i + 1];
     function go(k) { return function () { clearHash(); tab(k); UI.scrollToNav('#ucards'); }; }
@@ -125,6 +125,19 @@
   var cur = 0;
   function studio() {
     var box = document.getElementById('studio');
+    // 既有 W1～W5 廣告作品仍保留於資料庫。新課程不沿用舊步驟的完成狀態，
+    // 避免把以前的廣告作業誤認為新的旅拍作品。
+    if (!new URLSearchParams(location.search).has('legacy')) {
+      box.innerHTML = '<section class="card pop"><div class="tape"></div>' +
+        '<p class="kicker">🎬 新版實作課程 · 90 秒旅拍</p>' +
+        '<h2 class="black" style="font-size:1.5rem">從零開始，用 Canva 剪出你的旅行故事</h2>' +
+        '<p class="small mt1">八堂循序教學：分鏡、時間軸、字幕、文字動畫、特效、轉場、音樂音效、匯出分享。完成每堂的實作檢查，再挑戰下一堂。</p>' +
+        '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 開始 90 秒旅拍教學 →</a></div>' +
+        '<details class="mt3"><summary class="small soft">查看舊版 30 秒廣告工作站（保留原有紀錄）</summary>' +
+        '<p class="small soft mt1">舊版 W1～W5 是歷史作品紀錄，不會計入新版旅拍的任務完成度。</p>' +
+        '<a class="btn sm" href="media.html?legacy=1#W1">開啟舊版工作站</a></details></section>';
+      return;
+    }
     var n = STEPS.filter(function (s) { return done(s.id); }).length;
     box.innerHTML = '<section class="card pop"><div class="tape"></div><div class="row between"><div><p class="kicker">廣告工作站 · 不計星 · 記錄完成</p>' +
       '<h2 class="black" style="font-size:1.35rem">拍一支 ' + V().short + '廣告：讓平凡物品變主角</h2>' +

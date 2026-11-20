@@ -7,6 +7,13 @@
   let currentAccountRecord=null;
   let legacyKnowledgeDocs=[];
   let legacyKnowledgeError="";
+  // 旅拍技術檢測由獨立唯讀模組載入；僅用於顯示及匯出，絕不當成星星或教師認證成績。
+  let travelChecksByUid=new Map();
+  window.addEventListener('travel:records',event=>{
+    const list=Array.isArray(event.detail?.records)?event.detail.records:[];
+    travelChecksByUid=new Map(list.map(row=>[String(row.id||row.studentUid||''),row]));
+    if(currentUnit==='media'&&teacherProfile)render();
+  });
   let currentUnit="unit1"; // 與目前 HTML 預設單元一致
   let currentTerm="11601"; // 教師選擇，與學生進度所屬學期分開管理
   const FIRST_UNITS=["unit1","python","unit3","aiot","extension","knowledge"];
@@ -255,6 +262,15 @@
     if(item.max===0)return `<div class="subunit-score ${item.complete?'complete':'partial'}"><strong>${item.complete?'✓':'…'}</strong><small>作品任務</small><span>${item.complete?'已完成':'進行中'}</span></div>`;
     return `<div class="subunit-score ${item.complete?"complete":item.stars?"partial":"empty"}"><strong>★ ${item.stars}</strong><small> / ${item.max}</small><span>${item.complete?"✓ 滿星":item.stars?"進行中":"0 星"}</span></div>`;
   }
+  function travelForStudent(row){
+    // 只採相同 UID，且班級／座號／姓名一致的結果；跨 UID 不自動合併。
+    const sources=row.sourceRecords?.length?row.sourceRecords:[row];
+    const ident=x=>`${String(x.className||'').trim()}|${Number(x.seatNo)}|${String(x.name||'').trim()}`;
+    const own=ident(row);
+    return sources.map(s=>travelChecksByUid.get(String(s.id||'')))
+      .filter(c=>c&&c.source==='student-browser-unverified'&&ident(c)===own)
+      .sort((a,b)=>(b.checkedAt?.seconds||0)-(a.checkedAt?.seconds||0))[0]||null;
+  }
   function render(){
     document.querySelectorAll('[data-teacher-term]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.teacherTerm===currentTerm)));
     document.querySelectorAll('[data-term-group]').forEach(el=>el.classList.toggle('hidden',el.dataset.termGroup!==currentTerm));
@@ -288,10 +304,12 @@
     const starHead=$("#moduleStarHeader");
     const subs=SUBUNITS[currentUnit]||[];
     const head=document.querySelector(".moduleTable thead tr");
-    if(head)head.innerHTML=`<th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>單元總星</th>${subs.map(sub=>`<th class="subunit-head">${esc(sub.label)}<span>滿分 ${sub.max}★</span></th>`).join("")}<th>完成度</th><th>最近更新</th>`;
+    if(head)head.innerHTML=`<th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th>單元總星</th>${subs.map(sub=>`<th class="subunit-head">${esc(sub.label)}<span>滿分 ${sub.max}★</span></th>`).join("")}${currentUnit==='media'?'<th>🐣 旅拍技術檢測<br><small>學生端未核驗／85 分達標</small></th>':''}<th>完成度</th><th>最近更新</th>`;
     $("#rows").innerHTML=mapped.map(row=>{
       const detail=getSubunitData(row,currentUnit),d=row._score;
-      return `<tr class="student-score-row"><td>${esc(row.className)}</td><td class="seat-num">${esc(row.seatNo)}</td><td class="student-name">${esc(row.name)}${row._identityConflict?'<div style="color:#9a3412;font-size:12px;font-weight:600">⚠ 同座不同姓名，請核對 UID</div>':''}${row._legacyCrossUID&&currentUnit==='knowledge'?'<div style="color:#1d4ed8;font-size:12px">舊站同名紀錄（UID 不同，唯讀）</div>':''}</td><td class="maintainCol"><button class="manageBtn" type="button" data-id="${esc(row.id)}">🛠️ 維護</button> <button class="progressAuditBtn" type="button" data-id="${esc(row.id)}" style="padding:5px 8px;border:1px solid #8da4c9;border-radius:7px;background:#f0f5ff;color:#173b73;margin-top:4px">🔎 診斷</button></td><td class="unit-star-column"><div class="star-strong ${d.stars?"":"star-zero"}"><span class="star-symbol">★</span><strong>${d.stars}</strong><span class="star-maximum">/ ${d.maxStars}</span></div><div class="star-progress"><span style="width:${Math.max(0,Math.min(100,d.score))}%"></span></div>${String(d.currentLevel).includes("需核對")?`<small>${esc(d.currentLevel)}</small>`:""}${row._legacyCrossUID&&currentUnit==='knowledge'?'<small style="color:#1d4ed8">含舊站候選星數，尚未寫回主站</small>':''}</td>${detail.map(item=>`<td class="subunit-cell">${subunitBadge(item)}</td>`).join("")}<td><span class="completion-percent">${d.score}%</span><span class="completion-label">${d.completed?"已滿星":d.stars?"進行中":"未找到有效星數"}</span></td><td class="sync-time">${esc(fmtTime(row.updatedAt)||"—")}</td></tr>`;
+      const travel=currentUnit==='media'?travelForStudent(row):null;
+      const travelCell=currentUnit==='media'?`<td><div style="padding:8px 10px;border-radius:10px;background:${travel?(travel.score>=85?'#dcfce7':'#fff7ed'):'#f1f5f9'};min-width:110px;text-align:center"><b style="font-size:1.25rem;color:${travel?(travel.score>=85?'#047857':'#a16207'):'#64748b'}">${travel?esc(travel.score)+' / 100':'—'}</b><br><small>${travel?(travel.passed?'🌟 技術達標':'🌱 未達標'):'尚無檢測'}</small></div></td>`:'';
+      return `<tr class="student-score-row"><td>${esc(row.className)}</td><td class="seat-num">${esc(row.seatNo)}</td><td class="student-name">${esc(row.name)}${row._identityConflict?'<div style="color:#9a3412;font-size:12px;font-weight:600">⚠ 同座不同姓名，請核對 UID</div>':''}${row._legacyCrossUID&&currentUnit==='knowledge'?'<div style="color:#1d4ed8;font-size:12px">舊站同名紀錄（UID 不同，唯讀）</div>':''}</td><td class="maintainCol"><button class="manageBtn" type="button" data-id="${esc(row.id)}">🛠️ 維護</button> <button class="progressAuditBtn" type="button" data-id="${esc(row.id)}" style="padding:5px 8px;border:1px solid #8da4c9;border-radius:7px;background:#f0f5ff;color:#173b73;margin-top:4px">🔎 診斷</button></td><td class="unit-star-column"><div class="star-strong ${d.stars?"":"star-zero"}"><span class="star-symbol">★</span><strong>${d.stars}</strong><span class="star-maximum">/ ${d.maxStars}</span></div><div class="star-progress"><span style="width:${Math.max(0,Math.min(100,d.score))}%"></span></div>${String(d.currentLevel).includes("需核對")?`<small>${esc(d.currentLevel)}</small>`:""}${row._legacyCrossUID&&currentUnit==='knowledge'?'<small style="color:#1d4ed8">含舊站候選星數，尚未寫回主站</small>':''}</td>${detail.map(item=>`<td class="subunit-cell">${subunitBadge(item)}</td>`).join("")}${travelCell}<td><span class="completion-percent">${d.score}%</span><span class="completion-label">${d.completed?"已滿星":d.stars?"進行中":"未找到有效星數"}</span></td><td class="sync-time">${esc(fmtTime(row.updatedAt)||"—")}</td></tr>`;
     }).join("");
     document.querySelectorAll(".manageBtn").forEach(btn=>btn.addEventListener("click",()=>{
       const rec=rows.find(r=>String(r.id)===String(btn.dataset.id));
@@ -963,6 +981,7 @@
     const data=rows.map(r=>{
       const uData = getStudentUnitData(r, currentUnit);
       const cfgUnit = UNIT_CONFIG[currentUnit];
+      const travel=currentUnit==='media'?travelForStudent(r):null;
       return {
         "學期":currentTerm==='11601'?'116-1 上學期':currentTerm==='11602'?'116-2 下學期':'116 全學年',
         "班級":r.className||"",
@@ -975,6 +994,15 @@
         "完成狀態":uData.completed?"已完成":"進行中",
         "目前進度":uData.currentLevel,
         "最近更新":fmtTime(r.updatedAt),
+        ...(currentUnit==='media'?{
+          "旅拍技術檢測分數":travel?Number(travel.score):"未檢測",
+          "旅拍85分技術達標":travel?(travel.passed?"達標":"未達標"):"未檢測",
+          "評分來源":"學生瀏覽器技術檢測（未經伺服器核驗）",
+          "影片秒數":travel?Number(travel.duration).toFixed(1):"",
+          "影片解析度":travel?`${travel.width}×${travel.height}`:"",
+          "檢測時間":travel?fmtTime(travel.checkedAt):"",
+          ...Object.fromEntries([['長度','duration'],['解析度','resolution'],['比例','ratio'],['可解碼','playable'],['畫面變化','motion'],['曝光','light'],['檔案效率','bitrate']].map(([name,key])=>['旅拍_'+name+'得分',travel?.details?.[key]??'']))
+        }:{}),
         ...Object.fromEntries(getSubunitData(r,currentUnit).map(x=>[x.label+(x.max===0?"狀態":"星數"),x.max===0?(x.complete?"完成":x.observed?"進行中":"待核對"):x.observed?x.stars:"待核對"]))
       };
     });

@@ -226,7 +226,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <section class="card" id="travelTeacherPanel" style="border:2px solid #73c8b7">
   <h2>🐣🎬 90 秒旅拍｜免費技術檢測進度</h2>
   <p class="status">學生自行在瀏覽器分析影片，不上傳影片檔。教師可見技術檢測分數（85 分以上顯示達標），<b>但本機產生的數據未經伺服器驗證，不作為正式作品品質認證。</b></p>
-  <div class="toolbar"><button type="button" class="soft" id="travelTeacherRefresh">🔄 更新旅拍技術檢測清單</button><span id="travelTeacherStatus" class="status">請先登入教師帳號</span></div>
+  <div class="toolbar"><button type="button" class="soft" id="travelTeacherRefresh">🔄 更新旅拍技術檢測清單</button><button type="button" class="export" id="travelTeacherExport">📗 下載旅拍分數 Excel</button><span id="travelTeacherStatus" class="status">請先登入教師帳號</span></div>
   <div id="travelTeacherList" style="display:grid;gap:12px"></div>
 </section>
 </section></main>
@@ -360,6 +360,6 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="shared/firebase-config.js?v=16.36"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
-<script src="shared/teacher-dashboard.js?v=16.80"></script>
-<script type="module" src="shared/travel-teacher.js?v=16.84"></script>
+<script src="shared/teacher-dashboard.js?v=16.86"></script>
+<script type="module" src="shared/travel-teacher.js?v=16.86"></script>
 </body></html>

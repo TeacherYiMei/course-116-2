@@ -6,7 +6,7 @@ import {getFirestore,collection,query,where,getDocs,getDoc,doc} from 'https://ww
 const app=getApps().length?getApp():initializeApp(window.COURSE115_FIREBASE_CONFIG);
 const auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id),list=$('travelTeacherList'),status=$('travelTeacherStatus');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let profile=null,rows=[];
+let profile=null,rows=[],allRecords=[];
 const canSee=c=>profile?.role==='admin'||Array.isArray(profile?.classes)&&profile.classes.map(String).includes(String(c));
 function render(){
   if(!rows.length){list.innerHTML='<p class="status">目前尚無技術檢測紀錄。學生可以到「90 秒旅拍」頁面選 MP4 進行免費檢測。</p>';return;}
@@ -30,15 +30,36 @@ async function load(){
       docs.push(...(await getDocs(query(collection(db,'travelAutoChecks'),where('className','==',String(cls))))).docs);
     }
     const selected=$('classFilter')?.value||'';
-    rows=docs.map(x=>({id:x.id,...x.data()})).filter(x=>canSee(x.className)&&(!selected||String(x.className)===selected));
+    allRecords=docs.map(x=>({id:x.id,...x.data()})).filter(x=>canSee(x.className));
+    rows=allRecords.filter(x=>!selected||String(x.className)===selected);
     rows.sort((a,b)=>String(a.className).localeCompare(String(b.className))||Number(a.seatNo)-Number(b.seatNo));
+    // 主教師表依 UID 合併顯示，與既有星星完全分開。
+    window.dispatchEvent(new CustomEvent('travel:records',{detail:{records:allRecords}}));
     status.textContent=`找到 ${rows.length} 筆技術檢測紀錄（非正式作品評分）`;render();
-  }catch(e){status.textContent='讀取失敗：'+(e.code||e.message);}
+  }catch(e){rows=[];allRecords=[];window.dispatchEvent(new CustomEvent('travel:records',{detail:{records:[]}}));render();status.textContent='讀取失敗：'+(e.code||e.message)+'；請檢查旅拍集合的 Firestore 安全規則。';}
 }
 $('travelTeacherRefresh').addEventListener('click',load);
+$('travelTeacherExport')?.addEventListener('click',()=>{
+  if(!profile){alert('請先登入教師帳號');return;}
+  if(!rows.length){alert('目前沒有可匯出的旅拍技術檢測紀錄');return;}
+  if(!window.XLSX){alert('Excel 匯出元件尚未載入，請重新整理或檢查網路');return;}
+  const points=[['影片長度','duration'],['解析度','resolution'],['畫面比例','ratio'],['可解碼','playable'],['畫面變化','motion'],['曝光','light'],['檔案效率','bitrate']];
+  const data=rows.map(r=>({
+    '學期':'116-2 下學期','班級':r.className,'座號':Number(r.seatNo),'姓名':r.name,
+    '技術檢測分數':Number(r.score)||0,'85分技術達標':r.passed?'達標':'未達標',
+    '成績來源':'學生端技術檢測（未核驗）','影片秒數':Number(r.duration||0).toFixed(1),
+    '解析度':`${Number(r.width)||0}×${Number(r.height)||0}`,
+    ...Object.fromEntries(points.map(([title,key])=>[title+'得分',Number(r.details?.[key])||0])),
+    '檢測時間':r.checkedAt?.toDate?.().toLocaleString('zh-TW')||''
+  }));
+  const sheet=XLSX.utils.json_to_sheet(data),book=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book,sheet,'旅拍技術檢測');
+  const cls=$('classFilter')?.value||'授權班級';
+  XLSX.writeFile(book,`11602_90秒旅拍_技術檢測_${cls}.xlsx`);
+});
 $('classFilter')?.addEventListener('change',()=>{if(profile)load();});
 onAuthStateChanged(auth,async user=>{
-  profile=null;rows=[];list.innerHTML='';if(!user)return;
+  profile=null;rows=[];allRecords=[];list.innerHTML='';window.dispatchEvent(new CustomEvent('travel:records',{detail:{records:[]}}));if(!user)return;
   try{
     const snap=await getDoc(doc(db,'teachers',user.uid));
     if(!snap.exists()||!['teacher','admin'].includes(snap.data().role))return;

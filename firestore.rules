@@ -152,6 +152,134 @@ service cloud.firestore {
     }
 
     // ===== 教師權限 =====
+    // ===== 11602 免費旅拍技術檢測：影片不存雲端；數值由學生裝置產生，不能視為不可竄改的認證 =====
+    match /travelAutoChecks/{studentUid} {
+      function owner() { return signedIn() && request.auth.uid == studentUid; }
+      function ownClass() {
+        return exists(/databases/$(database)/documents/students/$(studentUid))
+          && request.resource.data.className == get(/databases/$(database)/documents/students/$(studentUid)).data.className
+          && request.resource.data.seatNo == get(/databases/$(database)/documents/students/$(studentUid)).data.seatNo
+          && request.resource.data.name == get(/databases/$(database)/documents/students/$(studentUid)).data.name;
+      }
+      function valid() {
+        return request.resource.data.keys().hasOnly([
+          'studentUid','className','seatNo','name','term','unit','score','passed',
+          'duration','width','height','fileSize','details','source','checkedAt'
+        ]) && request.resource.data.keys().hasAll([
+          'studentUid','className','seatNo','name','term','unit','score','passed',
+          'duration','width','height','fileSize','details','source','checkedAt'
+        ]) && request.resource.data.studentUid == studentUid
+          && request.resource.data.term == '11602'
+          && request.resource.data.unit == 'media'
+          && request.resource.data.source == 'student-browser-unverified'
+          && request.resource.data.checkedAt == request.time
+          && request.resource.data.score is int
+          && request.resource.data.score >= 0 && request.resource.data.score <= 100
+          && request.resource.data.passed == (request.resource.data.score >= 85)
+          && request.resource.data.duration is number && request.resource.data.duration > 0 && request.resource.data.duration < 3600
+          && request.resource.data.width is int && request.resource.data.width > 0
+          && request.resource.data.height is int && request.resource.data.height > 0
+          && request.resource.data.fileSize is int && request.resource.data.fileSize > 0
+          && request.resource.data.details is map
+          && request.resource.data.details.keys().hasOnly(['duration','resolution','ratio','playable','motion','light','bitrate'])
+          && request.resource.data.details.keys().hasAll(['duration','resolution','ratio','playable','motion','light','bitrate'])
+          && request.resource.data.details.duration is int && request.resource.data.details.duration >= 0 && request.resource.data.details.duration <= 30
+          && request.resource.data.details.resolution is int && request.resource.data.details.resolution >= 0 && request.resource.data.details.resolution <= 15
+          && request.resource.data.details.ratio is int && request.resource.data.details.ratio >= 0 && request.resource.data.details.ratio <= 10
+          && request.resource.data.details.playable == 10
+          && request.resource.data.details.motion is int && request.resource.data.details.motion >= 0 && request.resource.data.details.motion <= 20
+          && request.resource.data.details.light is int && request.resource.data.details.light >= 0 && request.resource.data.details.light <= 10
+          && request.resource.data.details.bitrate is int && request.resource.data.details.bitrate >= 0 && request.resource.data.details.bitrate <= 5
+          && request.resource.data.score == request.resource.data.details.duration + request.resource.data.details.resolution
+            + request.resource.data.details.ratio + request.resource.data.details.playable
+            + request.resource.data.details.motion + request.resource.data.details.light + request.resource.data.details.bitrate;
+      }
+      allow get: if owner() || isAdmin() || teachesClass(resource.data.className);
+      allow list: if isAdmin() || (isTeacher() && teachesClass(resource.data.className));
+      allow create: if owner() && ownClass() && valid();
+      allow update: if owner() && ownClass() && valid()
+        && request.resource.data.studentUid == resource.data.studentUid
+        && request.resource.data.className == resource.data.className
+        && request.resource.data.seatNo == resource.data.seatNo
+        && request.resource.data.name == resource.data.name;
+      allow delete: if false;
+    }
+
+    // ===== 11602 旅拍作品（學生僅可繳交，不能評分） =====
+    match /travelSubmissions/{studentUid} {
+      function owner() { return signedIn() && request.auth.uid == studentUid; }
+      function validSubmission() {
+        return request.resource.data.keys().hasOnly([
+          'studentUid','className','seatNo','name','submissionId','storagePath',
+          'fileName','fileSize','durationSeconds','description','submittedAt','term','unit'
+        ]) && request.resource.data.keys().hasAll([
+          'studentUid','className','seatNo','name','submissionId','storagePath',
+          'fileName','fileSize','submittedAt','term','unit'
+        ]) && request.resource.data.studentUid == studentUid
+          && request.resource.data.term == '11602'
+          && request.resource.data.unit == 'media'
+          && request.resource.data.submissionId is string
+          && request.resource.data.submissionId.matches('^[A-Za-z0-9_-]{16,80}$')
+          && request.resource.data.storagePath == 'travel11602/' + studentUid + '/' + request.resource.data.submissionId + '.mp4'
+          && request.resource.data.fileName is string
+          && request.resource.data.fileName.size() <= 160
+          && request.resource.data.fileSize is int
+          && request.resource.data.fileSize > 0
+          && request.resource.data.fileSize <= 150 * 1024 * 1024
+          && request.resource.data.description is string
+          && request.resource.data.description.size() <= 1000
+          && request.resource.data.durationSeconds is number
+          && request.resource.data.durationSeconds >= 0
+          && request.resource.data.durationSeconds <= 600
+          && request.resource.data.submittedAt == request.time;
+      }
+      function ownIdentity() {
+        return exists(/databases/$(database)/documents/students/$(studentUid))
+          && request.resource.data.className == get(/databases/$(database)/documents/students/$(studentUid)).data.className
+          && request.resource.data.seatNo == get(/databases/$(database)/documents/students/$(studentUid)).data.seatNo
+          && request.resource.data.name == get(/databases/$(database)/documents/students/$(studentUid)).data.name;
+      }
+      allow get: if owner() || isAdmin() || teachesClass(resource.data.className);
+      allow list: if isAdmin() || (isTeacher() && teachesClass(resource.data.className));
+      allow create: if owner() && validSubmission() && ownIdentity();
+      allow update: if owner() && validSubmission() && ownIdentity()
+        && request.resource.data.studentUid == resource.data.studentUid
+        && request.resource.data.className == resource.data.className
+        && request.resource.data.seatNo == resource.data.seatNo
+        && request.resource.data.name == resource.data.name;
+      allow delete: if false;
+    }
+
+    // ===== 11602 旅拍評分（只允許教師寫，學生唯讀自己的分數） =====
+    match /travelGrades/{studentUid} {
+      function validGrade() {
+        return request.resource.data.keys().hasOnly([
+          'studentUid','className','submissionId','story','editing','visual','audio',
+          'score','passed','feedback','gradedBy','gradedAt'
+        ]) && request.resource.data.keys().hasAll([
+          'studentUid','className','submissionId','story','editing','visual','audio',
+          'score','passed','feedback','gradedBy','gradedAt'
+        ]) && request.resource.data.studentUid == studentUid
+          && request.resource.data.gradedBy == request.auth.uid
+          && request.resource.data.gradedAt == request.time
+          && request.resource.data.story is int && request.resource.data.story >= 0 && request.resource.data.story <= 25
+          && request.resource.data.editing is int && request.resource.data.editing >= 0 && request.resource.data.editing <= 25
+          && request.resource.data.visual is int && request.resource.data.visual >= 0 && request.resource.data.visual <= 25
+          && request.resource.data.audio is int && request.resource.data.audio >= 0 && request.resource.data.audio <= 25
+          && request.resource.data.score == request.resource.data.story + request.resource.data.editing + request.resource.data.visual + request.resource.data.audio
+          && request.resource.data.passed == (request.resource.data.score >= 85)
+          && request.resource.data.feedback is string && request.resource.data.feedback.size() <= 2000
+          && exists(/databases/$(database)/documents/travelSubmissions/$(studentUid))
+          && request.resource.data.submissionId == get(/databases/$(database)/documents/travelSubmissions/$(studentUid)).data.submissionId
+          && request.resource.data.className == get(/databases/$(database)/documents/travelSubmissions/$(studentUid)).data.className;
+      }
+      allow get: if signedIn() && (request.auth.uid == studentUid || isAdmin() || teachesClass(resource.data.className));
+      allow list: if isAdmin() || (isTeacher() && teachesClass(resource.data.className));
+      allow create, update: if isTeacher() && teachesClass(request.resource.data.className) && validGrade();
+      allow delete: if false;
+    }
+
+    // ===== 教師權限 =====
     match /teachers/{teacherUid} {
       allow get: if signedIn() &&
         (request.auth.uid == teacherUid || isAdmin());

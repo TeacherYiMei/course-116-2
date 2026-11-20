@@ -180,7 +180,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 </style>
 </head>
 <body>
-<header><div><b>👩‍🏫 116 全學年學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.80 上下學期整合</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
+<header><div><b>👩‍🏫 116 全學年學習進度｜教師端</b><div class="status">教師端與學生闖關頁分離</div><div class="status" style="font-weight:800">版本：v16.84 旅拍免費檢測</div><div id="teacherIdentity" class="status"></div></div><button id="logoutBtn" class="soft hidden">登出</button></header>
 <main>
 <section id="loginCard" class="card login">
 <h1>教師登入</h1><p>請使用 Firebase Authentication 中建立的教師帳號。</p>
@@ -212,7 +212,7 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <button type="button" class="moduleTab" data-module="knowledge">🚀 知識闖關特攻隊</button>
   </div>
   <div class="moduleTabs hidden" data-term-group="11602" role="group" aria-label="選擇下學期學習單元">
-    <button type="button" class="moduleTab" data-module="media">🎬 多媒體與 AI</button>
+    <button type="button" class="moduleTab" data-module="media">🎬 90 秒旅拍與 AI</button>
     <button type="button" class="moduleTab" data-module="network">🌐 網路世界</button>
     <button type="button" class="moduleTab" data-module="data">🕵️ 資料偵探</button>
     <button type="button" class="moduleTab" data-module="sheet">📊 試算表實作</button>
@@ -223,6 +223,12 @@ dialog.manageDialog::backdrop{background:#22314a80}
   <div class="moduleFocus"><div><strong id="moduleFocusTitle">單元一｜數位時代</strong><br><small id="moduleFocusNote">每位學生的本單元星星及各關卡紀錄</small></div><div><span class="focusCount" id="moduleFocusAverage">0</span> <small>平均星星</small></div></div>
   <div class="tableWrap moduleTable"><table><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th class="maintainCol">維護</th><th id="moduleStarHeader">單元一星星</th><th>各關卡星星</th><th>完成度</th><th>最近更新</th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
+<section class="card" id="travelTeacherPanel" style="border:2px solid #73c8b7">
+  <h2>🐣🎬 90 秒旅拍｜免費技術檢測進度</h2>
+  <p class="status">學生自行在瀏覽器分析影片，不上傳影片檔。教師可見技術檢測分數（85 分以上顯示達標），<b>但本機產生的數據未經伺服器驗證，不作為正式作品品質認證。</b></p>
+  <div class="toolbar"><button type="button" class="soft" id="travelTeacherRefresh">🔄 更新旅拍技術檢測清單</button><span id="travelTeacherStatus" class="status">請先登入教師帳號</span></div>
+  <div id="travelTeacherList" style="display:grid;gap:12px"></div>
+</section>
 </section></main>
 
 
@@ -355,4 +361,5 @@ dialog.manageDialog::backdrop{background:#22314a80}
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="shared/password-reset-config.js?v=16.32"></script>
 <script src="shared/teacher-dashboard.js?v=16.80"></script>
+<script type="module" src="shared/travel-teacher.js?v=16.84"></script>
 </body></html>

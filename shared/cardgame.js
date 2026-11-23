@@ -32,6 +32,7 @@ CARDGAME.mount = function (opts) {
   var L = opts.levels, esc = UI.esc, MOD = opts.mod, HEARTS = 3;
   var app = typeof opts.app === 'string' ? document.querySelector(opts.app) : opts.app;
   var G = null;   // 遊戲狀態
+  var badSetRestarts = {}; // 同一關至多重建一次，避免伺服器版本不符時無限循環
 
   function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function range(n) { var o = []; for (var i = 0; i < n; i++) o.push(i); return o; }
@@ -49,6 +50,22 @@ CARDGAME.mount = function (opts) {
   }
   function trouble(e, fb) {   // 伺服器回錯誤：❤️ 用完 → 結束；局過期 → 回小卡；其他 → 顯示原因
     fb = fb || document.getElementById('fb');
+    if (e && e.err === 'bad-set' && MOD === 'platform' && G && !G.offline) {
+      var broken = G, key = broken.lv.id + ':' + broken.st;
+      var retryAllowed = !badSetRestarts[key];
+      if (fb) {
+        fb.innerHTML = '<div class="note warn pop">⚠️ 題組驗證失敗（bad-set），這不是答錯，請勿重複點選答案。' +
+          (retryAllowed ? '可以重建本次挑戰後再試一次。' : '重新開始後仍發生，可能是網站題庫與判題伺服器版本不一致，請老師更新驗證伺服器。') +
+          '已取得的星星不會因此清除。</div>' +
+          (retryAllowed ? '<div class="row mt2"><button class="btn primary" id="bad-set-restart" type="button">🔄 重新建立這一局</button></div>' : '');
+        if (retryAllowed) document.getElementById('bad-set-restart').onclick = function () {
+          if (G !== broken) return;
+          badSetRestarts[key] = true;
+          start(broken.i, broken.st);
+        };
+      }
+      return;
+    }
     if (e && e.err === 'dead') return outOfHearts(fb, 'button.pick, #tf button, #lab button');
     if (e && e.err === 'need-repair' && G && !G.practice) {
       var gRepair = G, allRepair = gRepair.lv.stages ? gRepair.lv.stages[gRepair.st].rounds : gRepair.lv.rounds;

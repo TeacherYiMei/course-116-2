@@ -1,24 +1,30 @@
-/* 旅拍小導演 v16.84：影片留在本機，僅同步「學生端未核驗」技術檢測分數。 */
+/* 旅拍小導演 v16.94：操作拼圖＋本機截圖佐證；雲端只記錄未核驗的練習分數。 */
 const $=id=>document.getElementById(id),cfg=window.COURSE115_FIREBASE_CONFIG;
 const fileInput=$('travelFile'),button=$('travelSubmit'),statusBox=$('travelStatus'),resultBox=$('travelGrade');
 let identity=null,uid=null,busy=false,db=null,fs=null,cloudAvailable=false,stageIndex=0,stageScores={},stageProof={};
 const quizPassed=Array.from({length:4},()=>({}));
+const PUZZLES=[
+  ['建立橫式影片專案','上傳自己拍的素材','把三段影片拖入主軌','播放並確認順序'],
+  ['在主軌加入空白片段','從「文字」加入片頭標題','把文字軌對齊空白片段','播放檢查文字出現時間'],
+  ['將兩段影片放到相鄰位置','點選兩段交界處','挑選淡化轉場','預覽是否自然銜接'],
+  ['加入有授權的配樂','調整配樂音量','加入片尾文字','輸出 MP4 並完整預覽']
+];
+let puzzleSteps=[],evidenceUrl=null;
 const STAGES=[
-  {title:'① 分鏡與素材',min:18,max:32,goal:'先剪出 18–32 秒：開場、抵達、至少一個細節畫面。完成後匯出 MP4。'},
-  {title:'② 剪輯與文字',min:40,max:58,goal:'剪成 40–58 秒：修剪鏡頭，加入片頭文字與至少兩處說明文字，再匯出 MP4。'},
-  {title:'③ 特效與轉場',min:62,max:78,goal:'延長到 62–78 秒：安排片段銜接、試做轉場或動態效果，再匯出 MP4。'},
-  {title:'④ 配樂與完成',min:87,max:93,goal:'完成 87–93 秒：加入適當配樂／音效，調整音量並匯出最終 MP4。'}
+  {title:'① 分鏡與素材',goal:'建立專案，將開場、抵達、細節等至少三個片段排入時間軸。'},
+  {title:'② 剪輯與文字',goal:'加入空白頁面／片段，製作可閱讀的片頭標題及說明文字。'},
+  {title:'③ 特效與轉場',goal:'讓兩段影片相鄰，嘗試淡化轉場，觀察銜接效果。'},
+  {title:'④ 配樂與完成',goal:'加入合適配樂、調整音量，製作片尾文字並匯出影片。'}
 ];
 function stageGrade(base,duration){
-  const s=STAGES[stageIndex],inRange=duration>=s.min&&duration<=s.max;
-  // 只使用可被程式測量的項目；不假稱已自動辨識字幕、轉場或配樂。
+  // 截圖僅證明學生附上了本機佐證，並非自動辨識 Canva 的頁面或文字圖層。
   const cat=base.categories,by=k=>cat.find(c=>c.key===k)?.score||0;
-  const durationPts=inRange?35:duration>=s.min-4&&duration<=s.max+4?15:0;
   const landscape=Math.abs(base.measurements.width/base.measurements.height-16/9)<=.06;
   const ratioPts=landscape?15:0;
-  const score=Math.min(inRange&&landscape?100:84,durationPts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
-  return {...base,score,passed:inRange&&landscape&&score>=85,categories:[
-    {key:'stageDuration',title:'⏱️ 階段片長',score:durationPts,max:35,hint:`${duration.toFixed(1)} 秒；本站要求 ${s.min}–${s.max} 秒`},
+  const evidencePts=35;
+  const score=Math.min(100,evidencePts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
+  return {...base,score,passed:landscape&&score>=85,categories:[
+    {key:'timelineEvidence',title:'🖼️ 時間軸截圖佐證',score:evidencePts,max:35,hint:'已選擇截圖，內容尚待教師核對；非自動辨識分頁／文字'},
     {key:'resolution',title:'📺 畫質',score:Math.round(by('resolution')/15*20),max:20,hint:'畫面需清楚可辨'},
     {key:'ratio',title:'📐 比例',score:ratioPts,max:15,hint:'本課程要求橫式 16:9'},
     {key:'motion',title:'🎞️ 畫面差異',score:Math.round(by('motion')/20*15),max:15,hint:'抽樣影格有變化，不代表已證明有剪輯或轉場'},
@@ -28,24 +34,28 @@ function stageGrade(base,duration){
 }
 function renderStages(){
   $('travelStages').innerHTML=STAGES.map((s,i)=>`<span style="${i===stageIndex?'background:#ffe59e;font-weight:900;':''}">${stageScores[i]>=85?'✅':i===stageIndex?'🎬':'🔒'} ${s.title}${stageScores[i]!=null?' '+stageScores[i]+' 分':''}</span>`).join('');
-  const s=STAGES[stageIndex];$('travelObjective').textContent=`🎯 本站目標：${s.goal} 程式只能核對 ${s.min}–${s.max} 秒等技術條件。`;
+  const s=STAGES[stageIndex];$('travelObjective').textContent=`🎯 本站目標：${s.goal} 不限制本階段片長；請先完成下方醒目的操作拼圖。`;
   document.querySelectorAll('[data-stage-guide]').forEach(el=>{el.hidden=Number(el.dataset.stageGuide)!==stageIndex;});
-  showQuizProgress();
+  puzzleSteps=[];renderPuzzle();showQuizProgress();
   $('travelSelfCheck').checked=false;$('travelFile').value='';
+  $('travelEvidence').value='';$('travelEvidencePreview').innerHTML='';if(evidenceUrl){URL.revokeObjectURL(evidenceUrl);evidenceUrl=null;}
+  $('travelEvidencePrompt').textContent=stageIndex===1?'請截圖 Canva 主影片軌的空白片段與上方文字軌，盡量讓片頭字樣清楚出現。':stageIndex===0?'請截圖 Canva 下方時間軸，讓至少三個影片片段清楚入鏡。':stageIndex===2?'請截圖兩段影片的交界處與選用的轉場設定。':'請截圖音訊軌、片尾頁面與片尾文字；老師再核對實際作品。';
 }
 function showQuizProgress(){
-  const done=Object.keys(quizPassed[stageIndex]).length;
-  $('travelQuizStatus').textContent=done===2?'🎉 兩題都答對了！完成 Canva 操作、勾選自我檢核後，就能上傳本階段 MP4。':`🧩 本階段小挑戰 ${done} / 2 題答對。請完成兩題再檢測影片。`;
+  $('travelQuizStatus').textContent=quizPassed[stageIndex].puzzle?'🎉 操作順序正確！接著在 Canva 完成操作、提供時間軸截圖與影片。':`🧩 操作拼圖 ${puzzleSteps.length} / 4 步，依真實編輯順序點擊。`;
 }
-document.querySelectorAll('[data-phase][data-q]').forEach(btn=>btn.addEventListener('click',()=>{
-  const phase=Number(btn.dataset.phase),question=btn.dataset.q;
-  if(phase!==stageIndex||quizPassed[phase][question])return;
-  if(btn.dataset.good==='true'){
-    quizPassed[phase][question]=true;
-    document.querySelectorAll(`[data-phase="${phase}"][data-q="${question}"]`).forEach(b=>{b.disabled=true;b.style.opacity=b===btn?'1':'.55';});
-    btn.textContent='✅ '+btn.textContent;showQuizProgress();
-  }else{$('travelQuizStatus').textContent='💡 再想想看：先依上方的操作步驟找答案，再試一次。';}
-}));
+document.querySelectorAll('[data-phase][data-q]').forEach(btn=>btn.closest('.task')?.classList.add('old-quiz'));
+function renderPuzzle(){
+  $('travelSequence').textContent=puzzleSteps.length?puzzleSteps.map((n,i)=>`${i+1}. ${PUZZLES[stageIndex][n]}`).join(' → '):'👆 點擊下方步驟，從第一步開始排列';
+  const order=[2,0,3,1];$('travelOptions').innerHTML='';
+  order.forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=PUZZLES[stageIndex][n];b.disabled=puzzleSteps.includes(n)||!!quizPassed[stageIndex].puzzle;
+    b.addEventListener('click',()=>{if(n!==puzzleSteps.length){$('travelQuizStatus').textContent='💡 還沒到這一步！回想先要開啟或設定哪一項，再試一次。';return;}
+      puzzleSteps.push(n);if(puzzleSteps.length===4)quizPassed[stageIndex].puzzle=true;renderPuzzle();showQuizProgress();});$('travelOptions').append(b);});
+}
+$('travelPuzzleReset').addEventListener('click',()=>{puzzleSteps=[];delete quizPassed[stageIndex].puzzle;renderPuzzle();showQuizProgress();});
+$('travelEvidence').addEventListener('change',()=>{const f=$('travelEvidence').files?.[0];const target=$('travelEvidencePreview');target.innerHTML='';if(evidenceUrl)URL.revokeObjectURL(evidenceUrl);evidenceUrl=null;
+  if(!f)return;if(!['image/png','image/jpeg'].includes(f.type)||f.size>10*1024*1024){target.textContent='請選擇小於 10MB 的 PNG 或 JPG 截圖';return;}
+  evidenceUrl=URL.createObjectURL(f);const img=document.createElement('img');img.src=evidenceUrl;img.alt='本機 Canva 時間軸佐證截圖預覽';target.append(img);});
 function say(s,bad=false){statusBox.textContent=s;statusBox.style.color=bad?'#b91c1c':'#126f6a';}
 function escapeText(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function connect(){
@@ -74,7 +84,7 @@ async function connect(){
       cloudAvailable=true;
       $('travelAuth').textContent=`☁️ ${p.className} 班 ${p.seatNo} 號 ${p.name}｜已連線，可同步旅拍技術檢測分數。`;
       if(prior.exists()){
-        const priorData=prior.data();if(priorData.gradingVersion==='stage-v1'&&priorData.stages){
+        const priorData=prior.data();if(['stage-v1','stage-v2'].includes(priorData.gradingVersion)&&priorData.stages){
           stageScores={...priorData.stages};stageProof={...(priorData.studentDeclaredStages||{})};
           const incomplete=STAGES.findIndex((s,i)=>!Number.isFinite(+stageScores[i])||+stageScores[i]<85);
           stageIndex=incomplete<0?3:incomplete;renderStages();
@@ -135,13 +145,14 @@ function show(result){
   resultBox.innerHTML=`<div class="travel-score"><div><small>🐣 小導演的技術檢測結果</small><div class="big">${score}<small style="font-size:1.15rem"> / 100</small></div></div><div style="font-size:2.9rem" aria-hidden="true">${passed?'🏆🌟':'🛠️💪'}</div></div>
     <div class="travel-meter"><i style="width:${score}%"></i></div><div class="travel-score-rows">${items}</div>
     <div class="${passed?'travel-pass':'travel-retry'}">${passed?'✅ 本階段技術達標！':'🌱 本階段尚未達標，請依提示重新匯出。'}　${Object.keys(stageScores).filter(k=>stageScores[k]>=85).length} / 4 站通過</div>
-    <p class="small">此分數只反映影片技術條件。學生勾選的文字、轉場、音樂等技能屬自我聲明，沒有經過影像或音訊內容核驗。</p>`;
+    <p class="small">此為尚未核驗的練習分數：截圖只確認有選擇檔案，並未自動辨識 Canva 的分頁、文字圖層、轉場或音樂。截圖沒有傳送到教師版，須由教師另行查看原圖及作品。</p>`;
 }
 button.addEventListener('click',async()=>{
   if(busy)return;const file=fileInput.files?.[0];
   if(!file){say('請先選一支 MP4 影片喔！',true);return;}
-  if(Object.keys(quizPassed[stageIndex]).length!==2){say('請先完成本階段的兩題操作小挑戰。',true);return;}
+  if(!quizPassed[stageIndex].puzzle){say('請先完成上方橘色框的操作拼圖。',true);return;}
   if(!$('travelSelfCheck').checked){say('請先完成這一站的操作，並勾選自我檢核。',true);return;}
+  const evidence=$('travelEvidence').files?.[0];if(!evidence||!['image/png','image/jpeg'].includes(evidence.type)||evidence.size>10*1024*1024){say('請先提供本階段 Canva 編輯器的時間軸 PNG／JPG 截圖（小於 10MB）。',true);return;}
   if(!/\.mp4$/i.test(file.name)||!['','video/mp4'].includes(file.type)){say('請從 Canva 匯出 MP4 影片。',true);return;}
   if(file.size<1||file.size>250*1024*1024){say('請選小於 250 MB 的影片。',true);return;}
   busy=true;button.disabled=true;const p=$('travelProgress');p.style.display='block';p.value=0;
@@ -165,11 +176,11 @@ button.addEventListener('click',async()=>{
           studentUid:uid,...identity,term:'11602',unit:'media',score:overall,passed:completed,
           duration:result.measurements.duration,width:result.measurements.width,height:result.measurements.height,
           fileSize:result.measurements.size,details:Object.fromEntries(result.categories.map(c=>[c.key,c.score])),
-          gradingVersion:'stage-v1',stages:stageScores,studentDeclaredStages:stageProof,completedStages:STAGES.filter((s,i)=>Number(stageScores[i])>=85).length,
+          gradingVersion:'stage-v2',stages:stageScores,studentDeclaredStages:stageProof,completedStages:STAGES.filter((s,i)=>Number(stageScores[i])>=85).length,
           source:'student-browser-unverified',checkedAt:fs.serverTimestamp()
         });
         say(completed?'🎉 四階段技術條件全部達標，已同步教師版（學生端、未核驗）。':'✅ 本階段檢測已同步，請依上方目標繼續下一站。');
-      }catch(e){say('檢測完成，但雲端同步失敗：'+(e.code||e.message),true);}
+      }catch(e){say(String(e.code||'').includes('permission-denied')?'本機檢測完成，但 Firebase 拒絕寫入。請老師先發布更新包內 firestore.rules 的合併版，並確認學生身分與權限；分數尚未同步。':'檢測完成，但雲端同步失敗：'+(e.code||e.message),true);}
     }else say(uid
       ?'✅ 本機技術檢測已完成。教師版同步尚未開通；請老師確認 Firestore 規則後再進行一次檢測。'
       :'✅ 本機技術檢測已完成。正式登入學生帳號後才可同步。');

@@ -12,6 +12,7 @@
 .travel-sparkles{position:absolute;right:22px;top:8px;font-size:1.7rem;opacity:.8}.travel-hero-row{display:flex;gap:22px;align-items:center;padding:10px 0}.travel-mascot{display:grid;place-items:center;width:116px;height:116px;flex:none;border-radius:38px;background:linear-gradient(145deg,#ffe59d,#ffc6d7);font-size:2.65rem;box-shadow:0 8px 0 #ffd08a;transform:rotate(-5deg)}.travel-kicker{color:#b45d17;font-weight:900;letter-spacing:.04em;margin:0 0 5px}.travel-arcade h2{color:#184879;font-size:clamp(1.25rem,3vw,1.9rem);margin:3px 0}.travel-badges{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 18px}.travel-badges span{padding:8px 12px;border-radius:99px;background:#fff;border:1px solid #cce1ef;color:#335c73;font-weight:750;font-size:.88rem}.travel-safety{border:1px solid #f6dcaa;background:#fff8e7;border-radius:13px;padding:13px 16px;font-size:.88rem}.travel-upload-zone{background:#fff;border:3px dashed #a3c5ed;border-radius:23px;text-align:center;padding:24px;margin:17px 0}.travel-upload-zone label{display:block;font-size:1.15rem;font-weight:900;color:#20618e}.travel-upload-zone input{display:block;margin:14px auto;max-width:100%;font-size:1rem}.travel-go{background:linear-gradient(110deg,#fa7187,#e85fb4);border:0;border-radius:99px;padding:14px 24px;font-size:1.1rem;cursor:pointer;box-shadow:0 5px 0 #bf4081}.travel-go:hover{filter:brightness(1.04);transform:translateY(-1px)}.travel-go:disabled{filter:grayscale(.7);cursor:not-allowed}.travel-result{margin-top:14px;background:#fff;border:1px solid #dce8f5;border-radius:20px;padding:18px}.travel-score{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.travel-score .big{font-size:clamp(2.2rem,6vw,4rem);line-height:1.1;color:#176f95;font-weight:900}.travel-meter{height:18px;background:#e7eef7;border-radius:99px;overflow:hidden;margin:15px 0}.travel-meter i{display:block;height:100%;background:linear-gradient(90deg,#6fe7c5,#ffca74);width:0;transition:width .6s}.travel-score-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.travel-score-rows>div{background:#f1f8ff;border-radius:12px;padding:12px}.travel-score-rows strong{display:block;color:#14557b}.travel-pass{background:#e7ffe9;border:2px solid #7edba0;border-radius:16px;padding:15px;margin-top:14px;color:#176143;font-weight:900}.travel-retry{background:#fff2db;border:2px solid #f9d28a;border-radius:16px;padding:15px;margin-top:14px;color:#855223;font-weight:800}@media(max-width:600px){.travel-hero-row{align-items:flex-start;gap:12px}.travel-mascot{width:68px;height:68px;border-radius:20px;font-size:1.5rem}.travel-score-rows{grid-template-columns:1fr}}
 </style>
 </head>
+<style>.challenge-focus{background:linear-gradient(135deg,#fff0b5,#e7f4ff);border:4px solid #ef9e18;border-radius:22px;padding:20px;margin:16px 0;box-shadow:0 7px 0 #efc66c}.challenge-focus h3{font-size:1.5rem;margin:0}.challenge-focus button{font:inherit;font-weight:800;cursor:pointer;border:2px solid #2b6991;border-radius:12px;background:white;color:#154866;padding:10px;margin:5px}.challenge-focus button:focus-visible{outline:4px solid #f59e0b}.challenge-focus button:disabled{opacity:.55;cursor:default}.challenge-focus .sequence{min-height:52px;border:2px dashed #5487a1;padding:10px;background:white;border-radius:12px;margin:12px 0}.old-quiz{display:none!important}.evidence-box{padding:18px;border:2px solid #68a4c3;border-radius:18px;background:#f4fbff;margin:18px 0}.evidence-box input{display:block;margin:12px 0;max-width:100%}.evidence-box img{max-width:100%;max-height:240px;border-radius:12px}</style>
 <body><main class="shell">
 <header class="hero">
   <a href="media.html">← 返回多媒體單元</a>
@@ -27,10 +28,11 @@
 <section class="section travel-arcade" id="travelSubmission">
   <div class="travel-sparkles" aria-hidden="true">🌈 ✨ 🎈</div>
   <div class="travel-hero-row"><span class="travel-mascot" aria-hidden="true">🐣🎬</span><div><p class="travel-kicker">旅拍小導演 · 四站技能挑戰</p><h2>每學會一項技巧，就來檢查一次！</h2><p>先完成階段作品，再下載 MP4 進行技術檢測。<b>四站都達 85 分以上</b>，就能獲得「階段技術達標」徽章。</p></div></div>
-  <div class="travel-badges"><span>🎞️ 檢查影片長度</span><span>📐 畫質與比例</span><span>🌈 畫面亮度與變化</span><span>🔒 影片不離開裝置</span></div>
-  <div class="travel-safety"><b>📣 小提醒：</b>每站程式只檢查影片長度、比例、解析度及可抽樣的畫面特徵；<b>無法可靠辨識文字、轉場或音樂是否真的加入</b>。這些技能由學生依清單自行確認，不代表程式已驗證；分數屬未核驗的技術練習紀錄，影片不會上傳。</div>
+  <div class="travel-badges"><span>🧩 操作順序拼圖</span><span>🖼️ 時間軸截圖佐證</span><span>📐 畫質與比例</span><span>🔒 檔案留在本機</span></div>
+  <div class="travel-safety"><b>📣 新版評分：</b>不再因片長扣分。請提供 Canva 編輯器時間軸截圖，讓老師核對影片片段（分頁）和文字軌。網站只能檢查有無提供截圖，<b>無法自行證實截圖中真的有 Canva 分頁或文字圖層</b>；網站分數是練習暫評，等待老師核對。</div>
   <div id="travelStages" class="travel-badges" aria-label="四階段學習進度"></div>
   <div class="tip" id="travelObjective" style="margin:12px 0"></div>
+  <section class="challenge-focus" id="travelChallenge" aria-label="本關主要挑戰"><h3>🧩 第一個任務：操作順序拼圖！</h3><p>依你在 Canva 真正操作的順序點擊下面的步驟，把它們排對。</p><div class="sequence" id="travelSequence" aria-live="polite"></div><div id="travelOptions"></div><button type="button" id="travelPuzzleReset">🔄 重新排列</button></section>
   <div id="travelLearning" style="background:white;border:2px solid #c5e8f5;border-radius:18px;padding:18px;margin:15px 0;line-height:1.8">
     <div data-stage-guide="0">
       <h3>🎬 第一站：從零開始，做出旅拍開場</h3>
@@ -56,14 +58,15 @@
       <div class="tip"><b>👀 三種軌道怎麼對齊？</b><div style="background:#e8f0ff;padding:8px;border-radius:8px;margin-top:6px">🔤 文字軌：片頭標題 ──　　景點說明 ──　片尾</div><div style="background:#fff2d9;padding:8px;border-radius:8px;margin-top:4px">🎞️ 影片軌：開場 ▸ 街景 ▸ 美食 ▸ 回味 ▸ 結尾</div><div style="background:#e1faeb;padding:8px;border-radius:8px;margin-top:4px">🎵 音訊軌：音樂 ━━━━━━━━━━━ 淡出</div></div>
       <div class="task">🧩 <b>互動小挑戰</b><p>1. 配樂蓋過人聲時，應該？</p><button type="button" class="btn alt" data-phase="3" data-q="0">把影片畫面加速</button><button type="button" class="btn alt" data-phase="3" data-q="0" data-good="true">降低配樂音量</button><p>2. Canva 完成後要繳交影片，應下載哪一種檔案？</p><button type="button" class="btn alt" data-phase="3" data-q="1" data-good="true">MP4 影片</button><button type="button" class="btn alt" data-phase="3" data-q="1">PNG 單張圖片</button></div>
     </div>
-    <p id="travelQuizStatus" class="tip" aria-live="polite">先完成上方兩題小挑戰，才可以進行本階段影片檢測。</p>
+    <p id="travelQuizStatus" class="tip" aria-live="polite">請先完成上方橘色框內的操作順序拼圖。</p>
   </div>
-  <label class="check"><input type="checkbox" id="travelSelfCheck"> 我確認已完成本階段指定的 Canva 操作（此項為自我聲明，程式無法驗證）</label>
+  <label class="check"><input type="checkbox" id="travelSelfCheck"> 我確認已完成本階段指定的 Canva 操作（此項為自我聲明，仍須教師核對）</label>
+  <div class="evidence-box"><h3>🖼️ 第二個任務：給老師看的「時間軸證據」</h3><p id="travelEvidencePrompt">請截圖 Canva 下方時間軸，讓老師看到你放入的影片片段。</p><label for="travelEvidence"><b>選擇 Canva 編輯畫面截圖（PNG／JPG）</b></label><input id="travelEvidence" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg"><p class="small">圖片只留在這台裝置，不會傳到 Firebase；教師版只收到「學生已附佐證」標記，無法直接查看截圖。請依老師指定方式另交原圖供確認。</p><div id="travelEvidencePreview" aria-live="polite"></div></div>
   <div id="travelAuth" class="tip">正在確認是否能同步檢測紀錄……</div>
   <div class="travel-upload-zone"><label for="travelFile">📂 上傳這一站的 MP4（僅於瀏覽器讀取）</label><input id="travelFile" type="file" accept="video/mp4,.mp4"><p class="small">每站需先匯出目前完成的版本。影片只在這台電腦分析，不會傳送到雲端。</p><button class="btn travel-go" type="button" id="travelSubmit">🚀 檢測本階段！</button></div>
   <div id="travelStatus" role="status" aria-live="polite"></div>
   <progress id="travelProgress" max="100" value="0" style="width:100%;display:none"></progress>
-  <div id="travelGrade" class="travel-result" aria-live="polite"><p>🌟 還沒開始！選好影片，再按「開始技術闖關」吧。</p></div>
+  <div id="travelGrade" class="travel-result" aria-live="polite"><p>🌟 還沒開始！先完成操作拼圖、附上 Canva 時間軸截圖，再選 MP4 進行練習檢測。</p></div>
 </section>
 <div class="layout"><nav class="sidenav" aria-label="課程章節">
 <a href="#step1">01　旅拍故事分鏡</a><a href="#step2">02　建立專案與時間軸</a><a href="#step3">03　剪裁與畫面節奏</a><a href="#step4">04　字幕與文字設計</a><a href="#step5">05　動畫與視覺特效</a><a href="#step6">06　轉場與銜接</a><a href="#step7">07　音樂與音效</a><a href="#step8">08　輸出與成果檢查</a><a href="#rubric">📋　評分規準</a>
@@ -114,8 +117,8 @@
 <div class="task">🏁 作品命名建議：「90秒旅拍_主題_班級座號.mp4」（僅限繳給老師的檔名，勿公開個資）。最後實際播放輸出檔確認。</div>
 <label class="check"><input type="checkbox" data-check="8">我已輸出並播放 MP4，完成作品自評與素材／AI 使用說明。</label></section>
 <section class="section" id="rubric"><h2>📋 作品自評與教師評量參考</h2>
-<h3>🐣 網站分階段檢測（每站 100 分，85 分達標）</h3>
-<div class="cols"><div><b>第 1 站｜分鏡與素材</b><p>18–32 秒；至少安排開場、抵達與細節。</p></div><div><b>第 2 站｜剪輯與文字</b><p>40–58 秒；修剪鏡頭，練習片頭及說明文字。</p></div><div><b>第 3 站｜特效與轉場</b><p>62–78 秒；練習片段銜接與視覺效果。</p></div><div><b>第 4 站｜配樂與完成</b><p>87–93 秒；安排音樂音效，匯出最終作品。</p></div></div>
+<h3>🐣 網站分階段練習暫評（每站 100 分，85 分達標，教師仍須核驗）</h3>
+<div class="cols"><div><b>第 1 站｜分鏡與素材</b><p>截圖證明時間軸排列至少三段素材；不限制片長。</p></div><div><b>第 2 站｜剪輯與文字</b><p>截圖顯示空白片段與文字軌，作品有片頭文字。</p></div><div><b>第 3 站｜特效與轉場</b><p>截圖呈現兩段相鄰素材及轉場設定。</p></div><div><b>第 4 站｜配樂與完成</b><p>截圖呈現音訊軌與片尾文字，完成 MP4。</p></div></div>
 <p class="tip">每站技術分數：片長 35 分、畫質 20 分、橫式比例 15 分、畫面差異 15 分、亮度 10 分、檔案規格 5 分。<b>超出本站片長或不符合橫式比例，最高只能得 84 分。</b> 四站各達 85 分才算全部技術達標。程式無法證明已做文字、轉場或配樂，勾選自我檢核不計分。</p>
 <h3>🎨 以下是作品內容的觀察指標，非自動評分項目</h3>
 <div class="cols"><div><b>故事與分鏡｜25%</b><p>主題清楚、五段結構完整、畫面有變化。</p></div><div><b>剪輯與節奏｜25%</b><p>總長約 90 秒、畫面流暢、時間軸安排合理。</p></div><div><b>文字與視覺｜25%</b><p>字幕可讀、動畫／特效／轉場有目的，風格一致。</p></div><div><b>聲音與完成度｜25%</b><p>配樂音量適中、音效對位、MP4 可播、來源與授權妥善。</p></div></div>
@@ -139,5 +142,5 @@
 <script src="../shared/store.js?v=16.80"></script>
 <script src="../shared/firebase-sync.js"></script>
 <script src="../shared/travel-grader-core.js?v=16.84"></script>
-<script type="module" src="../shared/travel-student.js?v=16.93"></script>
+<script type="module" src="../shared/travel-student.js?v=16.94"></script>
 </body></html>

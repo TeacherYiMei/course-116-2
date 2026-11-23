@@ -207,7 +207,7 @@ service cloud.firestore {
           'gradingVersion','stages','studentDeclaredStages','completedStages'
         ]) && d.studentUid == studentUid && d.term == '11602' && d.unit == 'media'
           && d.source == 'student-browser-unverified' && d.checkedAt == request.time
-          && d.gradingVersion == 'stage-v1'
+          && d.gradingVersion in ['stage-v1', 'stage-v2']
           && d.score is int && d.score >= 0 && d.score <= 100
           && d.passed == (d.score >= 85)
           && d.completedStages is int && d.completedStages >= 0 && d.completedStages <= 4
@@ -216,7 +216,9 @@ service cloud.firestore {
           && d.width is int && d.width > 0 && d.height is int && d.height > 0
           && d.fileSize is int && d.fileSize > 0
           && d.details is map
-          && d.details.keys().hasOnly(['stageDuration','resolution','ratio','motion','light','bitrate'])
+          && (d.gradingVersion == 'stage-v1'
+            ? d.details.keys().hasOnly(['stageDuration','resolution','ratio','motion','light','bitrate'])
+            : d.details.keys().hasOnly(['timelineEvidence','resolution','ratio','motion','light','bitrate']))
           && d.stages is map && st.keys().hasOnly(['0','1','2','3'])
           && d.studentDeclaredStages is map
           && d.studentDeclaredStages.keys().hasOnly(['0','1','2','3'])

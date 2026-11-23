@@ -13,7 +13,9 @@
 </style>
 </head>
 <style>.challenge-focus{background:linear-gradient(135deg,#fff0b5,#e7f4ff);border:4px solid #ef9e18;border-radius:22px;padding:20px;margin:16px 0;box-shadow:0 7px 0 #efc66c}.challenge-focus h3{font-size:1.5rem;margin:0}.challenge-focus button{font:inherit;font-weight:800;cursor:pointer;border:2px solid #2b6991;border-radius:12px;background:white;color:#154866;padding:10px;margin:5px}.challenge-focus button:focus-visible{outline:4px solid #f59e0b}.challenge-focus button:disabled{opacity:.55;cursor:default}.challenge-focus .sequence{min-height:52px;border:2px dashed #5487a1;padding:10px;background:white;border-radius:12px;margin:12px 0}.old-quiz{display:none!important}.evidence-box{padding:18px;border:2px solid #68a4c3;border-radius:18px;background:#f4fbff;margin:18px 0}.evidence-box input{display:block;margin:12px 0;max-width:100%}.evidence-box img{max-width:100%;max-height:240px;border-radius:12px}</style>
-<body><main class="shell">
+<style>body.quest-mode #versionGuide,body.quest-mode #travelSubmission,body.quest-mode .layout,body.quest-mode main>.progress{display:none!important}.quest-shell{background:white;border:2px solid #a7dce9;border-radius:26px;padding:clamp(18px,4vw,36px);margin:24px 0;box-shadow:0 14px 35px #123b571a}.quest-track{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}.quest-track button{border:1px solid #b9d6e8;border-radius:14px;padding:8px 12px;background:#edf6ff;color:#1a5675;font-weight:800;cursor:pointer}.quest-track button[aria-current="step"]{background:#ffdb7a;border-color:#e5a229}.quest-track button:disabled{opacity:.5;cursor:not-allowed}.quest-step{border-radius:20px;padding:22px;background:linear-gradient(130deg,#f1faff,#fff9e8)}.quest-step h2{font-size:clamp(1.4rem,3vw,2rem)}.quest-step li{margin:12px 0}.quest-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.quest-actions button{font:inherit;font-weight:850;background:#11769a;color:white;border:0;border-radius:13px;padding:12px 18px;cursor:pointer}.quest-actions button.secondary{background:#e6f1fc;color:#165474}.quest-check{display:block;background:#fff;border-radius:12px;padding:12px;margin:14px 0}.quest-check input{width:21px;height:21px;vertical-align:middle;accent-color:#0d9875}.quest-input{width:min(100%,550px);padding:12px;border:2px solid #abcbdc;border-radius:12px;font:inherit}.quest-star{font-size:1.35rem;letter-spacing:3px}.quest-hint{background:#fff5dc;padding:12px;border-radius:12px}.quest-complete{background:#e8fff1;border-radius:18px;padding:20px}</style>
+<style>#versionGuide,#travelSubmission .challenge-focus,#travelSubmission #travelLearning,#travelSubmission #travelQuizStatus,main>.progress,.layout{display:none!important}</style>
+<body class="quest-mode"><main class="shell">
 <header class="hero">
   <a href="media.html">← 返回多媒體單元</a>
   <div class="tags" style="margin-top:15px"><span class="tag">📹 90 秒作品</span><span class="tag">🎨 Canva 實作</span><span class="tag">🧭 8 堂循序教學</span></div>
@@ -23,11 +25,12 @@
   <a class="btn alt" href="#travelSubmission">📖 開始分站圖解與互動挑戰 ↓</a>
   <a class="btn alt" href="#step1">🎨 閱讀八堂深入教學 ↓</a>
 </header>
+<section id="travelQuest" class="quest-shell" aria-label="90 秒旅拍逐步冒險"><p class="travel-kicker">🎬 跟著小導演一步一步完成作品</p><div class="quest-star" id="questStars">☆☆☆☆☆☆☆☆☆☆☆☆</div><p id="questCounter">準備載入闖關……</p><div class="quest-track" id="questTrack"></div><div class="quest-step" id="questStep"></div></section>
 <section class="canva-route" id="versionGuide"><h2>🎬 跟著步驟做自己的旅拍</h2><p>從登入 Canva、建立新專案開始，依序練習素材、剪輯、文字、轉場與音樂。每站都有詳細步驟、圖解與小挑戰，<b>全部都在這個頁面</b>；完成該站後匯出 MP4，再繼續下一站。</p></section>
 <div class="progress" aria-live="polite"><strong>我的教學練習進度：<span id="count">0 / 8</span> 堂</strong><div class="meter" style="margin-top:8px"><i id="bar"></i></div><p class="small" style="margin-bottom:0">勾選只記錄這台裝置的閱讀／實作檢查；不會自動增加星星，也不代表作品已繳交。請依老師指定方式交作品。</p></div>
 <section class="section travel-arcade" id="travelSubmission">
   <div class="travel-sparkles" aria-hidden="true">🌈 ✨ 🎈</div>
-  <div class="travel-hero-row"><span class="travel-mascot" aria-hidden="true">🐣🎬</span><div><p class="travel-kicker">旅拍小導演 · 四站技能挑戰</p><h2>每學會一項技巧，就來檢查一次！</h2><p>先完成階段作品，再下載 MP4 進行技術檢測。<b>四站都達 85 分以上</b>，就能獲得「階段技術達標」徽章。</p></div></div>
+  <div class="travel-hero-row"><span class="travel-mascot" aria-hidden="true">🐣🎬</span><div><p class="travel-kicker">旅拍小導演 · 最後檢測站</p><h2>12 顆學習星星都完成，最後才檢測！</h2><p>將自己的完整旅拍從 Canva 匯出 MP4，再檢查畫質與比例；影片內容仍由老師核對。</p></div></div>
   <div class="travel-badges"><span>🧩 操作順序拼圖</span><span>🖼️ 時間軸截圖佐證</span><span>📐 畫質與比例</span><span>🔒 檔案留在本機</span></div>
   <div class="travel-safety"><b>📣 新版評分：</b>不再因片長扣分。請提供 Canva 編輯器時間軸截圖，讓老師核對影片片段（分頁）和文字軌。網站只能檢查有無提供截圖，<b>無法自行證實截圖中真的有 Canva 分頁或文字圖層</b>；網站分數是練習暫評，等待老師核對。</div>
   <div id="travelStages" class="travel-badges" aria-label="四階段學習進度"></div>
@@ -142,5 +145,6 @@
 <script src="../shared/store.js?v=16.80"></script>
 <script src="../shared/firebase-sync.js"></script>
 <script src="../shared/travel-grader-core.js?v=16.84"></script>
-<script type="module" src="../shared/travel-student.js?v=16.94"></script>
+<script src="../shared/travel-quest.js?v=16.95"></script>
+<script type="module" src="../shared/travel-student.js?v=16.95"></script>
 </body></html>

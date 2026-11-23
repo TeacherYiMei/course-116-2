@@ -25,7 +25,7 @@
     var W = STEPS.filter(function (s) { return (STORE.level(MOD, s.id) || {}).done; }).length, D = window.MEDIA_DEMO || {};
     var C = [
       { t: 'games', icon: '🎮', title: '概念闖關', ds: '畫質、影片格式、時間軸、後製與著作權', got: starsOf(M), max: M.length * 3, unit: '⭐' },
-      { t: 'demo', icon: '📺', title: '看示範', ds: '拆解示範廣告的 ' + ((D.moves || []).length || 8) + ' 個手法', note: '課堂一起看' },
+      { t: 'demo', icon: '📺', title: '旅拍示範', ds: '跟著四格動態分鏡，看一支旅拍如何從片頭走到片尾', note: '本站原創示意' },
       { t: 'ai', icon: '🤖', title: 'AI 前導關', ds: 'AI 素養六關：先認識 AI，再請它幫忙', got: starsOf(AI), max: AI.length * 3, unit: '⭐' },
       { t: 'studio', icon: '🎬', title: '90 秒旅拍', ds: 'Canva 剪輯教學：文字、特效、轉場、配樂與輸出', note: '8 堂實作' }
     ];
@@ -81,6 +81,12 @@
      📺 看示範：出處＋手法拆解（影片不放進網站，老師課堂播放）
      ================================================================ */
   function demo() {
+    var target=document.getElementById('demo');
+    target.innerHTML='<section class="card pop" style="padding:24px"><p class="kicker">🎬 旅拍專屬示範｜繁體中文</p><h2>跟著四個鏡頭說故事</h2><p>原本連結的影片與旅拍無關，現已移除。下面是本站製作的動態分鏡示意（不是 Canva 操作錄影）。</p><div id="tripDemoScene" style="background:linear-gradient(125deg,#ddf3ff,#fff1d6);border:3px solid #9ad1e8;border-radius:20px;padding:45px 20px;text-align:center;min-height:190px;font-size:1.5rem;font-weight:900" aria-live="polite"></div><p id="tripDemoTip" class="small"></p><div class="row mt2" style="gap:8px;flex-wrap:wrap"><button id="tripDemoPrev" class="btn">← 上一幕</button><button id="tripDemoNext" class="btn primary">下一幕 →</button><a class="btn" href="canva-travel.html">進入 12 星旅拍闖關</a></div><p class="small mt2">真正的新版時間軸操作，請參考 <a href="https://www.canva.com/help/creating-and-editing-videos/" target="_blank" rel="noopener">Canva 官方影片編輯說明</a>（官方介面可能因帳號而異）。</p></section>';
+    var scenes=[['🏞️','片頭：我的小旅行','一張空白片頭，加入明確的旅拍標題。'],['🚶','抵達：街角的風景','安排第一段畫面，讓觀眾知道你到了哪裡。'],['🍧','細節：最喜歡的一幕','切到特寫，加一句字幕和自然的淡化。'],['🎵','片尾：謝謝一起旅行','加入自己錄製的節奏或合法配樂，淡出後收尾。']],idx=0;
+    function showScene(){var s=scenes[idx];document.getElementById('tripDemoScene').textContent=s[0]+' '+s[1];document.getElementById('tripDemoTip').textContent=(idx+1)+' / '+scenes.length+'　'+s[2];}
+    document.getElementById('tripDemoPrev').onclick=function(){idx=(idx+3)%4;showScene();};document.getElementById('tripDemoNext').onclick=function(){idx=(idx+1)%4;showScene();};showScene();
+    return;
     var D = window.MEDIA_DEMO, box = document.getElementById('demo'), found = {};
     function draw() {
       var n = Object.keys(found).length;

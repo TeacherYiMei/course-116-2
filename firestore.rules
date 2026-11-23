@@ -207,11 +207,11 @@ service cloud.firestore {
           'gradingVersion','stages','studentDeclaredStages','completedStages'
         ]) && d.studentUid == studentUid && d.term == '11602' && d.unit == 'media'
           && d.source == 'student-browser-unverified' && d.checkedAt == request.time
-          && d.gradingVersion in ['stage-v1', 'stage-v2']
+          && d.gradingVersion in ['stage-v1', 'stage-v2', 'stage-v3']
           && d.score is int && d.score >= 0 && d.score <= 100
           && d.passed == (d.score >= 85)
           && d.completedStages is int && d.completedStages >= 0 && d.completedStages <= 4
-          && (d.passed == (d.completedStages == 4))
+          && (d.passed == (d.completedStages == (d.gradingVersion == 'stage-v3' ? 1 : 4)))
           && d.duration is number && d.duration > 0 && d.duration < 3600
           && d.width is int && d.width > 0 && d.height is int && d.height > 0
           && d.fileSize is int && d.fileSize > 0

@@ -4,17 +4,14 @@ const fileInput=$('travelFile'),button=$('travelSubmit'),statusBox=$('travelStat
 let identity=null,uid=null,busy=false,db=null,fs=null,cloudAvailable=false,stageIndex=0,stageScores={},stageProof={};
 const quizPassed=Array.from({length:4},()=>({}));
 const PUZZLES=[
-  ['建立橫式影片專案','上傳自己拍的素材','把三段影片拖入主軌','播放並確認順序'],
+  ['檢查完整作品與片尾','確認字幕與音訊軌','從 Canva 匯出 MP4','在電腦播放匯出檔'],
   ['在主軌加入空白片段','從「文字」加入片頭標題','把文字軌對齊空白片段','播放檢查文字出現時間'],
   ['將兩段影片放到相鄰位置','點選兩段交界處','挑選淡化轉場','預覽是否自然銜接'],
   ['加入有授權的配樂','調整配樂音量','加入片尾文字','輸出 MP4 並完整預覽']
 ];
 let puzzleSteps=[],evidenceUrl=null;
 const STAGES=[
-  {title:'① 分鏡與素材',goal:'建立專案，將開場、抵達、細節等至少三個片段排入時間軸。'},
-  {title:'② 剪輯與文字',goal:'加入空白頁面／片段，製作可閱讀的片頭標題及說明文字。'},
-  {title:'③ 特效與轉場',goal:'讓兩段影片相鄰，嘗試淡化轉場，觀察銜接效果。'},
-  {title:'④ 配樂與完成',goal:'加入合適配樂、調整音量，製作片尾文字並匯出影片。'}
+  {title:'🏁 完整作品最後檢測',goal:'12 顆學習星星已完成；請檢查片頭空白頁、文字、影片片段、音訊軌，然後匯出完整 MP4。'}
 ];
 function stageGrade(base,duration){
   // 截圖僅證明學生附上了本機佐證，並非自動辨識 Canva 的頁面或文字圖層。
@@ -22,7 +19,7 @@ function stageGrade(base,duration){
   const landscape=Math.abs(base.measurements.width/base.measurements.height-16/9)<=.06;
   const ratioPts=landscape?15:0;
   const evidencePts=35;
-  const score=Math.min(100,evidencePts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
+  const score=Math.min(landscape?100:84,evidencePts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
   return {...base,score,passed:landscape&&score>=85,categories:[
     {key:'timelineEvidence',title:'🖼️ 時間軸截圖佐證',score:evidencePts,max:35,hint:'已選擇截圖，內容尚待教師核對；非自動辨識分頁／文字'},
     {key:'resolution',title:'📺 畫質',score:Math.round(by('resolution')/15*20),max:20,hint:'畫面需清楚可辨'},
@@ -39,7 +36,7 @@ function renderStages(){
   puzzleSteps=[];renderPuzzle();showQuizProgress();
   $('travelSelfCheck').checked=false;$('travelFile').value='';
   $('travelEvidence').value='';$('travelEvidencePreview').innerHTML='';if(evidenceUrl){URL.revokeObjectURL(evidenceUrl);evidenceUrl=null;}
-  $('travelEvidencePrompt').textContent=stageIndex===1?'請截圖 Canva 主影片軌的空白片段與上方文字軌，盡量讓片頭字樣清楚出現。':stageIndex===0?'請截圖 Canva 下方時間軸，讓至少三個影片片段清楚入鏡。':stageIndex===2?'請截圖兩段影片的交界處與選用的轉場設定。':'請截圖音訊軌、片尾頁面與片尾文字；老師再核對實際作品。';
+  $('travelEvidencePrompt').textContent='請截圖 Canva 編輯器，盡量同時顯示多段素材、空白片頭或片尾分頁、文字軌與音訊軌；教師將另行核對原圖與作品。';
 }
 function showQuizProgress(){
   $('travelQuizStatus').textContent=quizPassed[stageIndex].puzzle?'🎉 操作順序正確！接著在 Canva 完成操作、提供時間軸截圖與影片。':`🧩 操作拼圖 ${puzzleSteps.length} / 4 步，依真實編輯順序點擊。`;
@@ -84,10 +81,10 @@ async function connect(){
       cloudAvailable=true;
       $('travelAuth').textContent=`☁️ ${p.className} 班 ${p.seatNo} 號 ${p.name}｜已連線，可同步旅拍技術檢測分數。`;
       if(prior.exists()){
-        const priorData=prior.data();if(['stage-v1','stage-v2'].includes(priorData.gradingVersion)&&priorData.stages){
+        const priorData=prior.data();if(priorData.gradingVersion==='stage-v3'&&priorData.stages){
           stageScores={...priorData.stages};stageProof={...(priorData.studentDeclaredStages||{})};
           const incomplete=STAGES.findIndex((s,i)=>!Number.isFinite(+stageScores[i])||+stageScores[i]<85);
-          stageIndex=incomplete<0?3:incomplete;renderStages();
+          stageIndex=incomplete<0?STAGES.length-1:incomplete;renderStages();
         }
         say(`雲端已有旅拍技術檢測紀錄，可繼續分階段挑戰。`);
       }
@@ -144,13 +141,13 @@ function show(result){
   const items=categories.map(c=>`<div><strong>${escapeText(c.title)}｜${c.score} / ${c.max}</strong><span>${escapeText(c.hint)}</span></div>`).join('');
   resultBox.innerHTML=`<div class="travel-score"><div><small>🐣 小導演的技術檢測結果</small><div class="big">${score}<small style="font-size:1.15rem"> / 100</small></div></div><div style="font-size:2.9rem" aria-hidden="true">${passed?'🏆🌟':'🛠️💪'}</div></div>
     <div class="travel-meter"><i style="width:${score}%"></i></div><div class="travel-score-rows">${items}</div>
-    <div class="${passed?'travel-pass':'travel-retry'}">${passed?'✅ 本階段技術達標！':'🌱 本階段尚未達標，請依提示重新匯出。'}　${Object.keys(stageScores).filter(k=>stageScores[k]>=85).length} / 4 站通過</div>
+    <div class="${passed?'travel-pass':'travel-retry'}">${passed?'✅ 最後技術檢測達標！':'🌱 技術檢測尚未達標，請依提示重新匯出。'}　操作星星由前面 12 關獨立記錄</div>
     <p class="small">此為尚未核驗的練習分數：截圖只確認有選擇檔案，並未自動辨識 Canva 的分頁、文字圖層、轉場或音樂。截圖沒有傳送到教師版，須由教師另行查看原圖及作品。</p>`;
 }
 button.addEventListener('click',async()=>{
   if(busy)return;const file=fileInput.files?.[0];
   if(!file){say('請先選一支 MP4 影片喔！',true);return;}
-  if(!quizPassed[stageIndex].puzzle){say('請先完成上方橘色框的操作拼圖。',true);return;}
+  if(!window.travelQuestReady?.()){say('請先完成上方 12 顆學習星星，再進行最後作品檢測。',true);return;}
   if(!$('travelSelfCheck').checked){say('請先完成這一站的操作，並勾選自我檢核。',true);return;}
   const evidence=$('travelEvidence').files?.[0];if(!evidence||!['image/png','image/jpeg'].includes(evidence.type)||evidence.size>10*1024*1024){say('請先提供本階段 Canva 編輯器的時間軸 PNG／JPG 截圖（小於 10MB）。',true);return;}
   if(!/\.mp4$/i.test(file.name)||!['','video/mp4'].includes(file.type)){say('請從 Canva 匯出 MP4 影片。',true);return;}
@@ -176,10 +173,10 @@ button.addEventListener('click',async()=>{
           studentUid:uid,...identity,term:'11602',unit:'media',score:overall,passed:completed,
           duration:result.measurements.duration,width:result.measurements.width,height:result.measurements.height,
           fileSize:result.measurements.size,details:Object.fromEntries(result.categories.map(c=>[c.key,c.score])),
-          gradingVersion:'stage-v2',stages:stageScores,studentDeclaredStages:stageProof,completedStages:STAGES.filter((s,i)=>Number(stageScores[i])>=85).length,
+          gradingVersion:'stage-v3',stages:stageScores,studentDeclaredStages:stageProof,completedStages:STAGES.filter((s,i)=>Number(stageScores[i])>=85).length,
           source:'student-browser-unverified',checkedAt:fs.serverTimestamp()
         });
-        say(completed?'🎉 四階段技術條件全部達標，已同步教師版（學生端、未核驗）。':'✅ 本階段檢測已同步，請依上方目標繼續下一站。');
+        say(completed?'🎉 最後作品的技術暫評已同步教師版（學生端、尚待作品核驗）。':'✅ 最後作品暫評已同步，請依提示調整後重試。');
       }catch(e){say(String(e.code||'').includes('permission-denied')?'本機檢測完成，但 Firebase 拒絕寫入。請老師先發布更新包內 firestore.rules 的合併版，並確認學生身分與權限；分數尚未同步。':'檢測完成，但雲端同步失敗：'+(e.code||e.message),true);}
     }else say(uid
       ?'✅ 本機技術檢測已完成。教師版同步尚未開通；請老師確認 Firestore 規則後再進行一次檢測。'

@@ -12,10 +12,12 @@ function render(){
   if(!rows.length){list.innerHTML='<p class="status">目前尚無技術檢測紀錄。學生可以到「90 秒旅拍」頁面選 MP4 進行免費檢測。</p>';return;}
   list.innerHTML=rows.map(r=>{
     const detail=r.details||{};
-    const items=[['⏱️ 長度','duration',30],['📺 解析度','resolution',15],['📐 比例','ratio',10],['✅ 可解碼','playable',10],['🎞️ 變化','motion',20],['☀️ 曝光','light',10],['📦 檔案','bitrate',5]];
+    const staged=['stage-v1','stage-v2','stage-v3'].includes(r.gradingVersion);
+    const items=staged?[[r.gradingVersion==='stage-v1'?'⏱️ 階段片長':'🖼️ 截圖佐證',r.gradingVersion==='stage-v1'?'stageDuration':'timelineEvidence',35],['📺 畫質','resolution',20],['📐 比例','ratio',15],['🎞️ 變化','motion',15],['☀️ 亮度','light',10],['📦 檔案','bitrate',5]]:[['⏱️ 長度','duration',30],['📺 解析度','resolution',15],['📐 比例','ratio',10],['✅ 可解碼','playable',10],['🎞️ 變化','motion',20],['☀️ 曝光','light',10],['📦 檔案','bitrate',5]];
     return `<article style="border-radius:16px;padding:15px;background:linear-gradient(130deg,#f1fbff,#fffbef);border:1px solid #c9e9e4">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px"><b>${esc(r.className)} 班 ${esc(r.seatNo)} 號 ${esc(r.name)}</b><strong style="font-size:1.3rem;color:${r.passed?'#087f5b':'#b36a20'}">${Number(r.score)||0} / 100｜${r.passed?'🌟 技術達標':'🌱 繼續加油'}</strong></div>
       <p class="status" style="margin:5px 0">影片約 ${Number(r.duration||0).toFixed(1)} 秒｜${Number(r.width)||0} × ${Number(r.height)||0}｜${r.checkedAt?.toDate?.().toLocaleString('zh-TW')||'時間未知'}</p>
+      ${staged?'<p class="status"><b>'+(r.gradingVersion==='stage-v3'?'最後檢測暫評：':'舊版四站技術分數：')+'</b>'+(r.gradingVersion==='stage-v3'?'完整作品 '+(r.stages?.[0]==null?'未提交':Number(r.stages[0])+' 分'):['分鏡素材','剪輯文字','特效轉場','音樂完成'].map((s,i)=>esc(s)+' '+(r.stages?.[i]==null?'未提交':Number(r.stages[i])+' 分')).join(' ｜ '))+'</p>':'<p class="status">舊版單次技術檢測（未分階段）。</p>'}
       <div style="display:flex;flex-wrap:wrap;gap:7px">${items.map(([name,key,max])=>`<span style="background:white;border:1px solid #cce3ef;border-radius:99px;padding:5px 9px;font-size:.86rem">${name} ${Number(detail[key])||0}/${max}</span>`).join('')}</div>
       <p class="status" style="color:#a35a00">⚠️ 學生端檢測，未經伺服器核驗；未儲存或收取影片，無法單獨證明作品品質。</p></article>`;
   }).join('');
@@ -47,7 +49,10 @@ $('travelTeacherExport')?.addEventListener('click',()=>{
   const data=rows.map(r=>({
     '學期':'116-2 下學期','班級':r.className,'座號':Number(r.seatNo),'姓名':r.name,
     '技術檢測分數':Number(r.score)||0,'85分技術達標':r.passed?'達標':'未達標',
-    '成績來源':'學生端技術檢測（未核驗）','影片秒數':Number(r.duration||0).toFixed(1),
+    '成績來源':'學生端技術檢測（未核驗）','評分版本':r.gradingVersion||'舊版單次評分',
+    '新版完整作品檢測':r.gradingVersion==='stage-v3'?(r.stages?.[0]??'未提交'):'非新版','分鏡素材階段':r.gradingVersion==='stage-v3'?'－':(r.stages?.[0]??'未提交'),'剪輯文字階段':r.stages?.[1]??'未提交',
+    '特效轉場階段':r.stages?.[2]??'未提交','配樂完成階段':r.stages?.[3]??'未提交',
+    '時間軸截圖佐證暫分':Number(r.details?.timelineEvidence)||0,'影片秒數':Number(r.duration||0).toFixed(1),
     '解析度':`${Number(r.width)||0}×${Number(r.height)||0}`,
     ...Object.fromEntries(points.map(([title,key])=>[title+'得分',Number(r.details?.[key])||0])),
     '檢測時間':r.checkedAt?.toDate?.().toLocaleString('zh-TW')||''

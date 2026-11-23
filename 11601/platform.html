@@ -22,11 +22,29 @@
 <body>
 <main class="wrap">
   <header id="topbar"></header>
+  <div style="margin:12px 0;padding:14px 18px;border-radius:16px;background:#fff9dc;border:1px solid #f4d985;line-height:1.7">
+    🧠 <strong>第三關「記憶體快遞」已改用新關卡</strong>：<a href="memory-practice.html" style="font-weight:900;color:#12649d">進入 12 題記憶體特訓 →</a>（新關卡立即回饋練習成果；不使用舊判題伺服器，也不修改歷史星星）。
+  </div>
   <div id="app"></div>
 </main>
 <script>
 UI.topbar('#topbar', { title: '🖥️ 系統平臺大冒險', kicker: '單元三 · 3上 第 3 章' });
-CARDGAME.mount({ app: '#app', levels: PF_LEVELS, mod: 'platform' });
+// G3 舊驗證題庫暫停使用：地圖直達 #G3 與單元選單的第三張卡片都改進新關卡。
+// 保留原關卡 ID 與資料庫歷史進度；其他關卡的順序、ID、判題不變。
+if (location.hash === '#G3') {
+  location.replace('memory-practice.html');
+} else {
+  PF_LEVELS[2].title = '記憶體快遞・新關卡';
+  PF_LEVELS[2].book = '3-1 記憶單元｜12 題獨立練習';
+  document.querySelector('#app').addEventListener('click', function (event) {
+    var card = event.target.closest && event.target.closest('.lvcard[data-i="2"]');
+    if (!card) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    location.href = 'memory-practice.html';
+  }, true);
+  CARDGAME.mount({ app: '#app', levels: PF_LEVELS, mod: 'platform' });
+}
 </script>
 </body>
 </html>

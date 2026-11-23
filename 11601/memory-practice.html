@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>記憶體快遞特訓站｜系統平臺大冒險</title>
+<style>
+:root{font-family:system-ui,"Noto Sans TC",sans-serif;color:#153454;background:#f0f8ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 12%,#fff2c7,transparent 28%),radial-gradient(circle at 92% 3%,#ffe1ec,transparent 30%),#f0f8ff}.wrap{max-width:1020px;margin:auto;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}a{color:#17619b}.badge{background:#fff7ca;border:2px solid #ffdb77;border-radius:999px;padding:7px 14px;font-weight:750}.hero,.panel{background:#fff;border:2px solid #dae8f6;border-radius:26px;padding:24px;box-shadow:0 12px 25px #18487b12}.hero{margin:18px 0;background:linear-gradient(120deg,#fef5db,#ecf9ff)}h1{font-size:clamp(1.65rem,4vw,2.45rem);margin:8px 0}h2{margin:4px 0 14px}.lead{line-height:1.8}.steps{display:flex;gap:8px;flex-wrap:wrap;margin:17px 0}.steps span{border-radius:999px;padding:8px 12px;background:#edf4fc;font-weight:700}.steps .on{background:#b8eddd}.bar{background:#dfe9f4;border-radius:20px;height:14px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#20b694;transition:width .2s}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:18px 0}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:4px solid #ff9f25;outline-offset:3px}.choice{border:2px solid #bcd2e9;border-radius:18px;background:#fff;padding:16px;min-height:94px;font-weight:800;font-size:1.08rem}.choice:hover:not(:disabled){background:#eaf8ff;border-color:#53a8e5;transform:translateY(-2px)}.choice:disabled{cursor:default}.choice.good{border-color:#14a87b;background:#ddf9ed}.choice.bad{border-color:#e75b78;background:#fff0f3}.icon{font-size:1.8rem;display:block}.btn{border:0;background:#1b689f;color:#fff;border-radius:14px;padding:12px 21px;font-weight:800}.btn.secondary{background:#f7e0a2;color:#664009}.note{padding:14px;border-radius:15px;background:#edf7ff;line-height:1.8;min-height:54px}.note.ok{background:#e2f9ed}.note.warn{background:#fff0e6}.tiny{color:#58718d;font-size:.91rem}.hidden{display:none}.score{font-size:2.6rem;color:#0a8468;font-weight:900}.footer{margin:18px 0;color:#526a84;line-height:1.7}@media(max-width:580px){.choices{grid-template-columns:1fr}.panel,.hero{padding:16px}}
+</style>
+</head>
+<body><main class="wrap">
+<header><a href="platform.html">← 回到系統平臺關卡選單</a><span class="badge">📦 獨立練習站 · 免費</span></header>
+<section class="hero"><div>🧠 ⚡ 💾</div><h1>記憶體快遞特訓站</h1><p class="lead">幫記憶體小夥伴找到正確的速度、容量與工作！共 12 題，答錯會有提示，完成後可以再玩一次。</p><strong>✨ 這裡是獨立練習：不連接判題伺服器、不扣心、不修改 Firebase 或正式星星。</strong></section>
+<section class="panel" id="intro"><h2>出發前先認識四位夥伴</h2><p class="lead">🚀 <b>暫存器</b>：CPU 裡面，速度最快但容量極小。<br>⚡ <b>快取記憶體</b>：替 CPU 暫存常用資料，速度很快。<br>🧠 <b>RAM</b>：正在使用的程式和資料暫放處，關機後通常不保留。<br>💾 <b>輔助記憶體（SSD／硬碟）</b>：容量大、長期儲存檔案，相較前面三者通常較慢。</p><button class="btn" id="begin">🚀 開始 12 題挑戰</button></section>
+<section class="panel hidden" id="game" aria-live="polite"><div class="steps"><span class="on" id="progress">第 1 / 12 題</span><span id="topic">速度挑戰</span><span id="points">答對 0 題</span></div><div class="bar"><i id="fill"></i></div><h2 id="question" style="margin-top:21px"></h2><p class="tiny" id="hint"></p><div class="choices" id="choices"></div><div class="note hidden" id="feedback"></div><button class="btn hidden" id="next" style="margin-top:16px">下一題 →</button></section>
+<section class="panel hidden" id="result"><h2>🎉 旅程結束，特訓完成！</h2><p class="score" id="final"></p><p id="summary"></p><div class="note">本關已取代舊版第三關入口。這個分數是本機練習結果，不會增加或清除正式星星，既有歷史成績保留。</div><p><button class="btn" id="again">🔄 再練一次</button>　<a href="platform.html">返回關卡選單</a></p></section>
+<p class="footer">💡 教學提醒：不同記憶體各有用途。「快」不等於「容量大」；常見電腦架構的概念排序為：暫存器 → 快取 → RAM → 輔助記憶體。</p>
+</main>
+<script>
+(()=>{'use strict';
+const questions=[
+ ['速度','下列哪一種記憶體的存取速度通常最快？',['暫存器','RAM','硬碟','快取記憶體'],0,'暫存器位在處理器內部，是 CPU 最快能取用的儲存位置之一。'],
+ ['速度','依一般電腦記憶體階層，哪一個通常排第二快？',['硬碟','快取記憶體','RAM','USB 隨身碟'],1,'常見順序：暫存器 → 快取 → RAM → SSD／硬碟。'],
+ ['速度','RAM 與硬碟比較，哪一項通常正確？',['RAM 存取較快','硬碟一定較快','兩者一定一樣快','RAM 只能放照片'],0,'RAM 用於執行中的程式與資料，通常比硬碟快。'],
+ ['速度','以下哪一個由快到慢的順序比較合理？',['硬碟 → RAM → 快取 → 暫存器','暫存器 → 快取 → RAM → 硬碟','RAM → 硬碟 → 暫存器 → 快取','快取 → 硬碟 → RAM → 暫存器'],1,'從 CPU 最近、最小而快的記憶體開始排序。'],
+ ['容量','在一般電腦中，以下哪一種通常有最大的儲存容量？',['暫存器','快取記憶體','輔助記憶體','CPU 暫存空間'],2,'硬碟或 SSD 用於長期保存大量檔案。'],
+ ['容量','暫存器的容量通常有什麼特點？',['容量極大','容量很小','比硬碟大','可以放完整電影資料庫'],1,'暫存器非常快，但數量與容量都有限。'],
+ ['容量','快取記憶體與 RAM 相比，容量通常如何？',['快取通常較小','快取一定較大','容量一定相同','RAM 不用容量'],0,'快取容量較小，但速度較快。'],
+ ['容量','哪一組描述最符合一般情況？',['越快一定越便宜','暫存器最快但容量極小','硬碟最快且最小','所有儲存設備容量相同'],1,'速度、容量、成本需要取捨。'],
+ ['用途','正在執行的程式，主要會把工作資料暫放在哪裡？',['RAM','印表機','滑鼠','螢幕'],0,'RAM 是執行中程式常使用的主要記憶體。'],
+ ['用途','電腦正常關機後，希望長期保留的照片適合存在哪裡？',['CPU 暫存器','快取','SSD／硬碟','RAM'],2,'長期儲存資料應使用非揮發性的輔助記憶體。'],
+ ['用途','CPU 想快速取得剛用過的常用資料，哪種記憶體特別有幫助？',['快取記憶體','硬碟','光碟片','記憶卡'],0,'快取將常用資料放在接近 CPU 的地方，降低等待時間。'],
+ ['用途','對一般 RAM 而言，關機後裡面的工作資料會怎樣？',['永久保留','通常消失','變成硬碟','自動印出來'],1,'一般 RAM 是揮發性記憶體，斷電後資料不會長期保存。']
+];
+const $=id=>document.getElementById(id);let index=0,right=0,answered=false;
+function show(which){['intro','game','result'].forEach(id=>$(id).classList.toggle('hidden',id!==which));}
+function render(){answered=false;let q=questions[index];$('progress').textContent=`第 ${index+1} / ${questions.length} 題`;$('topic').textContent=q[0]+'挑戰';$('points').textContent=`答對 ${right} 題`;$('fill').style.width=(index/questions.length*100)+'%';$('question').textContent=q[1];$('hint').textContent='請選出最適合的答案';$('feedback').className='note hidden';$('feedback').textContent='';$('next').classList.add('hidden');
+ const order=q[2].map((v,i)=>({v,i})).sort(()=>Math.random()-.5);$('choices').replaceChildren();order.forEach(item=>{let b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML='<span class="icon">'+['📦','⚡','🧠','💾'][item.i]+'</span>';b.append(document.createTextNode(item.v));b.addEventListener('click',()=>choose(item.i));$('choices').append(b);});
+ function choose(i){if(answered)return;answered=true;const correct=i===q[3];if(correct)right++;Array.from($('choices').children).forEach(b=>{b.disabled=true;const text=b.textContent;const answer=q[2][q[3]];if(text.includes(answer))b.classList.add('good');else if(text.includes(q[2][i]))b.classList.add('bad');});$('points').textContent=`答對 ${right} 題`;$('feedback').className='note '+(correct?'ok':'warn');$('feedback').textContent=(correct?'✅ 答對了！':'💡 再記住這個觀念：')+q[4];$('next').classList.remove('hidden');$('next').textContent=index===questions.length-1?'查看成果 🏆':'下一題 →';}
+}
+$('begin').onclick=()=>{index=0;right=0;show('game');render();};$('again').onclick=$('begin').onclick;
+$('next').onclick=()=>{index++;if(index<questions.length){render();return;}$('fill').style.width='100%';$('final').textContent=`${right} / ${questions.length} 題`;$('summary').textContent=right===12?'太棒了，觀念完全掌握！':right>=9?'很不錯！可以再練習一次挑戰全對。':'先看上方概念小卡，再試一次，你會更熟悉！';show('result');};
+})();
+</script></body></html>

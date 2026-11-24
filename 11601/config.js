@@ -46,12 +46,12 @@ window.CONFIG = {
     { w: 11, t: 'Python 魔王關：猜數字', levels: ['P10'], href: 'python.html' },
     { w: 12, t: '系統平臺統整 A：硬體、記憶體與組電腦', levels: ['G1', 'G2', 'G3', 'G4'], href: 'platform.html' },
     { w: 13, t: '系統平臺統整 B：作業系統、雲端、嵌入式系統', levels: ['G5', 'G6', 'G7', 'G8'], href: 'platform.html' },
-    { w: 14, t: 'EduCase 競賽：多媒體概念四關＋核心價值故事提案', levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP1'], href: '../shared/educase-film.html#concepts' },
-    { w: 15, t: 'EduCase 競賽：五格分鏡、鏡頭秒數及拍攝清單', levels: ['FP2'], href: '../shared/educase-film.html#idea' },
-    { w: 16, t: 'EduCase 競賽：旁白、環境音試錄與音訊製作', levels: ['FP3'], href: '../shared/educase-film.html#idea' },
-    { w: 17, t: 'EduCase 競賽：實拍、補鏡、素材授權與入鏡同意', levels: ['FP4'], href: '../shared/educase-film.html#idea' },
-    { w: 18, t: 'EduCase 競賽：90 秒粗剪、同儕試映與 280 秒擴充計畫', levels: ['FP5'], href: '../shared/educase-film.html#idea' },
-    { w: 19, t: 'EduCase 競賽：寒假補拍清單與分工確認', levels: [], href: '../shared/educase-film.html#calendar' }
+    { w: 14, t: '校園微電影：多媒體概念四關＋核心價值故事提案', levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP1'], href: '../shared/educase-film.html#concepts' },
+    { w: 15, t: '校園微電影：五格分鏡、鏡頭秒數及拍攝清單', levels: ['FP2'], href: '../shared/educase-film.html#idea' },
+    { w: 16, t: '校園微電影：旁白、環境音試錄與音訊製作', levels: ['FP3'], href: '../shared/educase-film.html#idea' },
+    { w: 17, t: '校園微電影：實拍、補鏡、素材授權與入鏡同意', levels: ['FP4'], href: '../shared/educase-film.html#idea' },
+    { w: 18, t: '校園微電影：180 秒粗剪、同儕試映與補鏡討論', levels: ['FP5'], href: '../shared/educase-film.html#idea' },
+    { w: 19, t: '校園微電影：補拍畫面、地點與組員分工確認', levels: [], href: '../shared/educase-film.html#calendar' }
   ],
 
   /* Python 執行環境（Pyodide）
@@ -83,9 +83,9 @@ window.CONFIG = {
     { id: 'platform', no: '三', title: '系統平臺大冒險', sub: '8 關 · 三星三階：基礎 → 操作 → 挑戰🧪', icon: '🖥️', color: 'u3',
       href: 'platform.html', maxStars: 24, levels: ['G1','G2','G3','G4','G5','G6','G7','G8'],
       desc: '組電腦、當作業系統總管、開電腦急診室、經營雲端披薩店。', chapter: '第 3 章' },
-    { id: 'filmPrep', no: '四', title: 'EduCase 校園創意短片｜上學期企畫', sub: '多媒體概念 4 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
+    { id: 'filmPrep', no: '四', title: '校園微電影｜上學期企畫', sub: '多媒體概念 4 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
       href: '../shared/educase-film.html#concepts', maxStars: 9, levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP1','FP2','FP3','FP4','FP5'],
-      desc: '以旅拍為基底，把環境永續、反詐、資訊倫理等正向教育意義寫進故事；寒假前完成 90 秒粗剪，預備 4 分 40 秒競賽作品。', chapter: '跨學期參賽專題' },
+      desc: '以旅拍為基底，寫下環境永續、社區關懷等故事價值；先完成 180 秒粗剪、同儕討論與補鏡計畫，再延伸成 4 分 40 秒作品。', chapter: '跨學期影片創作' },
     { id: 'arduino', no: '＋', title: '5016B 專題：AIoT 智慧教室守護站', sub: '五節 · 每節 3⭐（預測錯越少星越多）', icon: '💡', color: 'u4',
       href: '5016b.html', maxStars: 15, levels: ['S1','S2','S3','S4','S5'],
       desc: '感測器取樣、條件判斷、主迴圈、資料上雲端，最後做出自己的教室小幫手。', chapter: '跨章專題' }

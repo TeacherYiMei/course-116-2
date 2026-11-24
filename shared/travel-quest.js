@@ -1,4 +1,4 @@
-/* Canva 旅拍逐步冒險 v16.99：依 PDF 順序加入動畫效果的詳細實作指引。 */
+/* Canva 旅拍逐步冒險 v17.00：加入電影技巧可逐步模仿的操作教學。 */
 (()=>{
   'use strict';
   const $=id=>document.getElementById(id),mod='media';
@@ -27,6 +27,14 @@
     ['✨ 閃爍／霓虹／強烈效果','亮暗、光感或物件反覆變化，視覺很醒目','節慶招牌、夜市氣氛的短促強調','可能造成視覺疲勞；避免快速閃爍及整片濫用'],
     ['🎨 亮度／對比／飽和度調整','照片更明亮、輪廓更清楚、色彩更濃或更淡','陰天街景略提亮、不同鏡頭統一色調','這是色調調整不是動畫；過度加飽和度會失真']
   ];
+  const filmTutorials=[
+    {name:'🔎 平移到焦點，再放大（推薦先練）',where:'五段分鏡的「精彩內容」：街景 → 店家 → 招牌',prep:'同一地點的廣角照片一張，最好清楚包含目標商店或人物。',steps:['在 Canva 主軌放入街景照片，先讓它顯示約 3 秒。','點選照片，若顯示「動畫／Animate」，先試一種緩慢平移或漂移效果；預覽它是不是朝你要介紹的方向移動。','若可選「建立動畫／Create an Animation」，可以拖動照片錄製移動路徑；這是元素的移動，不等同於鏡頭的精準放大。','要明確放大到商店：複製同一張照片做第二個約 2 秒的畫面，點第二張照片的「裁切／Crop」，放大照片並拖曳至招牌位於畫面中央。','按播放：第 1 個畫面讓觀眾看到街景，第 2 個畫面讓招牌成為主角。兩段銜接太突兀可試短暫淡化。','注意：若想在同一鏡頭內平滑連續地同時改變位置與縮放，Canva 未必提供完整關鍵影格控制；先用「平移＋特寫剪接」完成可重現的效果。'],check:'最後放大的焦點是什麼？你是否仍看得清焦點？'},
+    {name:'🎥 拉遠揭曉環境',where:'「抵達」：先看小吃，再揭曉熱鬧夜市',prep:'同一場景的特寫與全景各一段，或用同一張高畫質照片製作兩個不同裁切。',steps:['先把特寫放在主軌，保留約 2 秒。','再放入全景，保留約 3–4 秒。','播放時應先只看到食物／標誌，接著看出它所在的地點。','試一版直接切換，再試一版短淡化；選擇比較像「揭曉」的版本。','如果只有照片，也可以把特寫照片與完整照片依序排好，靠裁切完成由近到遠的效果。'],check:'觀眾一開始不知道什麼？第二鏡頭揭曉了什麼？'},
+    {name:'✂️ 動作接剪：開門進店',where:'「抵達」或「精彩內容」：手推門 → 店內',prep:'拍攝 A：手碰到門把開始推門；拍攝 B：門打開後向室內走。',steps:['把 A、B 依序放入主軌。','選 A 片段，修剪右邊緣，讓它結束在「門剛開始打開」的瞬間。','選 B 片段，修剪左邊緣，讓畫面從「同一個開門動作繼續」開始。','先不要加轉場，直接播放兩段交界處。','如果看起來動作倒退，繼續修剪 B 的開頭；如果跳太快，就保留 A 多一點。'],check:'兩個鏡頭的門向同一方向打開嗎？動作有重複嗎？'},
+    {name:'👀 視線接剪：主角看到了什麼',where:'「精彩內容」：人物抬頭 → 天空或建築',prep:'拍攝 A：人物往某個方向看；拍攝 B：人物看向的招牌、夕陽或景色。',steps:['將人物望向遠方的畫面放在主軌，約 2 秒。','接著放入他看到的景色，約 3 秒。','修剪人物畫面，停在他望向景色的瞬間。','兩鏡直接切換，不需要炫目的轉場。','播放後請同學猜：主角剛才在看什麼？猜得到才代表視線引導清楚。'],check:'觀眾是否能從兩段鏡頭理解人物在看什麼？'},
+    {name:'🎶 蒙太奇：五個畫面濃縮旅程',where:'「精彩內容」：用短鏡頭快速帶過一天的旅行',prep:'準備五段：出發、路景、食物、活動、夕陽。',steps:['把五個素材依故事順序放到主軌。','先各保留約 2–3 秒，總共做出一段約 10–15 秒的短片。','播放一次，確定觀眾知道是「一天的旅程」，而不是隨機照片。','在後面的配樂任務挑選合法音樂或原創節奏，嘗試讓換鏡頭時間接近節拍。','比較快版與慢版；熱鬧畫面可短一點，回味畫面可以長一些。'],check:'五個鏡頭依序是什麼？哪個畫面應該停留最久？'},
+    {name:'🎧 聲音先行：先聽到，才看到',where:'「精彩內容」進入「回味」：先聽夜市聲，畫面才切夜市',prep:'準備街景影片、夜市影片，以及自己錄製或授權可用的環境音。',steps:['在主軌依序放街景與夜市兩段影片。','到 Canva 的音訊軌匯入夜市環境音，把音效左邊界拖到夜市畫面出現前約 1 秒。','播放時先維持街景畫面，但已聽見夜市聲，再切入夜市畫面。','如果原影片人聲被蓋住，選取音訊軌降低音量；確認沒有尖銳或過大的聲響。','將環境音和畫面一起播放，檢查觀眾是否期待即將出現的新地方。'],check:'觀眾先聽到的是什麼聲音？比畫面早約幾秒？'}
+  ];
   // 訪客練習進度只供畫面使用，正式星星以學生 STORE 為準。
   let guest=Array.from({length:tasks.length},(_,i)=>sessionStorage.getItem('travel_pdf_guest_'+i)==='1'),current=0;
   const has=i=>earned(i)||guest[i],count=()=>tasks.filter((_,i)=>has(i)).length;
@@ -53,6 +61,8 @@
       effectExamples.forEach(([name,appearance,scene,caution])=>{const card=document.createElement('article');card.style.cssText='background:#fff;border:1px solid #c4d9e6;border-radius:12px;padding:12px';const title=document.createElement('strong');title.textContent=name;card.append(title);[["👀 觀眾會看到：",appearance],["🎥 最適合畫面：",scene],["⚠️ 注意：",caution]].forEach(([label,value])=>{const p=document.createElement('p');p.style.margin='8px 0';const b=document.createElement('b');b.textContent=label;p.append(b,document.createTextNode(value));card.append(p);});grid.append(card);});guide.append(grid);
       const example=document.createElement('p');example.style.cssText='background:#d9f4e8;padding:12px;border-radius:10px;margin-top:12px';example.textContent='🧪 跟著試：① 點片頭文字 → 動畫 → 選淡入 → 播放；② 換成滑入 → 再播放；③ 兩種選一個。接著點一張街景照片 → 動畫 → 若有緩慢放大／平移就試用；④ 回到影片看前後效果，最後填下方五格。';guide.append(example);
       $('questAnswer').before(guide);
+      const film=document.createElement('section');film.style.cssText='border:2px solid #efbf6e;border-radius:16px;padding:16px;margin:12px 0;background:#fff9ed';const fh=document.createElement('h3');fh.textContent='🎬 電影導演模仿教室｜選一種技巧，打開後逐步跟做';film.append(fh);const explain=document.createElement('p');explain.textContent='這是加深練習，不另外增加必須取得的星星。每次只打開一項技巧，邊看操作步驟邊切換 Canva，完成後回來填本關的觀察。';film.append(explain);
+      filmTutorials.forEach((item,i)=>{const details=document.createElement('details');details.style.cssText='background:#fff;border:1px solid #e4c792;border-radius:12px;margin:10px 0;padding:12px';const summary=document.createElement('summary');summary.style.cssText='font-size:1.08rem;font-weight:800;cursor:pointer';summary.textContent=(i+1)+'｜'+item.name;details.append(summary);const where=document.createElement('p');where.textContent='📍 適合放在影片哪一段：'+item.where;details.append(where);const prep=document.createElement('p');prep.textContent='🎒 先準備：'+item.prep;details.append(prep);const ol=document.createElement('ol');item.steps.forEach(step=>{const li=document.createElement('li');li.style.margin='10px 0';li.textContent=step;ol.append(li);});details.append(ol);const check=document.createElement('p');check.style.cssText='background:#dff5e8;border-radius:9px;padding:9px';check.textContent='✅ 播放後想一想：'+item.check;details.append(check);film.append(details);});$('questAnswer').before(film);
     }
     const ans=$('questAnswer'),draft=readDraft(current);if(t.mode==='text'){const inp=document.createElement('input');inp.id='questText';inp.className='quest-input';inp.placeholder='請輸入你的實際作品內容';inp.maxLength=80;inp.value=draft.answer||'';inp.addEventListener('input',()=>writeDraft(current,{answer:inp.value}));ans.append(inp);}
     if(t.mode==='form')t.fields.forEach(([label,placeholder],i)=>{const wrap=document.createElement('label');wrap.style.display='block';wrap.style.margin='15px 0';const heading=document.createElement('strong');heading.textContent=(i+1)+'. '+label;heading.style.display='block';const field=document.createElement('textarea');field.className='quest-input';field.rows=2;field.maxLength=180;field.placeholder=placeholder;field.setAttribute('aria-label',label);field.dataset.field=i;field.value=draft[i]||'';field.addEventListener('input',()=>{const d=readDraft(current);d[i]=field.value;writeDraft(current,d);});wrap.append(heading,field);ans.append(wrap);});

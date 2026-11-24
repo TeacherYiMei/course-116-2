@@ -21,11 +21,24 @@
 .extension-card .ext-stat{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-weight:800;font-size:.9rem}
 .extension-card .ext-bar{height:12px;background:#e5e7eb;border-radius:12px;overflow:hidden;margin-top:10px}
 .extension-card .ext-bar i{display:block;height:100%;background:#7c3aed;border-radius:12px}
+/* 上學期首頁：以一致的卡片、留白與色彩呈現課程進度。 */
+body{background:radial-gradient(circle at 15% 0%,#f2f8ff 0,transparent 43%),linear-gradient(160deg,#f7f9fd 0%,#eaf2f7 100%)}
+main.wrap{max-width:1190px;padding:clamp(18px,3vw,40px) clamp(15px,3vw,30px) 60px}
+#hub>section.card:first-child{border:1px solid #d8e8f0;border-top:7px solid #2d76a7;border-radius:26px;box-shadow:0 15px 38px #1e4a6e17;padding:clamp(24px,4vw,38px)!important;background:linear-gradient(120deg,#ffffff 0%,#eef8fc 100%)}
+#hub>section.card:first-child .title{letter-spacing:.015em;font-size:clamp(2rem,4vw,3rem);line-height:1.22}
+#hub>section.grid.g2{gap:22px;margin-top:28px}
+#hub>section.grid.g2>.card{display:flex;flex-direction:column;min-height:255px;border:1px solid #dfebf3;border-radius:22px!important;box-shadow:0 7px 20px #25496a12!important;padding:25px!important;transition:transform .17s ease,box-shadow .17s ease}
+#hub>section.grid.g2>.card:hover{transform:translateY(-3px);box-shadow:0 12px 28px #25496a24!important}
+#hub>section.grid.g2>.card .row.mt2.small.bold{margin-top:auto!important;padding-top:15px}
+#hub>section.grid.g2>.card h2{line-height:1.35;overflow-wrap:anywhere}
+#hub>section.grid.g2>.card .bar{height:11px;border-radius:99px;background:#e7edf2}
+#hub>section.grid.g2>.card .row.mt2[style*="flex-wrap:nowrap"]{gap:16px;align-items:center!important}
+#hub>section.grid.g2>.card .row.mt2[style*="flex-wrap:nowrap"]>div:first-child{flex:0 0 48px;text-align:center}
+@media(max-width:760px){#hub>section.grid.g2{grid-template-columns:1fr;gap:16px}#hub>section.grid.g2>.card{min-height:0;padding:20px!important}#hub>section.card:first-child{padding:22px!important}}
 </style></head>
 <body>
 <main class="wrap">
   <div class="row small" style="margin-bottom:1rem"><a class="back" href="../index.html?stay">← 總入口</a></div>
-  <p><a class="btn" href="../shared/educase-film.html#idea">上學期｜校園創意短片：從選題到粗剪 →</a></p>
   <div id="hub"><p class="soft">載入中…</p></div>
 </main>
 <script>

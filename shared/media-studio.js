@@ -138,10 +138,7 @@
         '<p class="kicker">🎬 下學期微電影實作 · 4 分 40 秒</p>' +
         '<h2 class="black" style="font-size:1.5rem">用 Canva 剪出友情、成長與回憶的畢旅微電影</h2>' +
         '<p class="small mt1">先回顧上學期的核心價值、180 秒粗剪與分鏡，討論還缺哪些鏡頭並補拍，再循序精剪時間軸、字幕、動畫、特效、轉場及配樂。以 280 秒為作品目標，輸出後進行同儕試映。</p>' +
-        '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 進入 4 分 40 秒剪輯教室 →</a> <a class="btn" href="../shared/educase-film.html#idea">📝 回顧上學期故事提案 →</a></div>' +
-        '<details class="mt3"><summary class="small soft">查看舊版 30 秒廣告工作站（保留原有紀錄）</summary>' +
-        '<p class="small soft mt1">舊版 W1～W5 是歷史作品紀錄，不會計入新版旅拍的任務完成度。</p>' +
-        '<a class="btn sm" href="media.html?legacy=1#W1">開啟舊版工作站</a></details></section>';
+        '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 進入 4 分 40 秒剪輯教室 →</a> <a class="btn" href="../shared/educase-film.html#idea">📝 回顧上學期故事提案 →</a></div></section>';
       return;
     }
     var n = STEPS.filter(function (s) { return done(s.id); }).length;

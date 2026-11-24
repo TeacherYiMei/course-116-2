@@ -1,4 +1,4 @@
-/* Canva 旅拍逐步冒險 v16.95：每步一顆星，以 STORE 本地進度及既有學生雲端同步管道記錄。 */
+/* Canva 旅拍逐步冒險 v16.99：依 PDF 順序加入動畫效果的詳細實作指引。 */
 (()=>{
   'use strict';
   const $=id=>document.getElementById(id),mod='media';
@@ -9,14 +9,24 @@
     {icon:'✂️',title:'剪掉多餘畫面',goal:'讓畫面一開始就吸引人。',steps:['點選第一段影片，拖曳片段左右邊緣來修剪。','把走到定位前的晃動畫面剪掉。','第二段也試著修剪，保留最有趣的部分。','播放比較修剪前後的節奏。'],ask:'完成後確認：至少修剪過兩段影片。',mode:'confirm'},
     {icon:'🧱',title:'加一個片頭分頁',goal:'讓旅拍先有自己的標題畫面。',steps:['把播放頭移到最前面。','在主軌點「＋」或「新增」，選「空白片段／Blank」。','設定片頭背景色，保持文字能閱讀。','播放檢查空白片段是否真的出現在開頭。'],ask:'片頭要獨立顯示，應加入哪個物件？',mode:'choice',options:['主軌的空白片段','只改檔案名稱'],right:0},
     {icon:'🔤',title:'寫下旅拍片名',goal:'加入一行真正會出現在影片裡的文字。',steps:['在 Canva 左側選「文字／Text」→「新增標題」。','輸入你的旅拍名稱，例如「港邊的午後」。','把文字放在片頭，調整大小與顏色，避免和背景混在一起。','在多軌時間軸檢查文字的出現位置；播放確認片頭看得到字。'],ask:'輸入你實際放到 Canva 片頭的名稱',mode:'text'},
-    {icon:'🔀',title:'主軌交界處新增轉場',goal:'依手冊起步 6：讓 Blank 片頭自然接上第一段影片。',steps:['檢查 Blank 片頭與第一段影片都在最下方主影片軌。','將滑鼠移到這兩段的交界處，點「Add transition／新增轉場」。','先試淡化，再用 Duration 調整持續時間。','看不到按鈕時，檢查是否切到舊版頁面縮圖或誤放到上方軌。'],ask:'轉場放在哪裡？',mode:'choice',options:['兩段相鄰主軌片段的交界','上方文字軌的字體名稱'],right:0},
+    {icon:'🔀',title:'主軌交界處新增轉場',goal:'依手冊起步 6：讓 Blank 片頭自然接上第一段影片。',steps:['檢查 Blank 片頭與第一段影片都在最下方主影片軌。','將滑鼠移到這兩段的交界處，點「Add transition／新增轉場」。','先比較「直接切換」與「淡化／溶解」：直接切換像轉頭看下一件事；淡化像時間慢慢流過，適合白天變夜晚。','如有「滑動／推移」，可用在出發到抵達；它像新場景把舊場景推走，但每一段都推移會讓人頭暈。','試著將轉場時間設定短一些（例如約 0.3–0.8 秒），播放比較後再調整；太長會遮住精彩畫面。','看不到按鈕時，檢查是否切到舊版頁面縮圖或誤放到上方軌。'],ask:'轉場放在哪裡？',mode:'choice',options:['兩段相鄰主軌片段的交界','上方文字軌的字體名稱'],right:0},
     {icon:'🎞️',title:'剪輯節奏與直式素材',goal:'依手冊進階 1–2：快慢交錯，直式素材不要裁掉主角。',steps:['回到五段式故事，安排出發、抵達、探索、回味、結尾的順序。','把精彩特寫剪成約 2–4 秒，夜景或心情可保留較長。','直式素材要先選擇保留完整加背景，或裁切填滿橫式；預覽不可裁掉重要人物。','完整作品逐步調整到接近 90 秒，不必每個片段長度相同。'],ask:'填寫一段快鏡頭與一段慢鏡頭',mode:'form',fields:[['快鏡頭畫面及秒數','例如：美食特寫 3 秒'],['慢鏡頭畫面及秒數','例如：夜景 8 秒'],['直式素材如何處理','例如：左右加背景；沒有直式素材就填無']]},
-    {icon:'💬',title:'字幕、動畫與畫面色調',goal:'依手冊進階 3–5：讓文字清楚、動畫自然。',steps:['先在兩段精彩畫面上新增文字軌，各寫一句不超過兩行的字幕。','文字對齊對應畫面，檢查字體大小及背景對比。','選取片頭文字，找「動畫／Animate」，比較淡入與滑入。','選一段素材試調亮度、對比或飽和度，前後畫面色調保持一致。'],ask:'填寫兩句字幕及你使用的效果',mode:'form',fields:[['第一句景點字幕','例如：這裡的街角很有溫度'],['第二句景點字幕','例如：夕陽讓整條街變金色'],['文字動畫或色調效果','例如：淡入、稍微提亮']]},
+    {icon:'✨',title:'字幕、動畫與畫面特效實驗室',goal:'依手冊進階 3–5：親眼比較不同動畫，為自己的畫面選擇有理由的效果。',steps:['先在兩段精彩畫面上新增文字軌，各寫一句不超過兩行的字幕；播放確認字與畫面對齊。','選取「片頭標題文字」→ 點「動畫／Animate」。先試淡入，再換成滑入或上升，觀察文字從哪裡出現、速度是否影響閱讀。','再選取「一張照片或影片」→「動畫／Animate」。照片的輕微移動、放大感與文字動畫不同；可試著讓遠景緩慢移動，而不要讓人物一直晃動。','如果動畫面板有「進入／離開／兩者」與速度設定，片頭先選進入、片尾先選離開；選項依素材及帳號版本不同，沒有的效果不必強求。','試做「同一個畫面」的兩個版本：A 不加動畫，B 加一種動畫。各播放一次，挑選更能突出故事的版本。','選一段畫面再試「編輯／調整」中的亮度、對比或飽和度。這是修正畫面色調，不是讓物件移動的動畫。','完成後填入兩句字幕、效果實際套在哪一幕，以及你看到的前後差異。'],ask:'逐格寫下你的字幕、動畫選擇與畫面變化',mode:'form',effects:true,fields:[['第一句景點字幕','例如：轉進巷口，看到最熱鬧的早市'],['第二句景點字幕','例如：天空漸漸變成金黃色'],['套用動畫的畫面或物件','例如：片頭「我的街角小旅行」文字'],['實際選用的動畫及視覺效果','例如：文字淡入＋夕陽照片緩慢移動'],['加動畫前後看起來有何不同？為何選它？','例如：淡入比較溫柔，標題容易看清；不用一直跳動']]},
     {icon:'🎼',title:'替旅拍設計自己的配樂',goal:'先決定情緒與節奏，再挑選或製作可合法使用的音樂。',steps:['先選一種情緒：輕快、溫柔、神祕或熱鬧。','在紙上敲出四拍節奏，例如「咚－噠－咚噠」；試著讓節奏搭配開場鏡頭。','Canva 左側找「音訊／Audio」，試聽有授權的音樂；也可以用自己錄製的拍手、腳步、環境音作原創節奏。','想自製配樂：用手機或電腦錄下自己敲擊的節奏、哼唱或彈奏，匯出音訊檔；回 Canva「上傳」→「上傳檔案」，放入音訊軌。','確定素材可合法用於課堂作品，不要直接下載他人的歌曲。'],ask:'記下你的配樂設計',mode:'form',fields:[['想呈現的情緒','例如：輕快、溫柔'],['四拍節奏','例如：咚－噠－咚噠'],['音樂來源','例如：自己錄製拍手節奏，或 Canva 授權音樂']]},
     {icon:'🎚️',title:'音量、音效和畫面對齊',goal:'依手冊進階 6–7：讓人聲清楚，音效出現在動作那一秒。',steps:['將配樂放入獨立音訊軌，修剪左右邊界，對齊影片開始與結束。','有旁白時，選中音軌調低音量；能設定時加入淡入與淡出。','選一段走路、拍照或街景動作，在 Add Audio／Sound effects 尋找合法音效。','把音效放入另一音訊軌，拖到動作發生的瞬間，再戴耳機預覽。'],ask:'記錄音效用在哪一幕，以及調音量的方法',mode:'form',fields:[['音效名稱','例如：相機快門聲'],['搭配的畫面','例如：拍攝風景時按快門'],['配樂與人聲如何平衡','例如：人說話時調低背景音樂']]},
     {icon:'🏁',title:'片尾、預覽與匯出 MP4',goal:'依手冊進階 8–9：檢查完整作品，再送最後技術檢測。',steps:['主軌最後加入片尾 Blank，放「謝謝觀賞」等文字，避免公開同學個資。','從頭播放接近 90 秒的完整影片，檢查字幕、畫質、轉場、配樂、音效與片尾。','右上「分享／Share」→「下載／Download」→選 MP4 影片。','下載後以電腦播放器開啟一次，確定畫面和聲音都正常，再進入最後檢測。'],ask:'填寫自己的片尾文字和匯出檔名',mode:'form',fields:[['片尾文字','例如：謝謝一起旅行'],['匯出的 MP4 檔名','例如：我的街角小旅行.mp4'],['播放後的檢查結果','例如：有片頭片尾、字幕清楚、音樂正常']]}
   ];
   const key='TRAVEL_PDF_',earned=i=>!!(window.STORE?.level(mod,key+String(i+1).padStart(2,'0'))?.stars);
+  const effectExamples=[
+    ['🌫️ 淡入／淡出','文字或畫面從透明慢慢出現／消失','開場片名、黃昏回憶、片尾「謝謝觀賞」','留給觀眾閱讀時間；過慢會像卡住'],
+    ['⬆️ 上升／滑入','字幕由下往上，或從畫面側邊滑進來','抵達景點時顯示地名；路線、方向提示','文字不要飛過人臉；同一部影片盡量統一方向'],
+    ['💥 彈跳／蹦出','文字快速放大、輕輕彈一下，營造驚喜','「超好吃！」、「發現祕密景點！」等短促重點','只用在少數驚喜瞬間，長字幕不適合'],
+    ['⌨️ 打字／逐字出現','字像有人一個字一個字輸入','片頭日記、地址線索、簡短心情句','文字多會太慢；先確認觀眾能讀完'],
+    ['🔍 緩慢放大／縮小','靜態照片像鏡頭往景物靠近或退後','遠景慢慢接近地標、特寫美食或建築','不要放大到裁掉人物頭部；影片本身有晃動就少用'],
+    ['🛝 平移／漂移','照片彷彿鏡頭慢慢從左掃到右','街道全景、壁畫、風景照','移動太快會看不清，人物特寫不一定適合'],
+    ['✨ 閃爍／霓虹／強烈效果','亮暗、光感或物件反覆變化，視覺很醒目','節慶招牌、夜市氣氛的短促強調','可能造成視覺疲勞；避免快速閃爍及整片濫用'],
+    ['🎨 亮度／對比／飽和度調整','照片更明亮、輪廓更清楚、色彩更濃或更淡','陰天街景略提亮、不同鏡頭統一色調','這是色調調整不是動畫；過度加飽和度會失真']
+  ];
   // 訪客練習進度只供畫面使用，正式星星以學生 STORE 為準。
   let guest=Array.from({length:tasks.length},(_,i)=>sessionStorage.getItem('travel_pdf_guest_'+i)==='1'),current=0;
   const has=i=>earned(i)||guest[i],count=()=>tasks.filter((_,i)=>has(i)).length;
@@ -35,6 +45,15 @@
     $('questStep').innerHTML=`<div style="font-size:2.4rem">${t.icon}</div><p style="color:#145d81;font-weight:800">任務 ${current+1}／${tasks.length}</p><h2>${t.title}</h2><p><b>🎯 這次只做一件事：</b>${t.goal}</p><ol>${t.steps.map(s=>`<li>${s}</li>`).join('')}</ol><p class="quest-hint">🎯 請完成：${t.ask}</p><div id="questAnswer"></div>${needsCheck?'<label class="quest-check"><input type="checkbox" id="questReally"> '+checkText+'</label>':'<p class="small">✏️ 每一格都要填寫；這些草稿只保留在本次瀏覽器分頁，不會上傳到教師資料庫。</p>'}<p id="questMessage" role="status" aria-live="polite"></p><div class="quest-actions"><button id="questClaim" type="button">${has(current)?'⭐ 已獲得這顆星星':'🌟 完成任務，領一顆星星'}</button><button id="questNext" class="secondary" type="button" ${unlocked(current+1)&&current<tasks.length-1?'':'disabled'}>下一關 →</button></div>${n===tasks.length?'<div class="quest-complete"><h3>🏆 12 顆星星收集完成！</h3><p>現在才進行最後 MP4 技術檢測。這些星星只記錄學習任務完成情形，作品內容仍須老師查看。</p><a class="btn" href="#travelSubmission">🚀 前往最後檢測</a></div>':''}`;
     const pageForTask=[8,2,3,5,6,6,7,8,10,13,14,15];
     const manualButton=document.createElement('button');manualButton.type='button';manualButton.className='btn alt';manualButton.textContent='📖 對照圖解手冊第 '+pageForTask[current]+' 頁';manualButton.style.margin='12px 0';manualButton.addEventListener('click',()=>{const panel=$('travelManual');panel.open=true;const viewer=panel.querySelector('iframe');viewer.src='90秒旅拍_Canva零基礎繁體中文圖解操作手冊.pdf#page='+pageForTask[current]+'&view=FitH';panel.scrollIntoView({behavior:'smooth',block:'start'});});$('questAnswer').before(manualButton);
+    if(t.effects){
+      const guide=document.createElement('section');guide.style.cssText='background:#eef8ff;border:2px solid #8dc7ed;border-radius:16px;padding:16px;margin:14px 0';
+      const heading=document.createElement('h3');heading.textContent='🎬 動畫會帶來什麼畫面效果？先看比較，再選用';guide.append(heading);
+      const tip=document.createElement('p');tip.textContent='先分清楚：動畫＝單一文字、照片或元素怎麼動；轉場＝兩個鏡頭怎麼交接；色調調整＝畫面亮暗與顏色怎麼改。效果名稱、是否免費、可調設定會依 Canva 版本與素材而不同；請挑你實際看得到的同類效果。';guide.append(tip);
+      const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px';
+      effectExamples.forEach(([name,appearance,scene,caution])=>{const card=document.createElement('article');card.style.cssText='background:#fff;border:1px solid #c4d9e6;border-radius:12px;padding:12px';const title=document.createElement('strong');title.textContent=name;card.append(title);[["👀 觀眾會看到：",appearance],["🎥 最適合畫面：",scene],["⚠️ 注意：",caution]].forEach(([label,value])=>{const p=document.createElement('p');p.style.margin='8px 0';const b=document.createElement('b');b.textContent=label;p.append(b,document.createTextNode(value));card.append(p);});grid.append(card);});guide.append(grid);
+      const example=document.createElement('p');example.style.cssText='background:#d9f4e8;padding:12px;border-radius:10px;margin-top:12px';example.textContent='🧪 跟著試：① 點片頭文字 → 動畫 → 選淡入 → 播放；② 換成滑入 → 再播放；③ 兩種選一個。接著點一張街景照片 → 動畫 → 若有緩慢放大／平移就試用；④ 回到影片看前後效果，最後填下方五格。';guide.append(example);
+      $('questAnswer').before(guide);
+    }
     const ans=$('questAnswer'),draft=readDraft(current);if(t.mode==='text'){const inp=document.createElement('input');inp.id='questText';inp.className='quest-input';inp.placeholder='請輸入你的實際作品內容';inp.maxLength=80;inp.value=draft.answer||'';inp.addEventListener('input',()=>writeDraft(current,{answer:inp.value}));ans.append(inp);}
     if(t.mode==='form')t.fields.forEach(([label,placeholder],i)=>{const wrap=document.createElement('label');wrap.style.display='block';wrap.style.margin='15px 0';const heading=document.createElement('strong');heading.textContent=(i+1)+'. '+label;heading.style.display='block';const field=document.createElement('textarea');field.className='quest-input';field.rows=2;field.maxLength=180;field.placeholder=placeholder;field.setAttribute('aria-label',label);field.dataset.field=i;field.value=draft[i]||'';field.addEventListener('input',()=>{const d=readDraft(current);d[i]=field.value;writeDraft(current,d);});wrap.append(heading,field);ans.append(wrap);});
     if(t.mode==='storyboard'){

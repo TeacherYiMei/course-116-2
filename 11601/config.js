@@ -86,7 +86,7 @@ window.CONFIG = {
     { id: 'arduino', no: '四', title: '5016B 專題：AIoT 智慧教室守護站', sub: '五節 · 每節 3⭐（預測錯越少星越多）', icon: '💡', color: 'u4',
       href: '5016b.html', maxStars: 15, levels: ['S1','S2','S3','S4','S5'],
       desc: '感測器取樣、條件判斷、主迴圈、資料上雲端，最後做出自己的教室小幫手。', chapter: '跨章專題' },
-    { id: 'filmPrep', no: '五', title: '畢旅微電影｜上學期企畫', sub: '多媒體概念 4 星＋AI 創作 6 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
+    { id: 'filmPrep', no: '六', title: '畢旅微電影｜上學期企畫', sub: '多媒體概念 4 星＋AI 創作 6 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
       href: '../shared/educase-film.html#concepts', maxStars: 15, levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP_AI1','FP_AI2','FP_AI3','FP_AI4','FP_AI5','FP_AI6','FP1','FP2','FP3','FP4','FP5'],
       desc: '先學影像概念與 AI 素養，再選畢旅、校園、社區等主題及核心價值，完成五格分鏡、180 秒粗剪與補鏡討論。', chapter: '跨學期校園微電影' }
   ],

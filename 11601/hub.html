@@ -58,9 +58,12 @@ function drawExtensionCard(){
     card=document.createElement('a');card.id='extension-map-card';
     card.className='card pop extension-card';card.href='extension.html';
     card.style.cssText='text-decoration:none;border-top:6px solid #7c3aed';
-    root.appendChild(card);
   }
-  card.innerHTML='<div class="row between"><span class="ext-chip">🧭 跨章延伸 · 統整挑戰</span><span class="tiny bold soft">'+status+'</span></div>'+
+  // 第五單元安排在畢旅微電影之前，星星仍使用原本的 extension 模組。
+  var filmCard=root.querySelector('a[href="../shared/educase-film.html#concepts"]');
+  if(filmCard && card.nextElementSibling!==filmCard)root.insertBefore(card,filmCard);
+  else if(!filmCard && card.parentNode!==root)root.appendChild(card);
+  card.innerHTML='<div class="row between"><span class="ext-chip">單元五 · 跨章統整挑戰</span><span class="tiny bold soft">'+status+'</span></div>'+
     '<div class="row mt2" style="align-items:flex-start;flex-wrap:nowrap"><div style="font-size:2.4rem;line-height:1">🧭</div><div><h2 style="font-size:1.25rem" class="black">數位科技任務中心</h2><p class="small soft bold">6 站 · 18 顆星 · 3 種跨章徽章</p></div></div>'+
     '<p class="small mt1">統整數位時代、Python、系統平臺，進行跨章任務。Python 自行輸入程式，不提供複製答案。</p>'+
     '<div class="ext-stat"><span>⭐ '+s+' / 18 · '+pct+'%</span><span class="soft">'+done+' / 6 關</span></div>'+

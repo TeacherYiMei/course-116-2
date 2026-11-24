@@ -8,26 +8,26 @@
 (function () {
   var esc = UI.esc, MOD = 'media', STEPS = window.MEDIA_STEPS;
   var AIT = (window.CONFIG && CONFIG.AI_TOOL) || { name: '老師指定的 AI 工具', url: '', login: '' };   // 學校指定的 AI 工具（config.js）
-  UI.topbar('#topbar', { title: '🎬 多媒體專題：90 秒旅拍', kicker: '單元四 · 3下 第 1 章 · Canva 影片創作' });
+  UI.topbar('#topbar', { title: '🎬 EduCase 校園創意短片：4 分 40 秒', kicker: '單元四 · 跨學期參賽專題 · Canva 精剪' });
   /* 兩組闖關（概念 M1～M4、AI 素養 A1～A6）共用 cardgame 引擎，引擎用固定的元素 id，
      所以同一時間只掛一組：切到哪個分頁就掛哪一組、清掉另一組。 */
   function mountGames() {
     var a = document.getElementById('ai-games'); if (a) a.innerHTML = '';
-    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '學會影片格式、時間軸、著作權，再剪輯你的 90 秒旅拍' });
+    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '舊版多媒體概念題供回顧；正式開拍前的四個概念關已移至上學期 EduCase 企畫' });
   }
   mountGames();
 
   /* ── 課程小卡：概念闖關 → 看示範 → AI 前導關 → 廣告工作站（照上課順序，顯示各自的進度）── */
-  var TABS = ['games', 'demo', 'ai', 'studio'], curTab = 'games';
+  var TABS = ['studio', 'games', 'demo', 'ai'], curTab = 'studio';
   function starsOf(ids) { return ids.reduce(function (a, id) { return a + ((STORE.level(MOD, id) || {}).stars || 0); }, 0); }
   function drawCards() {
     var M = (window.MEDIA_LEVELS || []).map(function (l) { return l.id; }), AI = (window.MEDIA_AI_LEVELS || []).map(function (l) { return l.id; });
     var W = STEPS.filter(function (s) { return (STORE.level(MOD, s.id) || {}).done; }).length, D = window.MEDIA_DEMO || {};
     var C = [
-      { t: 'games', icon: '🎮', title: '概念闖關', ds: '畫質、影片格式、時間軸、後製與著作權', got: starsOf(M), max: M.length * 3, unit: '⭐' },
+      { t: 'games', icon: '🎮', title: '舊概念關回顧', ds: '正式先修課已移上學期；舊 M1–M4 星星不刪除', got: starsOf(M), max: M.length * 3, unit: '⭐' },
       { t: 'demo', icon: '📺', title: '旅拍示範', ds: '跟著四格動態分鏡，看一支旅拍如何從片頭走到片尾', note: '本站原創示意' },
       { t: 'ai', icon: '🤖', title: 'AI 前導關', ds: 'AI 素養六關：先認識 AI，再請它幫忙', got: starsOf(AI), max: AI.length * 3, unit: '⭐' },
-      { t: 'studio', icon: '🎬', title: '90 秒旅拍', ds: 'Canva 剪輯教學：文字、特效、轉場、配樂與輸出', note: '8 堂實作' }
+      { t: 'studio', icon: '🎬', title: '競賽精剪', ds: '4 分 40 秒：故事、字幕、特效、配樂與驗收', note: '12 星任務' }
     ];
     document.getElementById('ucards').innerHTML = C.map(function (c, i) {
       var pct = c.max ? Math.round(c.got / c.max * 100) : 0;
@@ -41,7 +41,7 @@
   }
   window.addEventListener('store:change', function () { if (STORE.me()) drawCards(); });
   /* 每一部分的結尾：← 上一部分／下一部分 →（和其他單元的「上一課／下一課」同一組樣式） */
-  var TAB_NAMES = { games: '🎮 概念闖關', demo: '📺 看示範', ai: '🤖 AI 前導關', studio: '🎬 90 秒旅拍' };
+  var TAB_NAMES = { games: '🎮 舊概念複習', demo: '📺 看示範', ai: '🤖 AI 前導關', studio: '🎬 競賽精剪' };
   function tabPager(t) {
     var i = TABS.indexOf(t), P = TABS[i - 1], N = TABS[i + 1];
     function go(k) { return function () { clearHash(); tab(k); UI.scrollToNav('#ucards'); }; }
@@ -59,7 +59,7 @@
   }
   // 手動切分頁時清掉網址的 #關卡（不然引擎會直接打開上次那一關）
   function clearHash() { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
-  drawCards(); tabPager('games');
+  drawCards(); tabPager('studio');
   UI.stickyNav('#ucards');   // 捲動時精簡版課程小卡固定在上方
 
   function rec(id) { return STORE.level(MOD, id) || {}; }
@@ -135,10 +135,10 @@
     // 避免把以前的廣告作業誤認為新的旅拍作品。
     if (!new URLSearchParams(location.search).has('legacy')) {
       box.innerHTML = '<section class="card pop"><div class="tape"></div>' +
-        '<p class="kicker">🎬 新版實作課程 · 90 秒旅拍</p>' +
-        '<h2 class="black" style="font-size:1.5rem">從零開始，用 Canva 剪出你的旅行故事</h2>' +
-        '<p class="small mt1">八堂循序教學：分鏡、時間軸、字幕、文字動畫、特效、轉場、音樂音效、匯出分享。完成每堂的實作檢查，再挑戰下一堂。</p>' +
-        '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 開始 90 秒旅拍教學 →</a></div>' +
+        '<p class="kicker">🎬 下學期競賽實作 · 4 分 40 秒</p>' +
+        '<h2 class="black" style="font-size:1.5rem">用 Canva 完成具核心價值的校園旅拍短片</h2>' +
+        '<p class="small mt1">先回顧上學期的核心價值、故事提案、分鏡、錄音與拍攝，再循序精剪時間軸、字幕、動畫、特效、轉場及配樂。以 280 秒為創作目標，輸出後檢查競賽規範。</p>' +
+        '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 進入 4 分 40 秒競賽剪輯教室 →</a> <a class="btn" href="../shared/educase-film.html#idea">📝 回顧上學期故事提案 →</a></div>' +
         '<details class="mt3"><summary class="small soft">查看舊版 30 秒廣告工作站（保留原有紀錄）</summary>' +
         '<p class="small soft mt1">舊版 W1～W5 是歷史作品紀錄，不會計入新版旅拍的任務完成度。</p>' +
         '<a class="btn sm" href="media.html?legacy=1#W1">開啟舊版工作站</a></details></section>';
@@ -698,6 +698,7 @@
     else if (h === '#ai' || /^#A\d/.test(h)) tab('ai');
     else if (h === '#demo') tab('demo');
   }
+  tab('studio');
   route();
   window.addEventListener('hashchange', route);
 })();

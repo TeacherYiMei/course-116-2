@@ -35,22 +35,20 @@ window.CONFIG = {
   /* 📅 本週任務（闖關地圖最上面）：w＝從第幾週開始，levels＝這週要完成的關卡，href＝「前往」連結
      依 docs/01 的建議節次；段考週、放假週請自己把後面的 w 往後挪。 */
   WEEKS: [
-    { w: 1, t: '創意短片：試映、補拍、精剪', levels: [], href: '../shared/educase-film.html#cut' },
-    { w: 2, t: '創意短片：校內驗收與送件（依當屆公告調整）', levels: [], href: '../shared/educase-film.html#submit' },
-    { w: 3, t: '單元四 概念闖關：畫質、格式、時間軸、後製與著作權（＋看示範）', levels: ['M1', 'M2', 'M3', 'M4'], href: 'media.html' },
-    { w: 4, t: 'AI 前導關：AI 是什麼、機器真的能學習嗎', levels: ['A1', 'A2'], href: 'media.html#ai' },
-    { w: 5, t: 'AI 前導關：演算法、生成式 AI 怎麼寫句子', levels: ['A3', 'A4'], href: 'media.html#ai' },
-    { w: 6, t: 'AI 前導關：好好問、用心查；AI 倫理', levels: ['A5', 'A6'], href: 'media.html#ai' },
-    { w: 7, t: '90 秒旅拍剪輯練習與技巧回顧', levels: [], href: 'canva-travel.html' },
-    { w: 8, t: '作品放映與同儕回饋', levels: [], href: '../shared/educase-film.html#cut' },
-    { w: 9, t: '單元五 網路世界：範圍與設備、線材、封包', levels: ['N1', 'N2', 'N3'], href: 'network.html' },
-    { w: 10, t: '網路世界：IP、IPv6、網址與 DNS', levels: ['N4', 'N5', 'N6'], href: 'network.html' },
-    { w: 11, t: '網路世界：電子郵件、無線網路', levels: ['N7', 'N8'], href: 'network.html' },
-    { w: 12, t: '網路世界收尾＋資料偵探開始', levels: ['N9', 'N10', 'D1', 'D2'], href: 'network.html' },
-    { w: 13, t: '資料偵探＋試算表實作', levels: ['D3', 'D4', 'T1', 'T2'], href: 'unit6.html' },
-    { w: 14, t: '試算表實作：COUNTIF、清理、統計', levels: ['T3', 'T4', 'T5'], href: 'sheet.html' },
-    { w: 15, t: '密碼特務（上）＋5016B 守護站 2.0', levels: ['K1', 'K2', 'K3', 'S1', 'S2'], href: 'cipher.html' },
-    { w: 16, t: '密碼特務（下）＋5016B 守護站 2.0', levels: ['K4', 'K5', 'K6', 'S3', 'S4', 'S5'], href: 'cipher.html' }
+    { w: 1, t: 'EduCase 校園短片：沿用上學期專案，補拍、精剪 4 分 40 秒、字幕與配樂', levels: [], href: 'canva-travel.html' },
+    { w: 2, t: 'EduCase 校內驗收：MP4、200 字摘要、素材授權、隊伍報名與播放確認', levels: [], href: '../shared/educase-film.html#rules' },
+    { w: 3, t: '單元五 網路世界：範圍與設備、線材、封包', levels: ['N1', 'N2', 'N3'], href: 'network.html' },
+    { w: 4, t: '網路世界：IP、IPv6、網址與 DNS', levels: ['N4', 'N5', 'N6'], href: 'network.html' },
+    { w: 5, t: '網路世界：電子郵件、無線網路', levels: ['N7', 'N8'], href: 'network.html' },
+    { w: 6, t: '網路世界收尾＋資料偵探開始', levels: ['N9', 'N10', 'D1', 'D2'], href: 'network.html' },
+    { w: 7, t: '資料偵探＋試算表實作', levels: ['D3', 'D4', 'T1', 'T2'], href: 'unit6.html' },
+    { w: 8, t: '試算表實作：COUNTIF、清理、統計', levels: ['T3', 'T4', 'T5'], href: 'sheet.html' },
+    { w: 9, t: '密碼特務（上）', levels: ['K1', 'K2', 'K3'], href: 'cipher.html' },
+    { w: 10, t: '密碼特務（下）', levels: ['K4', 'K5', 'K6'], href: 'cipher.html' },
+    { w: 11, t: 'AI 素養補充：學習 AI、資訊倫理；不得生成本競賽影片', levels: ['A1', 'A2', 'A3'], href: 'media.html#ai' },
+    { w: 12, t: 'AI 素養補充：批判判讀與負責任的使用', levels: ['A4', 'A5', 'A6'], href: 'media.html#ai' },
+    { w: 13, t: '5016B 守護站 2.0 前半', levels: ['S1', 'S2'], href: '5016b.html' },
+    { w: 14, t: '5016B 守護站 2.0 後半', levels: ['S3', 'S4', 'S5'], href: '5016b.html' }
   ],
 
   /* 學校指定的 AI 工具（廣告工作站「和 AI 討論」用）
@@ -71,9 +69,9 @@ window.CONFIG = {
   /* 闖關地圖的卡片（順序即顯示順序）
      maxStars 是進度條的分母，一定要和這門課真的能拿到的星數一致。 */
   MODULES: [
-    { id: 'media', no: '四', title: '多媒體專題：EduCase 校園創意短片', sub: '4 個概念關卡＋6 個 AI 素養關卡＋Canva 旅拍剪輯教室', icon: '🎬', color: 'u1',
+    { id: 'media', no: '四', title: '多媒體專題：4 分 40 秒 EduCase 旅拍', sub: '上學期已完成核心價值與概念；下學期精剪、驗收及 AI 素養延伸', icon: '🎬', color: 'u1',
       href: 'media.html', maxStars: 30, levels: ['M1', 'M2', 'M3', 'M4', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'W1', 'W2', 'W3', 'W4', 'W5'],
-      desc: '接續上學期的實拍粗剪，完成補拍、字幕、試映與投稿。90 秒旅拍提供 Canva 剪輯練習。', chapter: '第 1 章' },
+      desc: '帶著上學期的企畫與素材，完成有教育意義的 4 分 40 秒原創短片。舊有概念與 AI 星星資料保留供回顧。', chapter: '跨學期競賽專題' },
     { id: 'network', no: '五', title: '網路世界', sub: '10 關 · 三星三階：基礎 → 操作 → 挑戰🎲', icon: '🌐', color: 'u2',
       href: 'network.html', maxStars: 30, levels: ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10'],
       desc: '網路線材、封包快遞、IP 與 IPv6、網址拆解、無線網路、網速計算，還有結帳時「嗶」的祕密。', chapter: '第 2 章' },

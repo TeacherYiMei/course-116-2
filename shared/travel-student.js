@@ -1,4 +1,4 @@
-/* 旅拍小導演 v16.94：操作拼圖＋本機截圖佐證；雲端只記錄未核驗的練習分數。 */
+/* EduCase 280 秒旅拍 v17.10：本機規格預檢，非官方競賽評審。 */
 const $=id=>document.getElementById(id),cfg=window.COURSE115_FIREBASE_CONFIG;
 const fileInput=$('travelFile'),button=$('travelSubmit'),statusBox=$('travelStatus'),resultBox=$('travelGrade');
 let identity=null,uid=null,busy=false,db=null,fs=null,cloudAvailable=false,stageIndex=0,stageScores={},stageProof={};
@@ -17,10 +17,12 @@ function stageGrade(base,duration){
   // 截圖僅證明學生附上了本機佐證，並非自動辨識 Canva 的頁面或文字圖層。
   const cat=base.categories,by=k=>cat.find(c=>c.key===k)?.score||0;
   const landscape=Math.abs(base.measurements.width/base.measurements.height-16/9)<=.06;
+  const lengthOK=duration>=240&&duration<=300;
+  const sizeOK=base.measurements.size<=1e9;
   const ratioPts=landscape?15:0;
   const evidencePts=35;
-  const score=Math.min(landscape?100:84,evidencePts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
-  return {...base,score,passed:landscape&&score>=85,categories:[
+  const score=Math.min(landscape&&lengthOK&&sizeOK?100:84,evidencePts+Math.round(by('resolution')/15*20)+ratioPts+Math.round(by('motion')/20*15)+by('light')+by('bitrate'));
+  return {...base,score,passed:landscape&&lengthOK&&sizeOK&&score>=85,categories:[
     {key:'timelineEvidence',title:'🖼️ 時間軸截圖佐證',score:evidencePts,max:35,hint:'已選擇截圖，內容尚待教師核對；非自動辨識分頁／文字'},
     {key:'resolution',title:'📺 畫質',score:Math.round(by('resolution')/15*20),max:20,hint:'畫面需清楚可辨'},
     {key:'ratio',title:'📐 比例',score:ratioPts,max:15,hint:'本課程要求橫式 16:9'},
@@ -81,7 +83,7 @@ async function connect(){
       cloudAvailable=true;
       $('travelAuth').textContent=`☁️ ${p.className} 班 ${p.seatNo} 號 ${p.name}｜已連線，可同步旅拍技術檢測分數。`;
       if(prior.exists()){
-        const priorData=prior.data();if(priorData.gradingVersion==='stage-v3'&&priorData.stages){
+        const priorData=prior.data();if(priorData.gradingVersion==='stage-v3'&&Number(priorData.duration)>=240&&priorData.stages){
           stageScores={...priorData.stages};stageProof={...(priorData.studentDeclaredStages||{})};
           const incomplete=STAGES.findIndex((s,i)=>!Number.isFinite(+stageScores[i])||+stageScores[i]<85);
           stageIndex=incomplete<0?STAGES.length-1:incomplete;renderStages();
@@ -151,7 +153,7 @@ button.addEventListener('click',async()=>{
   if(!$('travelSelfCheck').checked){say('請先完成這一站的操作，並勾選自我檢核。',true);return;}
   const evidence=$('travelEvidence').files?.[0];if(!evidence||!['image/png','image/jpeg'].includes(evidence.type)||evidence.size>10*1024*1024){say('請先提供本階段 Canva 編輯器的時間軸 PNG／JPG 截圖（小於 10MB）。',true);return;}
   if(!/\.mp4$/i.test(file.name)||!['','video/mp4'].includes(file.type)){say('請從 Canva 匯出 MP4 影片。',true);return;}
-  if(file.size<1||file.size>250*1024*1024){say('請選小於 250 MB 的影片。',true);return;}
+  if(file.size<1||file.size>1e9){say('請選不超過 1 GB 的 MP4 影片；大型影片的本機檢查可能較慢。',true);return;}
   busy=true;button.disabled=true;const p=$('travelProgress');p.style.display='block';p.value=0;
   let media;
   try{
@@ -159,7 +161,7 @@ button.addEventListener('click',async()=>{
     let sampled={motion:null,goodLight:null};
     try{sampled=await sampleFrames(media.video,media.duration,n=>{p.value=n;say(`🔎 正在檢查影片畫面…… ${n}%`);});}
     catch(e){say('部分影格無法分析，這部分採保守分數：'+e.message);}
-    const result=stageGrade(window.TRAVEL_GRADER.grade({duration:media.duration,width:media.width,height:media.height,size:file.size,...sampled}),media.duration);
+    const result=stageGrade(window.TRAVEL_GRADER.grade({duration:media.duration,targetDuration:280,width:media.width,height:media.height,size:file.size,...sampled}),media.duration);
     const checkedStage=stageIndex;
     stageScores[checkedStage]=result.score;stageProof[checkedStage]=true;
     show(result);

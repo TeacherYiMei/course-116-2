@@ -16,7 +16,7 @@
   });
   let currentUnit="unit1"; // 與目前 HTML 預設單元一致
   let currentTerm="11601"; // 教師選擇，與學生進度所屬學期分開管理
-  const FIRST_UNITS=["unit1","python","unit3","aiot","extension","knowledge"];
+  const FIRST_UNITS=["unit1","python","unit3","aiot","extension","knowledge","filmPrep"];
   const SECOND_UNITS=["media","network","data","sheet","cipher","arduino2"];
   const $=s=>document.querySelector(s);
 
@@ -28,13 +28,14 @@
     aiot:   { name: "延伸專題：5016B AIoT 守護站", maxStars: 15, title: "💡 5016B AIoT 智慧教室守護站｜教師端" },
     extension: { name:"跨章延伸｜數位科技任務中心", maxStars:18, title:"🧭 數位科技任務中心｜教師端" },
     knowledge: { name:"知識闖關特攻隊", maxStars:12, title:"🚀 知識闖關特攻隊｜教師端" },
-    media: {name:"單元四：90 秒旅拍與 AI",maxStars:30},
+    filmPrep: { name:"EduCase 競賽核心價值與影片企畫", maxStars:9, title:"🎬 上學期競賽企畫｜教師端" },
+    media: {name:"單元四：4 分 40 秒競賽剪輯與 AI",maxStars:30},
     network: {name:"單元五：網路世界",maxStars:30},
     data: {name:"單元六：資料偵探",maxStars:12},
     sheet: {name:"單元六：試算表實作",maxStars:15},
     cipher: {name:"單元六：密碼特務",maxStars:18},
     arduino2: {name:"下學期：5016B 守護站 2.0",maxStars:15},
-    year: {name:"116 全學年學習總覽",maxStars:243}
+    year: {name:"116 全學年學習總覽",maxStars:252}
   };
 
   const configured=()=>!!(
@@ -127,10 +128,16 @@
     const cp=obj(obj(obj(r.courseProgress)["11601"]).modules);
     const aliases=kind==="digital"?["digital","unit1"]:
       kind==="platform"?["platform","unit3"]:
-      kind==="arduino"?["arduino","aiot"]:kind==="extension"?["extension"]:kind==="knowledge"?["knowledge"]:["python"];
+      kind==="arduino"?["arduino","aiot"]:kind==="extension"?["extension"]:kind==="knowledge"?["knowledge"]:kind==="filmPrep"?["filmPrep"]:["python"];
     return aliases.flatMap(key=>[obj(mods[key]),obj(old[key]),obj(cp[key])]);
   }
   function unitSnapshot(r,unitKey){
+    if(unitKey==="filmPrep"){
+      const sources=moduleSources(r,"filmPrep");
+      const ids=["FP_C1","FP_C2","FP_C3","FP_C4","FP1","FP2","FP3","FP4","FP5"];
+      return Math.min(9,Math.max(ids.reduce((n,id)=>n+Math.max(0,...sources.map(s=>safeStars(obj(obj(s.levels)[id]).stars,1))),0),
+        ...sources.map(s=>safeStars(s.stars,9))));
+    }
     if(SECOND_UNITS.includes(unitKey)){
       const conf=UNIT_CONFIG[unitKey];
       const levels=obj(moduleSources(r,unitKey)[0].levels);
@@ -168,10 +175,10 @@
       const first=FIRST_UNITS.map(k=>getStudentUnitData(r,k));
       const second=SECOND_UNITS.map(k=>getStudentUnitData(r,k));
       const scores=first.concat(second);
-      const stars=scores.reduce((n,v)=>n+v.stars,0),maxStars=243;
+      const stars=scores.reduce((n,v)=>n+v.stars,0),maxStars=252;
       return {stars,maxStars,score:Math.round(stars/maxStars*100),
         completed:scores.every(v=>v.completed),
-        currentLevel:`上學期 ${first.reduce((n,v)=>n+v.stars,0)}★／123★；下學期 ${second.reduce((n,v)=>n+v.stars,0)}★／120★`};
+        currentLevel:`上學期 ${first.reduce((n,v)=>n+v.stars,0)}★／132★；下學期 ${second.reduce((n,v)=>n+v.stars,0)}★／120★`};
     }
     if(unitKey==="all"){
       const pieces=["unit1","python","unit3","aiot"].map(k=>getStudentUnitData(r,k));
@@ -194,8 +201,8 @@
 
   // v16.67：單元按鈕的 data-module（digital/python/platform/arduino）
   // 對應原本成績資料鍵（unit1/python/unit3/aiot）。
-  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension",knowledge:"knowledge",media:"media",network:"network",data:"data",sheet:"sheet",cipher:"cipher",arduino2:"arduino2"};
-  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension",knowledge:"knowledge"};
+  const TAB_TO_UNIT={digital:"unit1",python:"python",platform:"unit3",arduino:"aiot",extension:"extension",knowledge:"knowledge",filmPrep:"filmPrep",media:"media",network:"network",data:"data",sheet:"sheet",cipher:"cipher",arduino2:"arduino2"};
+  const UNIT_TO_TAB={unit1:"digital",python:"python",unit3:"platform",aiot:"arduino",extension:"extension",knowledge:"knowledge",filmPrep:"filmPrep"};
   const SUBUNITS={
     unit1:[
       {label:"1-1 二進位",parts:["x1","u1"],max:6},
@@ -208,17 +215,19 @@
     aiot:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
     extension:Array.from({length:6},(_,i)=>({label:`E${i+1}`,parts:[`E${i+1}`],max:3})),
     knowledge:Array.from({length:4},(_,i)=>({label:`K${i+1}｜10題`,parts:[`R${i+1}`],max:3})),
+    filmPrep:[{label:"核心價值概念",parts:["FP_C1","FP_C2","FP_C3","FP_C4"],max:4},
+      ...Array.from({length:5},(_,i)=>({label:`企畫任務 ${i+1}`,parts:[`FP${i+1}`],max:1}))],
     media:[...Array.from({length:4},(_,i)=>({label:`M${i+1}`,parts:[`M${i+1}`],max:3})),...Array.from({length:6},(_,i)=>({label:`A${i+1}`,parts:[`A${i+1}`],max:3})),...Array.from({length:5},(_,i)=>({label:`W${i+1}｜作品`,parts:[`W${i+1}`],max:0}))],
     network:Array.from({length:10},(_,i)=>({label:`N${i+1}`,parts:[`N${i+1}`],max:3})),
     data:Array.from({length:4},(_,i)=>({label:`D${i+1}`,parts:[`D${i+1}`],max:3})),
     sheet:Array.from({length:5},(_,i)=>({label:`T${i+1}`,parts:[`T${i+1}`],max:3})),
     cipher:Array.from({length:6},(_,i)=>({label:`K${i+1}`,parts:[`K${i+1}`],max:3})),
     arduino2:Array.from({length:5},(_,i)=>({label:`S${i+1}`,parts:[`S${i+1}`],max:3})),
-    year:[{label:"上學期",parts:[],max:123},{label:"下學期",parts:[],max:120}]
+    year:[{label:"上學期",parts:[],max:132},{label:"下學期",parts:[],max:120}]
   };
   function getSubunitData(row,unitKey){
     if(unitKey==="year")return [FIRST_UNITS,SECOND_UNITS].map((units,i)=>{
-      const max=i===0?123:120,stars=units.reduce((n,k)=>n+getStudentUnitData(row,k).stars,0);
+      const max=i===0?132:120,stars=units.reduce((n,k)=>n+getStudentUnitData(row,k).stars,0);
       return {label:i===0?"上學期":"下學期",stars,max,observed:stars>0,complete:stars>=max};
     });
     const kind=unitKey==="unit1"?"digital":unitKey==="unit3"?"platform":unitKey==="aiot"?"arduino":unitKey;

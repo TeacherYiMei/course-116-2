@@ -36,7 +36,9 @@
   // 平均完成度：每個計星單元各自算完成 %，再平均（每個單元份量一樣；maxStars 是 0 的不算。5016B 從 2026-09-28 起計星，也算進來）
   function pctOf(m) { return m.maxStars ? Math.min(1, modStars(m) / m.maxStars) : 0; }
   function avgPct(mods) {
-    var S = mods.filter(function (m) { return m.maxStars && !m.soon; });
+    // 新增的畢旅企畫與舊學科進度分開計算：避免課程擴充後，原本的學生稱號被動下降。
+    // 企畫星仍顯示在單元卡與總星數；不以它作為原有學科稱號的分母。
+    var S = mods.filter(function (m) { return m.maxStars && !m.soon && m.id !== 'filmPrep'; });
     return S.length ? Math.floor(S.reduce(function (a, m) { return a + pctOf(m); }, 0) / S.length * 100) : 0;
   }
 
@@ -87,10 +89,6 @@
       var left = [].concat.apply([], (C.WEEKS || []).map(function (x) { return x.levels; })).filter(function (id) { return !passed(id); });
       return '<section class="card mt3 wk" aria-label="本週任務"><h2 class="black" style="font-size:1.1rem">📅 學期尾聲</h2>' +
         (left.length ? '<p class="small mt1">還沒完成：' + left.map(function (id) { return '<span class="chip">' + esc(id) + '</span>'; }).join(' ') + '</p>' : '<p class="small mt1">🎉 這學期的任務全部完成！</p>') + '</section>';
-    }
-    if (!cur.levels.length) {
-      return '<section class="card mt3 wk"><h2 class="black">第 ' + (w.before ? cur.w : w.n) + ' 週 · 實作任務</h2><p>' + esc(cur.t) +
-        '</p><a class="bold" href="' + esc(cur.href) + '">前往本週實作 →</a></section>';
     }
     var doneN = cur.levels.length - w.todo.length, pct = Math.round(doneN / cur.levels.length * 100);
     return '<section class="card mt3 wk" aria-label="本週任務"><div class="row between"><h2 class="black" style="font-size:1.1rem">📅 ' + (w.before ? '開學預告 · 第 1 週' : '第 ' + w.n + ' 週 · 本週任務') + '</h2>' +

@@ -7,6 +7,8 @@
 <script src="../shared/firebase-config.js?v=16.35"></script>
 <script src="../shared/firebase-sync.js?v=16.50"></script>
 <script src="../shared/store.js?v=16.57"></script>
+<script src="../shared/ui.js?v=16.56"></script>
+<link rel="stylesheet" href="../shared/theme.css">
 <style>
 :root{font-family:system-ui,"Noto Sans TC",sans-serif;color:#153454;background:#f0f8ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 12%,#fff2c7,transparent 28%),radial-gradient(circle at 92% 3%,#ffe1ec,transparent 30%),#f0f8ff}.wrap{max-width:1020px;margin:auto;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}a{color:#17619b}.badge{background:#fff7ca;border:2px solid #ffdb77;border-radius:999px;padding:7px 14px;font-weight:750}.hero,.panel{background:#fff;border:2px solid #dae8f6;border-radius:26px;padding:24px;box-shadow:0 12px 25px #18487b12}.hero{margin:18px 0;background:linear-gradient(120deg,#fef5db,#ecf9ff)}h1{font-size:clamp(1.65rem,4vw,2.45rem);margin:8px 0}h2{margin:4px 0 14px}.lead{line-height:1.8}.steps{display:flex;gap:8px;flex-wrap:wrap;margin:17px 0}.steps span{border-radius:999px;padding:8px 12px;background:#edf4fc;font-weight:700}.steps .on{background:#b8eddd}.bar{background:#dfe9f4;border-radius:20px;height:14px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:#20b694;transition:width .2s}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:18px 0}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:4px solid #ff9f25;outline-offset:3px}.choice{border:2px solid #bcd2e9;border-radius:18px;background:#fff;padding:16px;min-height:94px;font-weight:800;font-size:1.08rem}.choice:hover:not(:disabled){background:#eaf8ff;border-color:#53a8e5;transform:translateY(-2px)}.choice:disabled{cursor:default}.choice.good{border-color:#14a87b;background:#ddf9ed}.choice.bad{border-color:#e75b78;background:#fff0f3}.icon{font-size:1.8rem;display:block}.btn{border:0;background:#1b689f;color:#fff;border-radius:14px;padding:12px 21px;font-weight:800}.btn.secondary{background:#f7e0a2;color:#664009}.note{padding:14px;border-radius:15px;background:#edf7ff;line-height:1.8;min-height:54px}.note.ok{background:#e2f9ed}.note.warn{background:#fff0e6}.tiny{color:#58718d;font-size:.91rem}.hidden{display:none}.score{font-size:2.6rem;color:#0a8468;font-weight:900}.footer{margin:18px 0;color:#526a84;line-height:1.7}@media(max-width:580px){.choices{grid-template-columns:1fr}.panel,.hero{padding:16px}}
 .reward-board{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:14px 18px;border-radius:18px;background:#fff;border:2px solid #f5d36e}.reward-stars{font-size:1.42rem;letter-spacing:.08em;color:#dc8400;font-weight:900}.reward-best{font-weight:800;color:#17619b}.reward-badge{border-radius:999px;background:#e8f7ff;color:#145e87;padding:7px 14px;font-weight:900}.reward-pop{animation:reward-pop .35s ease}@keyframes reward-pop{50%{transform:scale(1.1)}}
@@ -44,15 +46,18 @@ function stars(score){return '★'.repeat(score)+'☆'.repeat(12-score);}
 function medal(score){return score===12?'🏆 記憶體快遞大師':score>=9?'🥇 金牌快遞員':score>=6?'🥈 銀牌快遞員':score>=3?'🥉 銅牌快遞員':'🎒 記憶體新手';}
 function showBest(){const best=getBest();$('best-stars').textContent=stars(best);$('best-label').textContent=`本機最佳：${best} / 12 ⭐`;$('best-badge').textContent=medal(best);}
 function officialStars(){try{return Math.max(0,Math.min(3,Number((window.STORE&&STORE.level('platform','G3')||{}).stars)||0));}catch(e){return 0;}}
-function refreshOfficial(){const loggedIn=!!(window.STORE&&STORE.me());$('official-status').textContent=loggedIn?`🏅 單元三・第三關：目前 ${officialStars()} / 3 顆正式星星`:'🔐 尚未登入學生帳號，完成練習後無法同步正式星星。請先從闖關地圖登入。';}
-function awardOfficial(score){
+function hasVerifiedLogin(){return !!(window.STORE&&STORE.me()&&window.CourseDB&&CourseDB.state==='ready'&&!CourseDB.isAnonymous()&&CourseDB.matchesStudentProfile?.(STORE.me()));}
+function refreshOfficial(){const loggedIn=hasVerifiedLogin();$('official-status').textContent=loggedIn?`🏅 單元三・第三關：目前 ${officialStars()} / 3 顆正式星星`:'🔐 請以原本的學生帳號登入，才能將星星同步到闖關地圖。';}
+async function awardOfficial(score){
  const earned=score===12?3:score>=9?2:score>=6?1:0;
- if(!window.STORE||!STORE.me()){$('award-status').textContent='⚠️ 本次練習已完成，但尚未登入學生帳號，正式星星未儲存。請回闖關地圖登入後再挑戰。';return;}
+ if(!hasVerifiedLogin()){$('award-status').textContent='⚠️ 未確認原本的學生登入身分，正式星星沒有寫入。請先登入原本帳號再挑戰。';return;}
  const previous=officialStars();
  if(earned<=previous){$('award-status').textContent=`🏅 本次可得 ${earned} 星；原有 ${previous} 星已保留，沒有扣分。`;refreshOfficial();return;}
  const saved=STORE.saveLevel('platform','G3',{stars:earned,done:earned>0,score:Math.round(score/12*100),extra:{memoryExpressCorrect:score,memoryExpressTotal:12}});
  if(saved.error){$('award-status').textContent='⚠️ 本機正式星星寫入失敗，請勿清除瀏覽器資料，回闖關地圖確認進度。';return;}
- $('award-status').textContent=`🎉 正式第三關獲得 ${earned} / 3 星！已儲存本機並嘗試同步雲端，請到闖關地圖確認同步狀態。`;
+ $('award-status').textContent=`⭐ 本機已記錄 ${earned} / 3 星，正在確認雲端同步…`;
+ const synced=await STORE.syncToCloud();
+ $('award-status').textContent=synced&&synced.ok?`🎉 正式第三關 ${earned} / 3 星，雲端同步成功！可回闖關地圖查看。`:`⚠️ 本機已保留星星，但雲端尚未確認（${synced?.reason||'UNKNOWN'}）。請勿清除瀏覽器資料，請老師協助檢查。`;
  refreshOfficial();
 }
 function updateRound(){ $('points').textContent=`⭐ ${right} / 12`;$('round-stars').textContent=stars(right);$('round-stars').classList.remove('reward-pop');void $('round-stars').offsetWidth;$('round-stars').classList.add('reward-pop');}
@@ -61,7 +66,13 @@ function render(){answered=false;let q=questions[index];$('progress').textConten
  const order=q[2].map((v,i)=>({v,i})).sort(()=>Math.random()-.5);$('choices').replaceChildren();order.forEach(item=>{let b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML='<span class="icon">'+['📦','⚡','🧠','💾'][item.i]+'</span>';b.append(document.createTextNode(item.v));b.addEventListener('click',()=>choose(item.i));$('choices').append(b);});
  function choose(i){if(answered)return;answered=true;const correct=i===q[3];if(correct)right++;Array.from($('choices').children).forEach(b=>{b.disabled=true;const text=b.textContent;const answer=q[2][q[3]];if(text.includes(answer))b.classList.add('good');else if(text.includes(q[2][i]))b.classList.add('bad');});updateRound();$('feedback').className='note '+(correct?'ok':'warn');$('feedback').textContent=(correct?'🌟 星星 +1！':'💡 再記住這個觀念：')+q[4];$('next').classList.remove('hidden');$('next').textContent=index===questions.length-1?'查看成果 🏆':'下一題 →';}
 }
-$('begin').onclick=()=>{index=0;right=0;show('game');render();};$('again').onclick=$('begin').onclick;
+function startGame(){index=0;right=0;show('game');render();}
+function startWithLogin(){
+ if(hasVerifiedLogin()){startGame();return;}
+ if(window.UI&&UI.requireLogin){UI.requireLogin(()=>{refreshOfficial();startGame();});}
+ else $('official-status').textContent='⚠️ 登入功能尚未載入，請重新整理後再試。';
+}
+$('begin').onclick=startWithLogin;$('again').onclick=startWithLogin;
 $('next').onclick=()=>{index++;if(index<questions.length){render();return;}$('fill').style.width='100%';$('final').textContent=`獲得 ${right} / ${questions.length} 顆星星`;$('final-stars').textContent=stars(right);$('final-badge').textContent=medal(right);$('summary').textContent=right===12?'太棒了，12 星全滿！你是記憶體快遞大師！':right>=9?'很不錯！再玩一次，挑戰 12 星全滿。':'先複習上方概念小卡，再來收集更多星星！';if(right>getBest())saveBest(right);showBest();show('result');awardOfficial(right);};
 showBest();
 refreshOfficial();

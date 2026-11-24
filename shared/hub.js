@@ -88,6 +88,10 @@
       return '<section class="card mt3 wk" aria-label="本週任務"><h2 class="black" style="font-size:1.1rem">📅 學期尾聲</h2>' +
         (left.length ? '<p class="small mt1">還沒完成：' + left.map(function (id) { return '<span class="chip">' + esc(id) + '</span>'; }).join(' ') + '</p>' : '<p class="small mt1">🎉 這學期的任務全部完成！</p>') + '</section>';
     }
+    if (!cur.levels.length) {
+      return '<section class="card mt3 wk"><h2 class="black">第 ' + (w.before ? cur.w : w.n) + ' 週 · 實作任務</h2><p>' + esc(cur.t) +
+        '</p><a class="bold" href="' + esc(cur.href) + '">前往本週實作 →</a></section>';
+    }
     var doneN = cur.levels.length - w.todo.length, pct = Math.round(doneN / cur.levels.length * 100);
     return '<section class="card mt3 wk" aria-label="本週任務"><div class="row between"><h2 class="black" style="font-size:1.1rem">📅 ' + (w.before ? '開學預告 · 第 1 週' : '第 ' + w.n + ' 週 · 本週任務') + '</h2>' +
       '<span class="chip">' + (w.todo.length ? '完成 ' + doneN + ' / ' + cur.levels.length : '✅ 本週完成！') + '</span></div>' +

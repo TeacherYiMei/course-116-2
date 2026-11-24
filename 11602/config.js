@@ -35,14 +35,14 @@ window.CONFIG = {
   /* 📅 本週任務（闖關地圖最上面）：w＝從第幾週開始，levels＝這週要完成的關卡，href＝「前往」連結
      依 docs/01 的建議節次；段考週、放假週請自己把後面的 w 往後挪。 */
   WEEKS: [
-    { w: 1, t: '單元四 概念闖關：畫質、格式、時間軸、後製與著作權（＋看示範）', levels: ['M1', 'M2', 'M3', 'M4'], href: 'media.html' },
-    { w: 2, t: 'AI 前導關：AI 是什麼、機器真的能學習嗎', levels: ['A1', 'A2'], href: 'media.html#ai' },
-    { w: 3, t: 'AI 前導關：演算法、生成式 AI 怎麼寫句子', levels: ['A3', 'A4'], href: 'media.html#ai' },
-    { w: 4, t: 'AI 前導關：好好問、用心查；AI 倫理', levels: ['A5', 'A6'], href: 'media.html#ai' },
-    { w: 5, t: '90 秒旅拍①：選主題、景點與故事分鏡', levels: [], href: 'canva-travel.html#step1' },
-    { w: 6, t: '90 秒旅拍②：用 Canva 匯入素材、排列時間軸', levels: [], href: 'canva-travel.html#step2' },
-    { w: 7, t: '90 秒旅拍③：文字、動畫、特效、轉場與音樂', levels: [], href: 'canva-travel.html#step4' },
-    { w: 8, t: '90 秒旅拍④：試看修片、匯出 MP4、成果分享', levels: [], href: 'canva-travel.html#step8' },
+    { w: 1, t: '創意短片：試映、補拍、精剪', levels: [], href: '../shared/educase-film.html#cut' },
+    { w: 2, t: '創意短片：校內驗收與送件（依當屆公告調整）', levels: [], href: '../shared/educase-film.html#submit' },
+    { w: 3, t: '單元四 概念闖關：畫質、格式、時間軸、後製與著作權（＋看示範）', levels: ['M1', 'M2', 'M3', 'M4'], href: 'media.html' },
+    { w: 4, t: 'AI 前導關：AI 是什麼、機器真的能學習嗎', levels: ['A1', 'A2'], href: 'media.html#ai' },
+    { w: 5, t: 'AI 前導關：演算法、生成式 AI 怎麼寫句子', levels: ['A3', 'A4'], href: 'media.html#ai' },
+    { w: 6, t: 'AI 前導關：好好問、用心查；AI 倫理', levels: ['A5', 'A6'], href: 'media.html#ai' },
+    { w: 7, t: '90 秒旅拍剪輯練習與技巧回顧', levels: [], href: 'canva-travel.html' },
+    { w: 8, t: '作品放映與同儕回饋', levels: [], href: '../shared/educase-film.html#cut' },
     { w: 9, t: '單元五 網路世界：範圍與設備、線材、封包', levels: ['N1', 'N2', 'N3'], href: 'network.html' },
     { w: 10, t: '網路世界：IP、IPv6、網址與 DNS', levels: ['N4', 'N5', 'N6'], href: 'network.html' },
     { w: 11, t: '網路世界：電子郵件、無線網路', levels: ['N7', 'N8'], href: 'network.html' },
@@ -71,9 +71,9 @@ window.CONFIG = {
   /* 闖關地圖的卡片（順序即顯示順序）
      maxStars 是進度條的分母，一定要和這門課真的能拿到的星數一致。 */
   MODULES: [
-    { id: 'media', no: '四', title: '多媒體專題：90 秒旅拍', sub: '4 個概念關卡＋6 個 AI 素養關卡＋Canva 旅拍剪輯教室', icon: '🎬', color: 'u1',
+    { id: 'media', no: '四', title: '多媒體專題：EduCase 校園創意短片', sub: '4 個概念關卡＋6 個 AI 素養關卡＋Canva 旅拍剪輯教室', icon: '🎬', color: 'u1',
       href: 'media.html', maxStars: 30, levels: ['M1', 'M2', 'M3', 'M4', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'W1', 'W2', 'W3', 'W4', 'W5'],
-      desc: '從旅途故事分鏡、素材整理到 Canva 影片剪輯，一步步學會字幕、文字動畫、視覺特效、轉場、配樂與音效，完成 90 秒旅拍。', chapter: '第 1 章' },
+      desc: '接續上學期的實拍粗剪，完成補拍、字幕、試映與投稿。90 秒旅拍提供 Canva 剪輯練習。', chapter: '第 1 章' },
     { id: 'network', no: '五', title: '網路世界', sub: '10 關 · 三星三階：基礎 → 操作 → 挑戰🎲', icon: '🌐', color: 'u2',
       href: 'network.html', maxStars: 30, levels: ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10'],
       desc: '網路線材、封包快遞、IP 與 IPv6、網址拆解、無線網路、網速計算，還有結帳時「嗶」的祕密。', chapter: '第 2 章' },

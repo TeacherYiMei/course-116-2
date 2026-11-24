@@ -46,10 +46,12 @@ window.CONFIG = {
     { w: 11, t: 'Python 魔王關：猜數字', levels: ['P10'], href: 'python.html' },
     { w: 12, t: '單元三 系統平臺：四種平臺、五大單元', levels: ['G1', 'G2'], href: 'platform.html' },
     { w: 13, t: '系統平臺：記憶體、硬碟與組電腦', levels: ['G3', 'G4'], href: 'platform.html' },
-    { w: 14, t: '系統平臺：作業系統、電腦急診室', levels: ['G5', 'G6'], href: 'platform.html' },
-    { w: 15, t: '系統平臺：雲端服務、嵌入式系統', levels: ['G7', 'G8'], href: 'platform.html' },
-    { w: 16, t: '5016B 專題', levels: ['S1', 'S2'], href: '5016b.html' },
-    { w: 18, t: '5016B 專題', levels: ['S3', 'S4', 'S5'], href: '5016b.html' }
+    { w: 14, t: '系統平臺：作業系統、電腦急診室＋創意短片：選題提案', levels: ['G5', 'G6'], href: 'platform.html' },
+    { w: 15, t: '系統平臺：雲端服務、嵌入式系統＋創意短片：腳本與分鏡', levels: ['G7', 'G8'], href: 'platform.html' },
+    { w: 16, t: '5016B 專題＋創意短片：試錄與旁白製作', levels: ['S1', 'S2'], href: '5016b.html' },
+    { w: 17, t: '創意短片：依分鏡實拍', levels: [], href: '../shared/educase-film.html#shoot' },
+    { w: 18, t: '5016B 專題＋創意短片：剪輯與輸出粗剪', levels: ['S3', 'S4', 'S5'], href: '5016b.html' },
+    { w: 19, t: '寒假前粗剪試映與備份', levels: [], href: '../shared/educase-film.html#rough' }
   ],
 
   /* Python 執行環境（Pyodide）

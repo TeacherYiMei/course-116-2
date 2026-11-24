@@ -46,8 +46,8 @@ window.CONFIG = {
     { w: 11, t: 'Python 魔王關：猜數字', levels: ['P10'], href: 'python.html' },
     { w: 12, t: '系統平臺統整 A：硬體、記憶體與組電腦', levels: ['G1', 'G2', 'G3', 'G4'], href: 'platform.html' },
     { w: 13, t: '系統平臺統整 B：作業系統、雲端、嵌入式系統', levels: ['G5', 'G6', 'G7', 'G8'], href: 'platform.html' },
-    { w: 14, t: '畢旅微電影：多媒體概念四關＋畢旅核心價值故事提案', levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP1'], href: '../shared/educase-film.html#concepts' },
-    { w: 15, t: '校園微電影：五格分鏡、鏡頭秒數及拍攝清單', levels: ['FP2'], href: '../shared/educase-film.html#idea' },
+    { w: 14, t: '校園微電影：多媒體概念四關＋AI 創作助手六關', levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP_AI1','FP_AI2','FP_AI3','FP_AI4','FP_AI5','FP_AI6'], href: '../shared/educase-film.html#aiPrimer' },
+    { w: 15, t: '校園微電影：主題、核心價值與五格分鏡', levels: ['FP1','FP2'], href: '../shared/educase-film.html#idea' },
     { w: 16, t: '校園微電影：旁白、環境音試錄與音訊製作', levels: ['FP3'], href: '../shared/educase-film.html#idea' },
     { w: 17, t: '校園微電影：實拍、補鏡、素材授權與入鏡同意', levels: ['FP4'], href: '../shared/educase-film.html#idea' },
     { w: 18, t: '校園微電影：180 秒粗剪、同儕試映與補鏡討論', levels: ['FP5'], href: '../shared/educase-film.html#idea' },
@@ -83,12 +83,12 @@ window.CONFIG = {
     { id: 'platform', no: '三', title: '系統平臺大冒險', sub: '8 關 · 三星三階：基礎 → 操作 → 挑戰🧪', icon: '🖥️', color: 'u3',
       href: 'platform.html', maxStars: 24, levels: ['G1','G2','G3','G4','G5','G6','G7','G8'],
       desc: '組電腦、當作業系統總管、開電腦急診室、經營雲端披薩店。', chapter: '第 3 章' },
-    { id: 'filmPrep', no: '四', title: '畢旅微電影｜上學期企畫', sub: '多媒體概念 4 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
-      href: '../shared/educase-film.html#concepts', maxStars: 9, levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP1','FP2','FP3','FP4','FP5'],
-      desc: '以畢業旅行為主角，選擇友情、成長、珍惜、文化探索等核心價值；完成 180 秒粗剪、同儕討論與補鏡計畫，再延伸成 4 分 40 秒作品。', chapter: '跨學期畢旅創作' },
-    { id: 'arduino', no: '＋', title: '5016B 專題：AIoT 智慧教室守護站', sub: '五節 · 每節 3⭐（預測錯越少星越多）', icon: '💡', color: 'u4',
+    { id: 'arduino', no: '四', title: '5016B 專題：AIoT 智慧教室守護站', sub: '五節 · 每節 3⭐（預測錯越少星越多）', icon: '💡', color: 'u4',
       href: '5016b.html', maxStars: 15, levels: ['S1','S2','S3','S4','S5'],
-      desc: '感測器取樣、條件判斷、主迴圈、資料上雲端，最後做出自己的教室小幫手。', chapter: '跨章專題' }
+      desc: '感測器取樣、條件判斷、主迴圈、資料上雲端，最後做出自己的教室小幫手。', chapter: '跨章專題' },
+    { id: 'filmPrep', no: '五', title: '畢旅微電影｜上學期企畫', sub: '多媒體概念 4 星＋AI 創作 6 星＋企畫實作 5 星', icon: '🎬', color: 'u4',
+      href: '../shared/educase-film.html#concepts', maxStars: 15, levels: ['FP_C1','FP_C2','FP_C3','FP_C4','FP_AI1','FP_AI2','FP_AI3','FP_AI4','FP_AI5','FP_AI6','FP1','FP2','FP3','FP4','FP5'],
+      desc: '先學影像概念與 AI 素養，再選畢旅、校園、社區等主題及核心價值，完成五格分鏡、180 秒粗剪與補鏡討論。', chapter: '跨學期校園微電影' }
   ],
 
   /* 稱號（依「平均完成度」%）── 遊戲化：學生看得到自己「升級」

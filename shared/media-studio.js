@@ -18,17 +18,19 @@
   mountGames();
 
   /* ── 課程小卡：概念闖關 → 看示範 → AI 前導關 → 廣告工作站（照上課順序，顯示各自的進度）── */
-  var TABS = ['studio', 'demo', 'games', 'ai'], curTab = 'studio';
+  // AI 新課程放在上學期分鏡之前；僅在回顧舊紀錄時保留下學期舊 A1–A6 的入口。
+  var showOldAI = new URLSearchParams(location.search).has('legacy-ai');
+  var TABS = showOldAI ? ['demo', 'games', 'ai', 'studio'] : ['demo', 'games', 'studio'], curTab = 'demo';
   function starsOf(ids) { return ids.reduce(function (a, id) { return a + ((STORE.level(MOD, id) || {}).stars || 0); }, 0); }
   function drawCards() {
     var M = (window.MEDIA_LEVELS || []).map(function (l) { return l.id; }), AI = (window.MEDIA_AI_LEVELS || []).map(function (l) { return l.id; });
     var W = STEPS.filter(function (s) { return (STORE.level(MOD, s.id) || {}).done; }).length, D = window.MEDIA_DEMO || {};
     var C = [
-      { t: 'studio', icon: '🎬', title: '280 秒校園微電影', ds: '主線任務：整理素材 → 補鏡 → 精剪 → 試映', note: '12 星任務' },
       { t: 'demo', icon: '📺', title: '電影鏡頭示範', ds: '學習開場、互動、特寫與片尾怎麼傳達核心價值', note: '四幕互動練習' },
-      { t: 'games', icon: '🎮', title: '影像基礎挑戰', ds: '畫質、時間軸、授權與畫面表達的延伸練習', got: starsOf(M), max: M.length * 3, unit: '⭐' },
-      { t: 'ai', icon: '🤖', title: 'AI 創作助手', ds: '六個素養任務：用 AI 協助分鏡、字幕與構想', got: starsOf(AI), max: AI.length * 3, unit: '⭐' }
+      { t: 'games', icon: '🎮', title: '影像基礎挑戰', ds: '畫質、時間軸、授權與畫面表達的延伸練習', got: starsOf(M), max: M.length * 3, unit: '⭐' }
     ];
+    if(showOldAI)C.push({ t: 'ai', icon: '🤖', title: 'AI 素養舊關卡紀錄', ds: '檢視已完成的 A1–A6 挑戰與星星', got: starsOf(AI), max: AI.length * 3, unit: '⭐' });
+    C.push({ t: 'studio', icon: '🎬', title: '280 秒校園微電影', ds: '主線任務：整理素材 → 補鏡 → 精剪 → 試映', note: '12 星任務' });
     document.getElementById('ucards').innerHTML = C.map(function (c, i) {
       var pct = c.max ? Math.round(c.got / c.max * 100) : 0;
       return '<button class="ucard mtab uc-' + (i + 1) + (c.t === curTab ? ' on' : '') + '" data-t="' + c.t + '" aria-pressed="' + (c.t === curTab) + '">' +
@@ -59,7 +61,7 @@
   }
   // 手動切分頁時清掉網址的 #關卡（不然引擎會直接打開上次那一關）
   function clearHash() { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
-  drawCards(); tabPager('studio');
+  drawCards(); tabPager('demo');
   UI.stickyNav('#ucards');   // 捲動時精簡版課程小卡固定在上方
 
   function rec(id) { return STORE.level(MOD, id) || {}; }
@@ -695,7 +697,7 @@
     else if (h === '#ai' || /^#A\d/.test(h)) tab('ai');
     else if (h === '#demo') tab('demo');
   }
-  tab('studio');
+  tab('demo');
   route();
   window.addEventListener('hashchange', route);
 })();

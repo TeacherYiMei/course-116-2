@@ -13,21 +13,21 @@
      所以同一時間只掛一組：切到哪個分頁就掛哪一組、清掉另一組。 */
   function mountGames() {
     var a = document.getElementById('ai-games'); if (a) a.innerHTML = '';
-    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '多媒體概念複習；開拍前的四個概念關已移至上學期影片企畫' });
+    CARDGAME.mount({ app: '#games', levels: MEDIA_LEVELS, mod: MOD, headline: '影像基礎挑戰：畫質、時間軸、著作權與畫面表達；完成的星星會保留' });
   }
   mountGames();
 
   /* ── 課程小卡：概念闖關 → 看示範 → AI 前導關 → 廣告工作站（照上課順序，顯示各自的進度）── */
-  var TABS = ['studio', 'games', 'demo', 'ai'], curTab = 'studio';
+  var TABS = ['studio', 'demo', 'games', 'ai'], curTab = 'studio';
   function starsOf(ids) { return ids.reduce(function (a, id) { return a + ((STORE.level(MOD, id) || {}).stars || 0); }, 0); }
   function drawCards() {
     var M = (window.MEDIA_LEVELS || []).map(function (l) { return l.id; }), AI = (window.MEDIA_AI_LEVELS || []).map(function (l) { return l.id; });
     var W = STEPS.filter(function (s) { return (STORE.level(MOD, s.id) || {}).done; }).length, D = window.MEDIA_DEMO || {};
     var C = [
-      { t: 'games', icon: '🎮', title: '舊概念關回顧', ds: '正式先修課已移上學期；舊 M1–M4 星星不刪除', got: starsOf(M), max: M.length * 3, unit: '⭐' },
-      { t: 'demo', icon: '📺', title: '旅拍示範', ds: '跟著四格動態分鏡，看一支旅拍如何從片頭走到片尾', note: '本站原創示意' },
-      { t: 'ai', icon: '🤖', title: 'AI 前導關', ds: 'AI 素養六關：先認識 AI，再請它幫忙', got: starsOf(AI), max: AI.length * 3, unit: '⭐' },
-      { t: 'studio', icon: '🎬', title: '微電影精剪', ds: '4 分 40 秒：故事、字幕、特效、配樂與分享', note: '12 星任務' }
+      { t: 'studio', icon: '🎬', title: '280 秒校園微電影', ds: '主線任務：整理素材 → 補鏡 → 精剪 → 試映', note: '12 星任務' },
+      { t: 'demo', icon: '📺', title: '電影鏡頭示範', ds: '學習開場、互動、特寫與片尾怎麼傳達核心價值', note: '四幕互動練習' },
+      { t: 'games', icon: '🎮', title: '影像基礎挑戰', ds: '畫質、時間軸、授權與畫面表達的延伸練習', got: starsOf(M), max: M.length * 3, unit: '⭐' },
+      { t: 'ai', icon: '🤖', title: 'AI 創作助手', ds: '六個素養任務：用 AI 協助分鏡、字幕與構想', got: starsOf(AI), max: AI.length * 3, unit: '⭐' }
     ];
     document.getElementById('ucards').innerHTML = C.map(function (c, i) {
       var pct = c.max ? Math.round(c.got / c.max * 100) : 0;
@@ -41,7 +41,7 @@
   }
   window.addEventListener('store:change', function () { if (STORE.me()) drawCards(); });
   /* 每一部分的結尾：← 上一部分／下一部分 →（和其他單元的「上一課／下一課」同一組樣式） */
-  var TAB_NAMES = { games: '🎮 舊概念複習', demo: '📺 看示範', ai: '🤖 AI 前導關', studio: '🎬 微電影精剪' };
+  var TAB_NAMES = { games: '🎮 影像基礎挑戰', demo: '📺 電影鏡頭示範', ai: '🤖 AI 創作助手', studio: '🎬 280 秒校園微電影' };
   function tabPager(t) {
     var i = TABS.indexOf(t), P = TABS[i - 1], N = TABS[i + 1];
     function go(k) { return function () { clearHash(); tab(k); UI.scrollToNav('#ucards'); }; }
@@ -82,8 +82,8 @@
      ================================================================ */
   function demo() {
     var target=document.getElementById('demo');
-    target.innerHTML='<section class="card pop" style="padding:24px"><p class="kicker">🎬 旅拍故事示範</p><h2>跟著四個鏡頭說故事</h2><p>按下一幕，觀察旅拍如何安排片頭、抵達、細節與片尾。</p><div id="tripDemoScene" style="background:linear-gradient(125deg,#ddf3ff,#fff1d6);border:3px solid #9ad1e8;border-radius:20px;padding:45px 20px;text-align:center;min-height:190px;font-size:1.5rem;font-weight:900" aria-live="polite"></div><p id="tripDemoTip" class="small"></p><div class="row mt2" style="gap:8px;flex-wrap:wrap"><button id="tripDemoPrev" class="btn">← 上一幕</button><button id="tripDemoNext" class="btn primary">下一幕 →</button><a class="btn" href="canva-travel.html#travelQuest">開始 12 星旅拍闖關</a><a class="btn" href="canva-travel.html?manual=1#travelManual">📖 開啟 Canva 圖解 PDF 手冊</a></div></section>';
-    var scenes=[['🏞️','片頭：我的小旅行','一張空白片頭，加入明確的旅拍標題。'],['🚶','抵達：街角的風景','安排第一段畫面，讓觀眾知道你到了哪裡。'],['🍧','細節：最喜歡的一幕','切到特寫，加一句字幕和自然的淡化。'],['🎵','片尾：謝謝一起旅行','加入自己錄製的節奏或合法配樂，淡出後收尾。']],idx=0;
+    target.innerHTML='<section class="card pop" style="padding:24px"><p class="kicker">🎬 校園微電影鏡頭示範</p><h2>四個鏡頭，拍出一個有感情的故事</h2><p>依序觀察開場、人物行動、關鍵特寫與片尾，思考觀眾如何從畫面看見核心價值。</p><div id="tripDemoScene" style="background:linear-gradient(125deg,#ddf3ff,#fff1d6);border:3px solid #9ad1e8;border-radius:20px;padding:45px 20px;text-align:center;min-height:190px;font-size:1.5rem;font-weight:900" aria-live="polite"></div><p id="tripDemoTip" class="small"></p><div class="row mt2" style="gap:8px;flex-wrap:wrap"><button id="tripDemoPrev" class="btn">← 上一幕</button><button id="tripDemoNext" class="btn primary">下一幕 →</button><a class="btn" href="canva-travel.html#travelQuest">開始 280 秒剪輯挑戰</a><a class="btn" href="canva-travel.html?manual=1#travelManual">📖 開啟 Canva 圖解操作手冊</a></div></section>';
+    var scenes=[['🏫','開場：故事發生的地方','先用全景交代校園、社區或旅途場景。'],['🤝','行動：人物遇到一件事','用中景拍大家互相幫忙，讓觀眾看懂前因後果。'],['✨','特寫：情緒的關鍵一刻','拍手部、表情或物品特寫，讓合作、勇氣或感謝被看見。'],['🎵','片尾：故事留下的改變','搭配自己錄製的旁白或合法配樂，留下一句真實感受。']],idx=0;
     function showScene(){var s=scenes[idx];document.getElementById('tripDemoScene').textContent=s[0]+' '+s[1];document.getElementById('tripDemoTip').textContent=(idx+1)+' / '+scenes.length+'　'+s[2];}
     document.getElementById('tripDemoPrev').onclick=function(){idx=(idx+3)%4;showScene();};document.getElementById('tripDemoNext').onclick=function(){idx=(idx+1)%4;showScene();};showScene();
     return;
@@ -117,7 +117,7 @@
   function ai() {
     var box = document.getElementById('ai'), src = window.MEDIA_AI_SOURCE || {};
     document.getElementById('games').innerHTML = '';
-    box.innerHTML = '<section class="card pop"><div class="tape"></div><p class="kicker">AI 前導關 · 和 AI 一起做廣告之前先闖這六關</p>' +
+    box.innerHTML = '<section class="card pop"><div class="tape"></div><p class="kicker">AI 創作助手 · 用 AI 幫忙規劃微電影之前先學會六項素養</p>' +
       '<h2 class="black" style="font-size:1.3rem">🤖 先認識 AI，再請它幫忙</h2>' +
       '<p class="small mt1">⭐ 這個單元的重點是<b>「好好用 AI」</b>：創意發想、文案、句型、鏡頭、配樂建議都可以請 AI 幫忙。AI 是什麼、怎麼學會的、會在哪裡出錯、哪些事不能做，先弄清楚才能用得好。</p>' +
       rulesHTML(true) + aiHowHTML() + '</section><div id="ai-games" class="mt2"></div>' +
@@ -136,8 +136,8 @@
     if (!new URLSearchParams(location.search).has('legacy')) {
       box.innerHTML = '<section class="card pop"><div class="tape"></div>' +
         '<p class="kicker">🎬 下學期微電影實作 · 4 分 40 秒</p>' +
-        '<h2 class="black" style="font-size:1.5rem">用 Canva 剪出友情、成長與回憶的畢旅微電影</h2>' +
-        '<p class="small mt1">先回顧上學期的核心價值、180 秒粗剪與分鏡，討論還缺哪些鏡頭並補拍，再循序精剪時間軸、字幕、動畫、特效、轉場及配樂。以 280 秒為作品目標，輸出後進行同儕試映。</p>' +
+        '<h2 class="black" style="font-size:1.5rem">280 秒校園微電影：用 Canva 剪出自己的故事</h2>' +
+        '<p class="small mt1">從畢旅、校園生活、社區探索、公益行動、個人成長或自由主題中選擇一種，延續上學期的核心價值與 180 秒粗剪。先整理素材並討論缺鏡，再補拍、精剪時間軸、字幕、動畫、特效、轉場及配樂，最後試映 280 秒作品。</p>' +
         '<div class="row mt2"><a class="btn primary" href="canva-travel.html">🚀 進入 4 分 40 秒剪輯教室 →</a> <a class="btn" href="../shared/educase-film.html#idea">📝 回顧上學期故事提案 →</a></div></section>';
       return;
     }

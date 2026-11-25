@@ -86,6 +86,51 @@ g3.stages=[g3.q.slice(0,4),[
  {kind:'allocate',title:'電腦開機後：哪些位置負責不同任務？',jobs:['作業系統的執行中資料','已安裝但未啟動的程式檔','CPU 目前運算的少量數值'],answer:['RAM','SSD／硬碟','暫存器'],why:'執行中的資料放 RAM，檔案存 SSD，運算數值由暫存器處理。'},
  {kind:'allocate',title:'多工與備份：正確安排三個工作',jobs:['同時開的多個 App 的工作空間','常用指令或資料的高速副本','需要保存到明年的作品'],answer:['RAM','快取','SSD／硬碟'],why:'RAM 支援多工、快取加速、SSD 長期儲存。'}
  ]];
+const dispatch=(title,items,bins,answer,why)=>({kind:'dispatch',title,items,bins,answer,why});
+const ordering=(title,answer,why)=>({kind:'order',title,items:answer.slice().reverse(),answer,why});
+const missions={
+ G1:[
+  dispatch('把三個裝置送進正確的平臺總部',['筆記型電腦','智慧手錶','智慧電鍋'],['電腦','可攜式','嵌入式'],['電腦','可攜式','嵌入式'],'依裝置主要使用方式分類。'),
+  dispatch('分派數位服務的工作地點',['手機離線拍照','線上多人共編','路口號誌控制'],['本機可攜式','遠端雲端','設備內嵌'],['本機可攜式','遠端雲端','設備內嵌'],'離線運作在本機；共編靠雲端；號誌屬專用控制。'),
+  dispatch('智慧校園的三個系統該放哪一站？',['學生使用的平板','校園雲端相簿','自動感應門'],['可攜式','雲端','嵌入式'],['可攜式','雲端','嵌入式'],'辨認服務在何處運算與控制。'),
+  ordering('安排線上共編的實際流程',['開啟雲端文件','設定組員權限','共同編輯內容'],'先找到文件，再限制分享，最後協作。'),
+  dispatch('修復錯誤分類的設備',['桌上型電腦','串流影音服務','智慧掃地機器人'],['電腦平臺','雲端服務','嵌入式系統'],['電腦平臺','雲端服務','嵌入式系統'],'同樣有電腦技術，但用途與服務位置不同。')
+ ],
+ G2:[
+  dispatch('將資料送往電腦五大單元',['鍵盤輸入','CPU 加法','螢幕顯示'],['輸入','算術邏輯','輸出'],['輸入','算術邏輯','輸出'],'先輸入、進行運算，再輸出。'),
+  ordering('啟動成績計算機',['讀入分數','暫存資料','計算平均','顯示結果'],'輸入、記憶、運算、輸出的工作流程。'),
+  dispatch('電腦零件調度中心',['麥克風','控制單元','RAM'],['資料輸入','協調指令','暫存資料'],['資料輸入','協調指令','暫存資料'],'不同單元分工合作。')
+ ],
+ G4:[
+  dispatch('替剪輯電腦裝上三項核心零件',['處理影片的運算','同時開啟程式','儲存影片檔'],['CPU','RAM','SSD'],['CPU','RAM','SSD'],'運算、工作記憶體、保存要分工。'),
+  dispatch('把零件裝到正確工作區',['主機板','電源供應器','散熱風扇'],['連接零件','供應電力','協助散熱'],['連接零件','供應電力','協助散熱'],'電腦組裝要先理解零件功能。'),
+  ordering('維修後重新組裝的安全順序',['關機並斷電','檢查規格相容','正確連接零件','開機檢查'],'安全與相容性應先於通電。'),
+  dispatch('三位使用者的升級需求',['多工卡頓','影片空間不足','運算密集'],['升級 RAM','增加 SSD','檢查 CPU'],['升級 RAM','增加 SSD','檢查 CPU'],'要依實際需求選擇升級項目。')
+ ],
+ G5:[
+  dispatch('作業系統總管正在派工',['建立資料夾','分配程式資源','設定使用者權限'],['檔案管理','程序管理','帳號管理'],['檔案管理','程序管理','帳號管理'],'作業系統負責協調不同工作。'),
+  ordering('軟體異常的安全處理流程',['記錄錯誤訊息','檢查程式狀態','保存未損壞檔案'],'先了解異常再採取措施。'),
+  dispatch('安排安全設定工作',['安裝官方更新','重要檔案備份','替訪客建立帳號'],['系統安全','資料保護','權限隔離'],['系統安全','資料保護','權限隔離'],'更新、備份、權限都是重要的管理工作。')
+ ],
+ G6:[
+  ordering('電腦不能開機：急診檢查順序',['先確認插頭與電源','查看螢幕及線材','記錄故障現象'],'優先檢查簡單且安全的問題。'),
+  dispatch('把故障送到正確急診室',['滑鼠沒電','Wi-Fi 無法連線','單一程式無回應'],['周邊設備','網路設定','應用程式'],['周邊設備','網路設定','應用程式'],'找出問題類別，避免不必要的重灌。')
+ ],
+ G7:[
+  dispatch('雲端披薩店：分配三種分享權限',['老師只要看','組員需要共同修改','陌生人不該看'],['檢視者','編輯者','不分享'],['檢視者','編輯者','不分享'],'只開放必要權限。'),
+  ordering('披薩訂單上雲端的操作順序',['選好要上傳的檔案','等待同步完成','檢查雲端是否可讀'],'上傳完成要再次確認。'),
+  dispatch('把雲端狀況送往合適處理站',['上傳中斷','同名檔案版本衝突','分享範圍過大'],['檢查網路','比較版本','縮小權限'],['檢查網路','比較版本','縮小權限'],'不同問題要用不同方式解決。'),
+  ordering('共編學習單的安全流程',['建立雲端文件','邀請指定組員','檢查權限','完成後保留備份'],'分享權限與備份是安全共編的一部分。'),
+  dispatch('資料安全配送',['私密照片','公開活動海報','團隊工作草稿'],['僅自己','公開檢視','指定組員編輯'],['僅自己','公開檢視','指定組員編輯'],'依內容選擇不同分享方式。')
+ ],
+ G8:[
+  dispatch('智慧教室：接上正確的元件',['讀取溫度','判斷是否太熱','啟動風扇'],['感測器','控制器','致動器'],['感測器','控制器','致動器'],'感測→判斷→輸出。'),
+  ordering('製作自動夜燈的控制流程',['感測環境亮度','比較亮度門檻','決定燈泡開關'],'先收集資料再判斷與輸出。'),
+  dispatch('把三種智慧裝置配置好',['土壤濕度偵測','水泵馬達','條件比較程式'],['感測輸入','動作輸出','控制判斷'],['感測輸入','動作輸出','控制判斷'],'嵌入式系統將輸入轉為動作。'),
+  ordering('建立安全的智慧風扇',['讀取溫度','判斷條件','啟動或停止風扇','異常時發出提醒'],'安全控制需要處理異常。')
+ ]
+};
+for(const u of units){if(u.id==='G3')continue;const m=missions[u.id];u.stages[1]=m.slice(0,u.stages[1].length);u.stages[2]=m.slice(u.stages[1].length);}
 const app=document.getElementById('pv-app'),draft=Object.create(null);let unit=null,phase=0,asked=0,pass=0,locked=false;
 const $=s=>app.querySelector(s),stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 function oldStars(id){try{return Math.max(0,Math.min(3,Number((window.STORE&&STORE.level('platform',id)||{}).stars)||0));}catch(e){return 0;}}
@@ -101,6 +146,18 @@ function ask(){
    const selected=[];const chosen=$('#answers');
    const guide=document.createElement('p');guide.className='pv-tip';guide.textContent='👆 依正確順序點選卡片。已選：尚未開始';chosen.before(guide);
    q.items.forEach(value=>{const b=document.createElement('button');b.textContent=value;b.onclick=()=>{if(locked||b.disabled)return;b.disabled=true;b.style.background='#dceaff';selected.push(value);guide.textContent='👆 已選：'+selected.join(' → ');if(selected.length===q.answer.length)submit(selected.every((x,i)=>x===q.answer[i]),q.why+' 正確順序：'+q.answer.join(' → '));};chosen.appendChild(b);});
+ }else if(q.kind==='dispatch'){
+   const chosen=$('#answers');chosen.style.gridTemplateColumns='1fr';
+   const guide=document.createElement('p');guide.className='pv-tip';guide.textContent='🕹️ 選取上方物件，再點下面的任務區；電腦也可以拖曳卡片到任務區。';chosen.before(guide);
+   const tray=document.createElement('div');tray.className='pv-answers';tray.style.margin='0';
+   const zones=document.createElement('div');zones.className='pv-answers';zones.style.margin='0';
+   const placement=Array(q.items.length).fill(null);let selected=null;
+   const tokens=q.items.map((item,i)=>{const b=document.createElement('button');b.textContent='📦 '+item;b.draggable=true;b.setAttribute('aria-label','拖曳或選取 '+item);b.onclick=()=>{if(locked||placement[i]!==null)return;selected=i;tokens.forEach(t=>t.style.outline='');b.style.outline='4px solid #f5b53d';guide.textContent='已選取「'+item+'」，請點下面的目標區。';};b.ondragstart=e=>{selected=i;e.dataTransfer.setData('text/plain',String(i));};tray.appendChild(b);return b;});
+   const zoneButtons=q.bins.map((label,j)=>{const box=document.createElement('button');box.style.cssText='min-height:115px;background:#e7f5fa;border:3px dashed #6db2ca;white-space:normal';box.innerHTML='<strong>🎯 '+label+'</strong><span style="display:block;font-size:.86rem;margin-top:5px" class="pv-zone-items">拖放到這裡</span>';
+     const put=i=>{if(locked||i===null||i<0||i>=q.items.length)return;placement[i]=j;selected=null;tokens.forEach((b,k)=>{b.disabled=placement[k]!==null;b.style.opacity=placement[k]!==null?'.45':'1';b.style.outline='';});zoneButtons.forEach((b,z)=>{const names=q.items.filter((_,k)=>placement[k]===z);b.querySelector('.pv-zone-items').textContent=names.length?'✅ '+names.join('、'):'拖放到這裡';});guide.textContent='已放好 '+placement.filter(x=>x!==null).length+' / '+q.items.length+' 個物件。';};
+     box.onclick=()=>put(selected);box.ondragover=e=>e.preventDefault();box.ondrop=e=>{e.preventDefault();put(Number(e.dataTransfer.getData('text/plain')));};zones.appendChild(box);return box;});
+   chosen.append(tray,zones);
+   const actions=document.createElement('div');actions.className='pv-buttons';const reset=document.createElement('button');reset.className='pv-btn secondary';reset.textContent='↩️ 全部重新放置';reset.onclick=()=>{if(locked)return;placement.fill(null);selected=null;tokens.forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.outline='';});zoneButtons.forEach(b=>b.querySelector('.pv-zone-items').textContent='拖放到這裡');guide.textContent='物件已回到待命區，重新選取並放置。';};const check=document.createElement('button');check.className='pv-btn';check.textContent='✅ 啟動檢查';check.onclick=()=>{if(locked)return;if(placement.some(x=>x===null)){guide.textContent='還有物件未放置，請先完成全部配置。';return;}tokens.forEach(b=>b.disabled=true);zoneButtons.forEach(b=>b.disabled=true);reset.disabled=true;check.disabled=true;submit(placement.every((z,i)=>q.bins[z]===q.answer[i]),q.why+' 正確配置：'+q.items.map((x,i)=>x+' → '+q.answer[i]).join('；'));};actions.append(reset,check);chosen.after(actions);
  }else if(q.kind==='allocate'){
    const opts=['暫存器','快取','RAM','SSD／硬碟'],chosen=$('#answers');chosen.style.gridTemplateColumns='1fr';
    q.jobs.forEach((job,i)=>{const row=document.createElement('label');row.style.cssText='display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#f3faff;border:1px solid #bedced;border-radius:14px;padding:13px';const title=document.createElement('strong');title.textContent=(i+1)+'. '+job;title.style.flex='1 1 250px';const select=document.createElement('select');select.setAttribute('aria-label',job);select.style.cssText='padding:10px;border:2px solid #9ac5da;border-radius:10px;min-width:150px';select.innerHTML='<option value="">請選擇位置</option>'+opts.map(o=>'<option value="'+o+'">'+o+'</option>').join('');row.append(title,select);chosen.appendChild(row);});

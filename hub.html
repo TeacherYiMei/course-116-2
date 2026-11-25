@@ -7,18 +7,134 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="config.js"></script>
+<script src="../shared/firebase-config.js?v=16.35"></script>
+<script src="../shared/firebase-sync.js?v=16.50"></script>
 <script src="../shared/semester.js"></script>
-<script src="../shared/store.js?v=16.57"></script>
-<script src="../shared/ui.js?v=16.56"></script>
+<script src="../shared/store.js?v=16.51"></script>
+<script src="../shared/ui.js?v=16.50"></script>
 <script src="../shared/k12.js"></script>
 <script src="../shared/learncard.js"></script>
-<script src="../shared/hub.js"></script>
-</head>
+<script src="../shared/hub.js?v=17.14"></script>
+<style>
+.extension-card{border-top:6px solid #7c3aed!important;background:linear-gradient(140deg,#fff,#f5f3ff)}
+.extension-card .ext-chip{display:inline-block;border-radius:999px;background:#ede9fe;color:#6d28d9;padding:6px 13px;font-size:.82rem;font-weight:800}
+.extension-card .ext-stat{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-weight:800;font-size:.9rem}
+.extension-card .ext-bar{height:12px;background:#e5e7eb;border-radius:12px;overflow:hidden;margin-top:10px}
+.extension-card .ext-bar i{display:block;height:100%;background:#7c3aed;border-radius:12px}
+.platform-preview-card{border-top:6px solid #0d9488!important;background:linear-gradient(135deg,#fff,#f0fdfa);text-decoration:none}
+.platform-preview-card .preview-chip{display:inline-block;border-radius:999px;background:#ccfbf1;color:#115e59;padding:6px 13px;font-size:.82rem;font-weight:800}
+.platform-preview-card .preview-cta{margin-top:auto;padding-top:18px;color:#0f766e;font-weight:900}
+/* 上學期首頁：以一致的卡片、留白與色彩呈現課程進度。 */
+body{background:radial-gradient(circle at 15% 0%,#f2f8ff 0,transparent 43%),linear-gradient(160deg,#f7f9fd 0%,#eaf2f7 100%)}
+main.wrap{max-width:1190px;padding:clamp(18px,3vw,40px) clamp(15px,3vw,30px) 60px}
+#hub>section.card:first-child{border:1px solid #d8e8f0;border-top:7px solid #2d76a7;border-radius:26px;box-shadow:0 15px 38px #1e4a6e17;padding:clamp(24px,4vw,38px)!important;background:linear-gradient(120deg,#ffffff 0%,#eef8fc 100%)}
+#hub>section.card:first-child .title{letter-spacing:.015em;font-size:clamp(2rem,4vw,3rem);line-height:1.22}
+#hub>section.grid.g2{gap:22px;margin-top:28px}
+#hub>section.grid.g2>.card{display:flex;flex-direction:column;min-height:255px;border:1px solid #dfebf3;border-radius:22px!important;box-shadow:0 7px 20px #25496a12!important;padding:25px!important;transition:transform .17s ease,box-shadow .17s ease}
+#hub>section.grid.g2>.card:hover{transform:translateY(-3px);box-shadow:0 12px 28px #25496a24!important}
+#hub>section.grid.g2>.card .row.mt2.small.bold{margin-top:auto!important;padding-top:15px}
+#hub>section.grid.g2>.card h2{line-height:1.35;overflow-wrap:anywhere}
+#hub>section.grid.g2>.card .bar{height:11px;border-radius:99px;background:#e7edf2}
+#hub>section.grid.g2>.card .row.mt2[style*="flex-wrap:nowrap"]{gap:16px;align-items:center!important}
+#hub>section.grid.g2>.card .row.mt2[style*="flex-wrap:nowrap"]>div:first-child{flex:0 0 48px;text-align:center}
+@media(max-width:760px){#hub>section.grid.g2{grid-template-columns:1fr;gap:16px}#hub>section.grid.g2>.card{min-height:0;padding:20px!important}#hub>section.card:first-child{padding:22px!important}}
+</style></head>
 <body>
 <main class="wrap">
   <div class="row small" style="margin-bottom:1rem"><a class="back" href="../index.html?stay">← 總入口</a></div>
   <div id="hub"><p class="soft">載入中…</p></div>
 </main>
-<script>UI.requireLogin(function () { HUB.render(); });</script>
+<script>
+function drawExtensionCard(){
+  if (!window.STORE || !STORE.me()) return;
+  var root=document.querySelector('#hub > section.grid.g2');
+  if (!root) return;
+  var s=Math.max(0,Math.min(18,Number(STORE.moduleStars('extension')||0)));
+  var pct=Math.round(s/18*100);
+  var done=0;
+  ['E1','E2','E3','E4','E5','E6'].forEach(function(id){
+    try { if (STORE.levelStars('extension',id)>=3) done++; }catch(e){}
+  });
+  var status=s>=18?'✅ 完成':s>0?'進行中':'尚未開始';
+  var card=document.getElementById('extension-map-card');
+  if (!card){
+    card=document.createElement('a');card.id='extension-map-card';
+    card.className='card pop extension-card';card.href='extension.html';
+    card.style.cssText='text-decoration:none;border-top:6px solid #7c3aed';
+  }
+  // 第五單元安排在畢旅微電影之前，星星仍使用原本的 extension 模組。
+  var filmCard=root.querySelector('a[href="../shared/educase-film.html#concepts"]');
+  if(filmCard && card.nextElementSibling!==filmCard)root.insertBefore(card,filmCard);
+  else if(!filmCard && card.parentNode!==root)root.appendChild(card);
+  card.innerHTML='<div class="row between"><span class="ext-chip">單元五 · 跨章統整挑戰</span><span class="tiny bold soft">'+status+'</span></div>'+
+    '<div class="row mt2" style="align-items:flex-start;flex-wrap:nowrap"><div style="font-size:2.4rem;line-height:1">🧭</div><div><h2 style="font-size:1.25rem" class="black">數位科技任務中心</h2><p class="small soft bold">6 站 · 18 顆星 · 3 種跨章徽章</p></div></div>'+
+    '<p class="small mt1">統整數位時代、Python、系統平臺，進行跨章任務。Python 自行輸入程式，不提供複製答案。</p>'+
+    '<div class="ext-stat"><span>⭐ '+s+' / 18 · '+pct+'%</span><span class="soft">'+done+' / 6 關</span></div>'+
+    '<div class="ext-bar"><i style="width:'+pct+'%"></i></div>';
+}
+function drawPlatformPreviewCard(){
+  if (!window.STORE || !STORE.me()) return;
+  var root=document.querySelector('#hub > section.grid.g2');
+  if (!root) return;
+  var card=document.getElementById('platform-preview-map-card');
+  if (!card){
+    card=document.createElement('a');
+    card.id='platform-preview-map-card';
+    card.className='card pop platform-preview-card';
+    card.href='platform-workshop-preview.html';
+  }
+  // 測試入口置於正式單元之後、獨立特別挑戰之前，不參與正式星星計算。
+  var knowledge=root.querySelector('#knowledge-map-card');
+  if(knowledge)root.insertBefore(card,knowledge);
+  else if(card.parentNode!==root)root.appendChild(card);
+  card.innerHTML='<div class="row between"><span class="preview-chip">🧪 新版試玩 · 不計正式成績</span><span class="tiny bold soft">原系統平臺仍保留</span></div>'+
+    '<div class="row mt2" style="align-items:flex-start;flex-wrap:nowrap"><div style="font-size:2.4rem;line-height:1">🖥️</div><div><h2 style="font-size:1.25rem" class="black">系統平臺操作工作臺</h2><p class="small soft bold">8 關 · 97 個任務 · 操作式挑戰</p></div></div>'+
+    '<p class="small mt1">試試拖曳、排序與模擬操作，完成任務收集練習星星；原本的闖關紀錄不受影響。</p>'+
+    '<div class="preview-cta">進入新版試玩 →</div>';
+}
+function refreshExtensionMap(){setTimeout(function(){drawExtensionCard();drawPlatformPreviewCard()},0)}
+UI.requireLogin(function(){HUB.render();drawExtensionCard();drawPlatformPreviewCard();});
+window.addEventListener('store:change',refreshExtensionMap);
+window.addEventListener('pageshow',refreshExtensionMap);
+window.addEventListener('focus',refreshExtensionMap);
+</script>
+
+<style>
+.knowledge-card{grid-column:1/-1;border-top:6px solid #0c9db8!important;background:linear-gradient(130deg,#fff,#effcff);text-decoration:none;min-height:205px!important}
+.knowledge-card .kn-badge{background:#cdf8f3;color:#075d69;border-radius:40px;padding:6px 12px;font-weight:900}
+.knowledge-card .kn-progress{height:12px;background:#dcebef;border-radius:30px;overflow:hidden;margin-top:12px}
+.knowledge-card .kn-progress i{height:100%;background:#06a8ba;display:block;transition:width .3s}
+</style>
+<script>
+(function(){
+ function showKnowledge(){
+   const root=document.querySelector('#hub > section.grid.g2');
+   if(!root || !window.STORE)return;
+   let el=document.querySelector('#knowledge-map-card');
+   if(!el){el=document.createElement('a');el.id='knowledge-map-card';el.className='card pop knowledge-card';el.href='knowledge.html'}
+   // 特別挑戰獨立置底；若延伸單元較晚載入，也維持它在最後。
+   if(root.lastElementChild!==el)root.appendChild(el);
+   const keys=['R1','R2','R3','R4'];const levels=keys.map(k=>STORE.level('knowledge',k)||{});
+   const stars=levels.reduce((n,r)=>n+Math.max(0,Math.min(3,Number(r.stars)||0)),0);
+   const done=levels.filter(r=>r.done).length;
+   el.innerHTML='<div class="row between"><span class="kn-badge">🧠 特別挑戰 · 獨立闖關區</span><span class="tiny soft bold">'+(done===4?'🎉 全部完成':done?'進行中':'尚未開始')+'</span></div>'+
+   '<div class="row mt2"><span style="font-size:2.8rem">🧠</span><div><h2 class="black">知識闖關特攻隊</h2><p class="small soft">4 站 · 40 題 · 錯題重新挑戰</p></div></div>'+
+   '<p class="small mt1">二進位、編碼、影音數位化與電腦硬體，答對後看解析，完成四站收集特攻徽章。</p>'+
+   '<div class="row between mt2 small bold"><span>⭐ '+stars+' / 12 · '+Math.round(stars/12*100)+'%</span><span>'+done+' / 4 站</span></div><div class="kn-progress"><i style="width:'+(stars/12*100)+'%"></i></div>';
+ }
+ // 登入可能比 load 後 700ms 更晚完成；監聽地圖真正渲染的時刻。
+ // 僅在卡片尚未建立時觀察 DOM，避免更新卡片內容造成循環觸發。
+ const hubRoot=document.getElementById('hub');
+ const mapObserver=new MutationObserver(()=>{
+   if(!document.getElementById('knowledge-map-card'))showKnowledge();
+ });
+ if(hubRoot)mapObserver.observe(hubRoot,{childList:true,subtree:true});
+ window.addEventListener('load',showKnowledge);
+ window.addEventListener('store:change',showKnowledge);
+ window.addEventListener('pageshow',showKnowledge);
+ window.addEventListener('storage',showKnowledge);
+ window.addEventListener('focus',showKnowledge);
+})();
+</script>
 </body>
 </html>

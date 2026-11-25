@@ -125,13 +125,13 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 <section id="aiPrimer">
 <h2>🤖 AI 創作助手｜六個先修小關</h2>
 <p>先認識 AI 如何產生建議、有哪些限制，再用它幫自己發想微電影。每關先讀教學、再選答案；最後的故事和分鏡仍由自己決定。</p>
-<div class="lesson-intro">🧭 學習順序：影像基礎 → AI 六關 → 選主題及核心價值 → 分鏡與 Canva 素材整理。</div>
+<div class="lesson-intro">🧭 可以自由選擇想先學的部分：影像基礎、AI 六關、主題企畫、分鏡及 Canva 練習都能隨時預習，完成後再領取各站星星。</div>
 <div id="aiPrimerCards"></div>
 <p class="small">請勿將同學姓名、照片、個人資料或未經同意的影片上傳到 AI 工具。AI 的文字只能當靈感，不能直接當成真實發生的故事。</p>
 </section>
 <section id="idea">
 <h2>🌟 我的微電影企畫闖關｜五站累積五顆星</h2>
-<p>先挑選一個有教育意義的主題，再縮小為自己能拍的次主題。從「觀察到什麼 → 想傳達什麼 → 準備拍什麼」一步步形成作品，不必先有影片才能開始。</p>
+<p>先挑選一個有教育意義的主題，再縮小為自己能拍的次主題。從「觀察到什麼 → 想傳達什麼 → 準備拍什麼」一步步形成作品。<b>五個站點全部開放，可以先預習與練習 Canva；完成該站實作再領星星。</b></p>
 <details><summary>💡 還沒想法？看看可以拍的方向</summary><div class="fields"><div><b>🛡️ 數位安全</b><p>用一段網路訊息或可疑連結，呈現查證與保護個資的行動。</p></div><div><b>🤖 AI 與學習</b><p>實際記錄如何善用工具、查核資訊並解決學習難題。</p></div><div><b>♻️ 環境與能源</b><p>觀察校園資源使用，記錄節能或減塑的前後改變。</p></div><div><b>🤝 尊重與合作</b><p>呈現一次傾聽、互助、解決衝突或共同完成任務。</p></div><div><b>🏘️ 社區探索</b><p>找到一個地方故事或生活問題，用鏡頭介紹發現與行動。</p></div><div><b>🌱 個人成長</b><p>記錄嘗試、練習、失敗、調整與進步的真實過程。</p></div></div></details>
 <div id="stageTabs" class="steps">
 </div>
@@ -142,7 +142,7 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 </p>
 <div class="row">
 <button id="saveStage">🔎 檢查作品，領取星星</button>
-<button id="nextStage" class="secondary">🔒 完成本關後前進 →</button>
+<button id="nextStage" class="secondary">➡️ 預習下一站 →</button>
 <button id="exportPlan" class="secondary">📋 複製我的企畫與分鏡</button>
 </div>
 <p class="small">輸入內容先存放在本機瀏覽器；使用正式學生帳號時，完成星星才會透過原有進度系統同步。請另複製企畫保存，避免換電腦遺失草稿。</p>
@@ -283,11 +283,10 @@ function drawConcepts(){
 function draw(){
  const tabs=$('stageTabs');tabs.innerHTML='';
  missions.forEach((m,i)=>{
-   const b=document.createElement('button');b.type='button';b.textContent=`${done(i)?'⭐':i===current?'🎯':'🔒'} ${i+1}｜${m.title}`;
+   const b=document.createElement('button');b.type='button';b.textContent=`${done(i)?'⭐':i===current?'🎯':'📖'} ${i+1}｜${m.title}`;
    b.setAttribute('aria-current',String(i===current));
-   const unlocked=(i===0||done(i-1)||done(i))&&(i!==1||aiReady()||done(i));
-   b.disabled=!unlocked;b.title=unlocked?'點擊進入這一站':'完成上一站才會解鎖';
-   b.onclick=()=>{if(unlocked){current=i;draw();}};tabs.append(b);
+   b.title='隨時進入預習、練習或完成任務';
+   b.onclick=()=>{current=i;draw();};tabs.append(b);
  });
  const root=$('stageContent');root.innerHTML='';
  const progress=document.createElement('div');progress.className='quest-progress';
@@ -333,6 +332,8 @@ function draw(){
  if(current===1){
    const canva=document.createElement('section');canva.className='mission-lesson wide-card';
    const title=document.createElement('h3');title.textContent=draft.materialStatus==='none'?'🧰 先規劃拍攝，再整理未來素材':'🧰 整理 Canva 素材，再安排分鏡';canva.append(title);
+   const start=document.createElement('p');start.textContent='🟢 零素材也能先練習：打開 Canva 建立一個空白影片作品，新增分類資料夾，使用文字方塊寫出五格分鏡；正式素材拍好後再匯入替換。這些練習不會要求你先上傳照片。';canva.append(start);
+   const practiceLink=document.createElement('a');practiceLink.href='https://www.canva.com/';practiceLink.target='_blank';practiceLink.rel='noopener noreferrer';practiceLink.textContent='🎬 開啟 Canva 練習（新分頁）';canva.append(practiceLink);
    const guide=document.createElement('ol');(draft.materialStatus==='none'?[
      '① 決定影片主題、次主題、人物和想傳達的訊息。',
      '② 規劃開場、事件、採取行動、變化與片尾五個段落。',
@@ -402,13 +403,12 @@ function draw(){
  if(materialBox)fields.append(materialBox);
  if(sceneBox)fields.append(sceneBox);
  root.append(fields);
- $('nextStage').disabled=current===missions.length-1||!done(current)||(current===0&&!aiReady()&&!done(1));
- $('nextStage').textContent=current===missions.length-1?'🏆 全部挑戰完成':current===0&&done(0)&&!aiReady()&&!done(1)?'🤖 先完成 AI 六關 →':done(current)?'🚀 前往下一站 →':'🔒 完成本關後前進 →';
- $('status').textContent='🌟 已收集 '+missions.filter((_,i)=>done(i)).length+' / 5 顆企畫星星。請先學習、完成小挑戰與實作，才能前進。';
+ $('nextStage').disabled=current===missions.length-1;
+ $('nextStage').textContent=current===missions.length-1?'📚 已到最後一站，可返回其他站預習':'➡️ 預習下一站 →';
+ $('status').textContent='🌟 已收集 '+missions.filter((_,i)=>done(i)).length+' / 5 顆企畫星星。所有站點都可自由預習；完成各站實作後才會獲得星星。';
 }
 $('saveStage').onclick=()=>{
  const m=missions[current], lesson=lessons[current];
- if(current===1&&!aiReady()&&!done(1)){$('status').textContent='🤖 請先完成上方 AI 創作助手六關，再開始安排分鏡。';$('aiPrimer').scrollIntoView({behavior:'smooth',block:'start'});return;}
  if(draft['quiz'+current]!==lesson.right){$('status').textContent='🧩 先完成上方的招式小挑戰。可以回去看小導演示範喔！';return;}
  const fields=m.fields.filter(([id])=>id!=='customValue'||draft.value==='自訂正向教育主題');
  if(current===0&&(!draft.locations.length||draft.locations.some(v=>!String(v).trim()))){$('status').textContent='📍 請把每一站的地點填寫完整，空白地點可以移除。';return;}
@@ -430,7 +430,6 @@ $('saveStage').onclick=()=>{
  $('status').textContent='🎉 闖關成功！第 '+(current+1)+' 顆企畫星星已存到本機並等待雲端同步；需要時可以回來修改答案。';
 };
 $('nextStage').onclick=()=>{
- if(!done(current)){$('status').textContent='🔒 請先完成本關實作並領取星星，才能開啟下一站。';return;}
  if(current<missions.length-1){current++;draw();$('stageTabs').scrollIntoView({behavior:'smooth',block:'start'});}
 };
 $('exportPlan').onclick=async()=>{const text=missions.map((m,i)=>`【${i+1} ${m.title}】\n`+(i===0?'素材狀況：'+({none:'尚未拍攝',some:'已有部分素材',ready:'素材大致齊全'}[draft.materialStatus]||'未選')+'\n預計場景：\n'+draft.locations.map((v,j)=>`${j+1}. ${v||'（未填）'}`).join('\n')+'\n':'')+(i===1?'各場景拍攝計畫：\n'+draft.locations.map((v,j)=>`${v}：${(draft.locationShots||[])[j]||'（未填）'}`).join('\n')+'\n'+(draft.materialStatus==='none'?'拍攝清單：'+(draft.shootingInventory||'（未填）'):'素材盤點：'+(draft.canvaInventory||'（未填）'))+'\n':'')+m.fields.map(([id,label])=>`${label}：${draft[id]||'（未填）'}`).join('\n')).join('\n\n');try{await navigator.clipboard.writeText(text);$('status').textContent='📋 已複製企畫，可貼到自己的文件保存。';}catch(e){$('status').textContent='無法自動複製，請手動選取文字。';const pre=document.createElement('textarea');pre.value=text;pre.rows=10;$('stageContent').append(pre);}};

@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>系統平臺大冒險 · 116-1</title>
+<script>
+// 舊網址統一進入新版單元，避免學生看到已淘汰的公告與舊題型。
+// 需要教師回顧舊版時可加上 ?legacy=1；原 G1～G8 記錄保持不變。
+if (new URLSearchParams(location.search).get('legacy') !== '1') {
+  location.replace('platform-workshop-preview.html?official=1');
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="config.js"></script>
@@ -14,6 +21,7 @@
 <script src="../shared/ui.js?v=16.56"></script>
 <script src="../shared/api.js?v=16.89"></script>
 <script src="../shared/cardgame.js?v=16.89"></script>
+<script src="../shared/platform-memory-g3.js?v=17.25"></script>
 <script src="content/platform.js"></script>
 <script src="../shared/pf-labs.js"></script>
 <link rel="stylesheet" href="../shared/cardgame.css">
@@ -22,26 +30,22 @@
 <body>
 <main class="wrap">
   <header id="topbar"></header>
-  <div style="margin:12px 0;padding:14px 18px;border-radius:16px;background:#fff9dc;border:1px solid #f4d985;line-height:1.7">
-    🧠 <strong>第三關「記憶體快遞」已改用新關卡</strong>：<a href="memory-practice.html" style="font-weight:900;color:#12649d">進入 12 題記憶體特訓 →</a>（新關卡立即回饋練習成果；不使用舊判題伺服器，也不修改歷史星星）。
-  </div>
   <div id="app"></div>
 </main>
 <script>
 UI.topbar('#topbar', { title: '🖥️ 系統平臺大冒險', kicker: '單元三 · 3上 第 3 章' });
-// G3 舊驗證題庫暫停使用：地圖直達 #G3 與單元選單的第三張卡片都改進新關卡。
-// 保留原關卡 ID 與資料庫歷史進度；其他關卡的順序、ID、判題不變。
+// G3 使用與其他關相同的 STORE / Firebase 正式關卡識別碼；舊成績合併取最高星。
 if (location.hash === '#G3') {
-  location.replace('memory-practice.html');
+  PLATFORM_MEMORY_G3.mount(document.querySelector('#app'));
 } else {
   PF_LEVELS[2].title = '記憶體快遞・新關卡';
-  PF_LEVELS[2].book = '3-1 記憶單元｜12 題獨立練習';
+  PF_LEVELS[2].book = '3-1 記憶單元｜12 題正式闖關';
   document.querySelector('#app').addEventListener('click', function (event) {
     var card = event.target.closest && event.target.closest('.lvcard[data-i="2"]');
     if (!card) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    location.href = 'memory-practice.html';
+    location.href = 'platform.html#G3';
   }, true);
   CARDGAME.mount({ app: '#app', levels: PF_LEVELS, mod: 'platform' });
 }

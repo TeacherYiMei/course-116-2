@@ -193,8 +193,9 @@ const aiLessons=[
  {name:'好好提問、用心查證',learn:'好的提示詞可以提供主題、核心價值、已擁有的素材、想要的畫面效果與限制。',example:'「請根據我有的校園活動照片，提供三個呈現合作的分鏡建議，不要虛構事件。」',q:'哪個提示詞比較清楚？',opts:['給我一個超棒影片','我想拍合作，已有教室與操場素材，請建議三個鏡頭並說明理由'],right:1},
  {name:'AI 倫理與創作責任',learn:'使用 AI 要注意個資、肖像同意、著作權與真實性；作品由創作者負責。',example:'不輸入同學私人資訊，不用生成內容冒充真實拍攝，使用素材要確認授權。',q:'哪個做法符合創作倫理？',opts:['只提供非個資的故事描述，並查證建議','把同學完整姓名和私密照片上傳詢問 AI'],right:0}
 ];
-const projectTypes=['數位安全與資訊倫理','AI 與學習生活','校園生活與共同成長','環境永續與能源','社區文化與地方關懷','健康安全與反詐','公益服務與互助','個人成長與挑戰','其他教育主題'];
+const projectTypes=['畢業旅行與青春成長','數位安全與資訊倫理','AI 與學習生活','校園生活與共同成長','環境永續與能源','社區文化與地方關懷','健康安全與反詐','公益服務與互助','個人成長與挑戰','其他教育主題'];
 const projectExamples={
+ '畢業旅行與青春成長':'次主題例：友情與互助、突破自我、珍惜相處時光、離別與成長。可依原本行程逐站規劃景點、人物與拍攝鏡頭。',
  '數位安全與資訊倫理':'次主題例：網路留言的影響、保護個資、辨認假訊息。',
  'AI 與學習生活':'次主題例：AI 協助學習、查證 AI 答案、人與 AI 的分工。',
  '校園生活與共同成長':'次主題例：同學互助、尊重差異、社團合作、面對挫折。',
@@ -214,7 +215,9 @@ if(!Array.isArray(draft.locations)){
  const old=String(draft.place||'').trim();
  draft.locations=old?old.split(/[、，,；;\n]/).map(x=>x.trim()).filter(Boolean):[''];
 }
+if(draft.projectType==='畢旅紀錄')draft.projectType='畢業旅行與青春成長';
 if(!projectTypes.includes(draft.projectType))draft.projectType='';
+const isTrip=()=>draft.projectType==='畢業旅行與青春成長';
 const topicText=s=>String(s).replaceAll('畢旅','故事').replaceAll('旅途','故事中').replaceAll('景點','場景').replaceAll('旅行','創作');
 const done=i=>Number(window.STORE?.level?.('filmPrep','FP'+(i+1))?.stars||0)>0;
 const aiEarned=i=>Number(window.STORE?.level?.('filmPrep','FP_AI'+(i+1))?.stars||0)>0;
@@ -282,6 +285,19 @@ function draw(){
  const teachHead=document.createElement('h3');teachHead.textContent='📚 先學招式｜'+lesson.name;teach.append(teachHead);
  const ol=document.createElement('ol');lesson.steps.forEach(step=>{const li=document.createElement('li');li.textContent=topicText(step);ol.append(li);});teach.append(ol);
  const demo=document.createElement('p');demo.className='demo';demo.textContent='🎬 小導演示範：'+topicText(lesson.example);teach.append(demo);root.append(teach);
+ if(isTrip()&&(current===0||current===1)){
+   const trip=document.createElement('section');trip.className='mission-lesson';
+   const head=document.createElement('h3');head.textContent='🧳 畢旅故事拍攝引導｜沿用行程規劃';trip.append(head);
+   const steps=document.createElement('ol');(current===0?[
+     '先查看畢旅行程，按天數或景點列出想記錄的地點，也可以加入遊覽車、住宿點及同學互動。',
+     '挑出一個具體次主題，例如「原本害怕挑戰，卻因朋友鼓勵而完成」。',
+     '替影片命名，思考哪個真實時刻最能呈現友情、勇氣、尊重或成長。'
+   ]:[
+     '按照行程順序替每一站規劃開場全景、同學互動中景、人物表情與物品特寫。',
+     '已拍攝就盤點各站素材；尚未拍攝就寫下準備在景點拍什麼、由誰負責以及預估秒數。',
+     '把最有故事性的互動串成起因、過程、轉折和感受，避免只是一連串景點照片。'
+   ]).forEach(s=>{const li=document.createElement('li');li.textContent=s;steps.append(li);});trip.append(steps);root.append(trip);
+ }
  const quiz=document.createElement('section');quiz.className='mission-quest';const qh=document.createElement('h3');qh.textContent='🧩 招式小挑戰｜'+topicText(lesson.q);quiz.append(qh);
  const choices=document.createElement('div');choices.className='options';
  lesson.opts.forEach((opt,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(i+1)+'．'+opt;
@@ -330,23 +346,23 @@ function draw(){
  }
  if(current===0){
    const box=document.createElement('section');box.className='mission-lesson';
-   const title=document.createElement('h3');title.textContent='📍 影片場景或事件｜一個場景填一格';box.append(title);
-   const hint=document.createElement('p');hint.textContent='依照故事順序安排場景；還沒拍攝，也可以寫預計拍攝的地方與人物行動。';box.append(hint);
+   const title=document.createElement('h3');title.textContent=isTrip()?'📍 畢旅行程與拍攝地點｜一站填一格':'📍 影片場景或事件｜一個場景填一格';box.append(title);
+   const hint=document.createElement('p');hint.textContent=isTrip()?'請按實際行程依序填寫，也可以列出車上、住宿點、景點及特別的人物互動。':'依照故事順序安排場景；還沒拍攝，也可以寫預計拍攝的地方與人物行動。';box.append(hint);
    draft.locations.forEach((place,i)=>{
      const row=document.createElement('div');row.className='row';
-     const label=document.createElement('label');label.textContent='場景 '+(i+1)+'｜地點與事件';label.style.flex='1 1 220px';
-     const input=document.createElement('input');input.type='text';input.placeholder='例如：教室｜下課後關燈的行動';input.value=place;
+     const label=document.createElement('label');label.textContent=isTrip()?'第 '+(i+1)+' 站｜行程地點與人物互動':'場景 '+(i+1)+'｜地點與事件';label.style.flex='1 1 220px';
+     const input=document.createElement('input');input.type='text';input.placeholder=isTrip()?'例如：第一天車上｜同學互相照顧；第二天景點｜突破挑戰':'例如：教室｜下課後關燈的行動';input.value=place;
      input.dataset.id='location'+i;
      input.addEventListener('input',()=>{draft.locations[i]=input.value;saved();});label.append(input);row.append(label);
      if(draft.locations.length>1){const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='移除這站';remove.onclick=()=>{draft.locations.splice(i,1);if(Array.isArray(draft.locationShots))draft.locationShots.splice(i,1);saved();draw();};row.append(remove);}
      box.append(row);
    });
-   const add=document.createElement('button');add.type='button';add.className='secondary';add.textContent='➕ 新增場景';add.onclick=()=>{draft.locations.push('');saved();draw();};box.append(add);sceneBox=box;
+   const add=document.createElement('button');add.type='button';add.className='secondary';add.textContent=isTrip()?'➕ 新增行程站點':'➕ 新增場景';add.onclick=()=>{draft.locations.push('');saved();draw();};box.append(add);sceneBox=box;
  }
  if(current===1){
    const box=document.createElement('section');box.className='mission-lesson';
    const h=document.createElement('h3');h.textContent='🗺️ 第一站已規劃的場景｜為每個場景安排畫面';box.append(h);
-   const intro=document.createElement('p');intro.textContent='場景名稱由第一站帶入，不必重填。'+(draft.materialStatus==='none'?'請規劃要拍攝的內容、景別、負責人與秒數。':'請對照現有素材，區分可用與需要補拍的畫面。')+'核心價值「'+(draft.value||'尚未選擇')+'」要能從人物的行動與變化被觀眾看見。';box.append(intro);
+   const intro=document.createElement('p');intro.textContent=(isTrip()?'畢旅行程站點':'場景名稱')+'由第一站帶入，不必重填。'+(draft.materialStatus==='none'?'請規劃要拍攝的內容、景別、負責人與秒數。':'請對照現有素材，區分可用與需要補拍的畫面。')+'核心價值「'+(draft.value||'尚未選擇')+'」要能從人物的行動與變化被觀眾看見。';box.append(intro);
    draft.locations.forEach((place,i)=>{
      if(!String(place).trim())return;
      const label=document.createElement('label');label.textContent='📍 '+(i+1)+'．'+place+'｜已有哪些素材／要拍的行動／如何呈現核心價值／秒數';

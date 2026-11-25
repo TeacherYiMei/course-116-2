@@ -1,15 +1,18 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>系統平臺操作工作臺｜v17.31 測試版</title>
+<title>系統平臺操作工作臺｜v17.35 操作測試版</title>
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="config.js"></script><script src="../shared/store.js?v=16.57"></script>
 <style>
 body{background:linear-gradient(135deg,#eff6ff,#f0fdfa 65%,#fff8e6);color:#19314a}
 .pv-wrap{max-width:1140px;margin:auto;padding:22px 18px 65px}.pv-hero{border-radius:28px;background:linear-gradient(115deg,#17456e,#087d83);color:white;padding:30px;box-shadow:0 18px 36px #1d50782b}.pv-hero h1{color:white;font-size:clamp(1.7rem,4vw,2.7rem);margin:.2em 0}.pv-hero p{line-height:1.75}.pv-flag{display:inline-block;border-radius:30px;padding:7px 14px;background:#ffdc75;color:#4b3500;font-weight:900}.pv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:16px;margin:24px 0}.pv-card{display:block;text-align:left;background:white;color:#1a3553;border:2px solid #d9e5f4;border-top:7px solid var(--stripe,#3b82f6);border-radius:22px;padding:21px;min-height:205px;box-shadow:0 7px 16px #1c4f7415;cursor:pointer}.pv-card:hover,.pv-card:focus-visible{transform:translateY(-3px);outline:3px solid #79d1dd}.pv-card b{font-size:1.24rem;display:block;margin:10px 0}.pv-card .pv-icon{font-size:2rem}.pv-card small{display:block;line-height:1.6;color:#526b82}.pv-stars{color:#de8c06;font-size:1.25rem;letter-spacing:2px;font-weight:900}.pv-panel{background:#fff;border:2px solid #d5e5ef;border-radius:25px;padding:clamp(18px,4vw,32px);box-shadow:0 12px 24px #1d50781c}.pv-panel h2{margin-top:0}.pv-lesson{background:#eff9f9;border-left:6px solid #14a6aa;border-radius:15px;padding:18px;line-height:1.85}.pv-lesson p{margin:.3em 0}.pv-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:21px}.pv-btn{background:#146d92;color:#fff;border:none;border-radius:14px;padding:12px 18px;font-weight:850;cursor:pointer}.pv-btn.secondary{background:#e7f2fc;color:#154d79}.pv-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:20px 0}.pv-answers button{text-align:left;min-height:74px;padding:14px;border-radius:16px;border:2px solid #bddeea;background:#f8fcff;color:#193b56;font-size:1rem;font-weight:750;cursor:pointer}.pv-answers button:disabled{cursor:default}.pv-tip{background:#fff2cd;color:#6e4b00;padding:12px 16px;border-radius:14px;margin:14px 0}.pv-progress{height:13px;background:#e7edf3;border-radius:20px;overflow:hidden}.pv-progress i{height:100%;display:block;background:linear-gradient(90deg,#16a9bd,#6bd3a6)}.pv-hidden{display:none}.pv-muted{color:#577087}.pv-chip{display:inline-block;background:#e7f4fe;color:#22567f;border-radius:999px;padding:5px 12px;font-weight:850}.pv-good{background:#e1f8eb;border-radius:14px;padding:13px 16px;margin:15px 0}.pv-note{font-size:.91rem;line-height:1.65}@media(max-width:600px){.pv-answers{grid-template-columns:1fr}.pv-hero{padding:20px}}
+</style><style>
+.pv-lab{display:grid;grid-template-columns:1fr 1.2fr;gap:18px;margin-top:20px}.pv-lab-pane{background:#f2f9ff;border:2px solid #b6d9e9;border-radius:18px;padding:18px;min-height:290px}.pv-lab-pane h3{margin:0 0 13px}.pv-lab button,.pv-lab select{font:inherit;padding:10px;border-radius:10px;border:2px solid #83b7d0;background:white;cursor:pointer}.pv-lab button:disabled{opacity:.5;cursor:default}.pv-folder{margin-top:15px;border:3px dashed #0c9e98;border-radius:15px;padding:20px;min-height:105px;background:#e3fbf6}.pv-folder.pv-ready{background:#c6f6e5}.pv-file{display:block;width:100%;margin:10px 0;text-align:left;background:#fff9db!important;cursor:grab!important}.pv-lab-log{margin:16px 0;background:#e9f6ff;padding:14px;border-radius:12px;min-height:40px}.pv-lab-action{background:#116f89!important;color:white!important;border-color:#116f89!important;font-weight:800!important}.pv-lab-action:disabled{background:#9caeb8!important}.pv-stage-tag{font-size:.84rem;font-weight:800;color:#0c6f79}.pv-lab select{max-width:100%}@media(max-width:720px){.pv-lab{grid-template-columns:1fr}}
 </style></head><body><main class="pv-wrap">
 <p><a href="platform.html">← 返回目前正式版系統平臺</a></p>
 <header class="pv-hero"><span class="pv-flag">🧪 v17.31 操作工作臺測試版 · 不寫入正式成績</span><h1>🖥️ 系統平臺大冒險</h1><p>八關、共 97 個任務，其中記憶體快遞為 12 題三階挑戰；先學觀念，再一步步收集 24 顆星星！</p><p class="pv-note">本頁只讀取舊關卡星星作為對照。測試取得的星星僅在這次開啟的頁面有效，不會覆蓋學生紀錄或教師端資料。</p></header>
 <section id="pv-app" aria-live="polite"></section>
+<div style="text-align:center;margin-top:18px"><button class="pv-btn" id="quickCloudLab">🧪 直接試玩：雲端檔案操作工作臺</button></div>
 </main><script>
 /* 系統平臺重建測試版：完全不呼叫 STORE.saveLevel 或雲端寫入。 */
 (function(){'use strict';
@@ -143,6 +146,8 @@ const missions={
   ordering('建立安全的智慧風扇',['讀取溫度','判斷條件','啟動或停止風扇','異常時發出提醒'],'安全控制需要處理異常。')
  ]
 };
+// 第七關改用真正的檔案工作臺：建立資料夾、匯入模擬檔案、搬移與權限實測。
+missions.G7[0]={kind:'cloudLab',title:'雲端工作臺：建立、整理與安全共編檔案'};
 for(const u of units){if(u.id==='G3')continue;const m=missions[u.id];u.stages[1]=m.slice(0,u.stages[1].length);u.stages[2]=m.slice(u.stages[1].length);}
 const app=document.getElementById('pv-app'),draft=Object.create(null);let unit=null,phase=0,asked=0,pass=0,locked=false;
 const $=s=>app.querySelector(s),stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
@@ -155,7 +160,20 @@ function ask(){
  set('<section class="pv-panel"><div class="pv-chip">'+unit.icon+' '+unit.name+' · '+labels[phase]+'</div><p class="pv-muted">第 '+(asked+1)+' / '+count+' 個任務　｜　已完成 '+pass+' 個</p><div class="pv-progress"><i style="width:'+(asked/count*100)+'%"></i></div>'+(q.kind?'<p class="pv-tip">🕹️ 實作任務工作臺 · '+(q.kind==='dispatch'?'把元件放入工作區，啟動系統測試':q.kind==='order'?'排列操作步驟，讓系統依序運作':'完成配置，觀察檢查結果')+'</p>':'')+'<h2 style="margin-top:22px">'+(q.title||q[0])+'</h2><div class="pv-answers" id="answers"></div><p id="feedback" class="pv-good pv-hidden"></p><div class="pv-buttons"><button class="pv-btn pv-hidden" id="next">下一步 →</button><button class="pv-btn secondary" id="lesson">📖 回看教學</button></div></section>');
  $('#lesson').onclick=()=>lesson(unit);
  function submit(ok,explain){if(locked)return;locked=true;if(ok)pass++;const f=$('#feedback');f.classList.remove('pv-hidden');f.textContent=(ok?'🌟 操作正確！':'💡 一起看看正確概念：')+' '+explain;const next=$('#next');next.classList.remove('pv-hidden');next.textContent=asked===count-1?'⭐ 結算這一階':'下一題 →';next.onclick=()=>{asked++;if(asked<count)ask();else result();};}
- if(q.kind==='order'){
+ if(q.kind==='cloudLab'){
+   const chosen=$('#answers');chosen.style.display='block';
+   chosen.innerHTML='<div class="pv-lab"><div class="pv-lab-pane"><h3>🗄️ 我的雲端硬碟</h3><p class="pv-stage-tag">操作 1：建立專案資料夾</p><button id="makeFolder" class="pv-lab-action">＋ 建立「小組作品」資料夾</button><div id="folder" class="pv-folder" tabindex="0"><strong>📁 尚未建立資料夾</strong><p id="folderFiles">先建立資料夾，再整理檔案</p></div></div><div class="pv-lab-pane"><h3>📤 本機待上傳素材</h3><p class="pv-stage-tag">操作 2：匯入並搬移檔案</p><button id="importFile">⬆ 匯入「校園介紹.jpg」（模擬）</button><div id="fileTray"></div><p class="pv-muted">拖曳檔案到左邊資料夾；也可點檔案，再點資料夾。</p><hr><p class="pv-stage-tag">操作 3：設定分享與驗證</p><label>指定組員權限 <select id="memberRole" disabled><option value="">請選擇</option><option value="viewer">檢視者</option><option value="editor">編輯者</option><option value="public">公開連結可編輯</option></select></label><p><button id="testGuest" disabled>👥 模擬組員開啟與編輯</button></p><div id="guestResult" class="pv-lab-log" aria-live="polite">尚未測試權限</div></div></div><div class="pv-buttons"><button id="verifyLab" class="pv-btn" disabled>✅ 完成工作臺任務</button><button id="resetLab" class="pv-btn secondary">↩️ 重設工作臺</button></div>';
+   const folder=$('#folder'),folderFiles=$('#folderFiles'),tray=$('#fileTray'),make=$('#makeFolder'),imp=$('#importFile'),role=$('#memberRole'),test=$('#testGuest'),status=$('#guestResult'),verify=$('#verifyLab');
+   let made=false,uploaded=false,moved=false,guestPassed=false,selectedFile=false;
+   function moveFile(){if(!made||!uploaded||moved||locked)return;moved=true;folderFiles.textContent='🖼️ 校園介紹.jpg　✅ 已存入';folder.classList.add('pv-ready');tray.innerHTML='';role.disabled=false;status.textContent='檔案已整理進專案資料夾。接下來設定組員權限。';}
+   make.onclick=()=>{made=true;make.disabled=true;folder.querySelector('strong').textContent='📁 小組作品';folderFiles.textContent='資料夾目前是空的';status.textContent='資料夾建立成功，請匯入素材。';};
+   imp.onclick=()=>{if(!made){status.textContent='請先建立「小組作品」資料夾。';return;}uploaded=true;imp.disabled=true;const f=document.createElement('button');f.id='dragFile';f.className='pv-file';f.draggable=true;f.textContent='🖼️ 校園介紹.jpg　⋮⋮ 拖曳我';f.onclick=()=>{selectedFile=true;f.style.outline='3px solid #f5b53d';status.textContent='已選取照片，點選左邊的「小組作品」資料夾即可搬移。';};f.ondragstart=e=>{e.dataTransfer.setData('text/plain','campus-file');};tray.appendChild(f);status.textContent='素材已匯入。請拖曳照片到資料夾，或點照片後點資料夾。';};
+   folder.ondragover=e=>{if(made)e.preventDefault();};folder.ondrop=e=>{e.preventDefault();if(e.dataTransfer.getData('text/plain')==='campus-file')moveFile();};folder.onclick=()=>{if(selectedFile)moveFile();};folder.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&selectedFile){e.preventDefault();moveFile();}};
+   role.onchange=()=>{test.disabled=!moved||!role.value;guestPassed=false;verify.disabled=true;status.textContent='分享設定已更新。請按「模擬組員開啟與編輯」確認結果。';};
+   test.onclick=()=>{if(!moved)return;guestPassed=role.value==='editor';status.textContent=role.value==='viewer'?'👁️ 組員只能看，不能修改。請換成可共編權限。':role.value==='public'?'⚠️ 任何拿到連結的人都能修改，權限過大！請限制為指定組員。':'✅ 指定組員可檢視、編輯；未受邀者無法存取。';verify.disabled=!guestPassed;};
+   verify.onclick=()=>{if(!guestPassed||locked)return;chosen.querySelectorAll('button,select').forEach(x=>x.disabled=true);submit(true,'你已實際完成建立資料夾、匯入素材、整理檔案與設定最小必要分享權限。');};
+   $('#resetLab').onclick=()=>{if(!locked)ask();};
+ }else if(q.kind==='order'){
    const selected=[];const chosen=$('#answers');
    const guide=document.createElement('p');guide.className='pv-tip';guide.textContent='👆 依正確順序點選卡片。已選：尚未開始';chosen.before(guide);
    q.items.forEach(value=>{const b=document.createElement('button');b.textContent=value;b.onclick=()=>{if(locked||b.disabled)return;b.disabled=true;b.style.background='#dceaff';selected.push(value);guide.textContent='👆 已選：'+selected.join(' → ');if(selected.length===q.answer.length)submit(selected.every((x,i)=>x===q.answer[i]),q.why+' 正確順序：'+q.answer.join(' → '));};chosen.appendChild(b);});
@@ -181,7 +199,7 @@ function ask(){
  }
 }
 function result(){const count=unit.stages[phase].length,need=Math.ceil(count*.8),gained=pass>=need;if(gained)draft[unit.id]=Math.max(draft[unit.id]||0,phase+1);const current=draft[unit.id]||0;set('<section class="pv-panel"><h2>'+(gained?'🎉 任務完成！':'🌱 再試一次就更熟練！')+'</h2><p>本階答對 '+pass+' / '+count+' 題（過關門檻 '+need+' 題）</p><p class="pv-stars">'+stars(current)+'</p><p class="pv-good">'+(gained?'成功收集測試星星！':'先回顧教學，再挑戰同一階。')+'</p><p class="pv-tip">這些是測試星星，沒有寫入 Firebase。原正式紀錄仍是 '+oldStars(unit.id)+' / 3 星。</p><div class="pv-buttons"><button class="pv-btn" id="continue">'+(gained&&current===3?'🏆 查看徽章':gained?'🚀 下一階':'🔄 再挑戰這一階')+'</button><button class="pv-btn secondary" id="back">← 八關地圖</button></div></section>');$('#continue').onclick=()=>{if(gained&&current===3){set('<section class="pv-panel"><h2>🏆 '+unit.name+' 三星達成！</h2><p class="pv-stars">★★★</p><p>恭喜完成三階任務！</p><p class="pv-tip">本頁目前只示範體驗，正式學生星星未變動。</p><button class="pv-btn" id="back">回八關地圖 →</button></section>');$('#back').onclick=menu;}else{phase=gained?current:phase;asked=0;pass=0;ask();}};$('#back').onclick=menu;}
-menu();window.PLATFORM_V2_PREVIEW={units:units,oldStars:oldStars};
+menu();document.getElementById('quickCloudLab').onclick=()=>{unit=units.find(x=>x.id==='G7');phase=1;asked=0;pass=0;ask();};window.PLATFORM_V2_PREVIEW={units:units,oldStars:oldStars};
 })();
 
 </script></body></html>

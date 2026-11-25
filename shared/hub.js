@@ -155,21 +155,13 @@
     var toNext = rk.next ? (rk.next[0] - avg) : 0;
     var nextMod = mods.filter(function (m) { return !m.soon && modDone(m) < m.levels.length; })[0];
 
+    // 首頁只呈現清楚的課程入口；同步診斷、下載警告與內部進度計算不對學生展示。
+    // 原 STORE／Firebase 儲存與每單元星星卡片完全維持不變。
     var head =
-      '<section class="card pop" style="padding:1.5rem"><div class="tape"></div>' +
-      '<div class="row between">' +
-      '<div><p class="kicker">' + esc(C.SCHOOL) + ' · ' + esc(SEMESTER.name(C.TERM)) + '（' + esc(C.TERM) + '）</p>' +
-      '<h1 class="title">資訊科技闖關地圖</h1>' +
-      (p ? '<p class="soft bold mt1">' + esc(p.name) + '，歡迎回來！</p>' : '') + '</div>' +
-      '<div class="center" style="min-width:12rem">' +
-      '<div class="black" style="font-size:1.35rem">' + esc(rk.cur[1]) + '</div>' +
-      '<div class="small soft bold">平均完成度 <span class="black" id="avg-pct" style="color:var(--star-ink);font-size:1.2rem">' + avg + '%</span></div>' +
-      '<div class="bar mt1"><i style="width:' + avg + '%"></i></div>' +
-      '<div class="tiny soft mt1">⭐ 總星數 ' + total + ' / ' + max + ' · ' + (rk.next ? '平均再 ' + toNext + '% 升級為 ' + esc(rk.next[1]) : '已達最高稱號！') + '</div>' +
-      '<div class="tiny faint">每個單元各算完成 %，再取平均</div>' +
-      '</div></div>' +
-      (nextMod ? '<div class="note mt2 small"><b>下一步建議：</b>單元' + esc(nextMod.no) + '「' + esc(nextMod.title) + '」—— <a href="' + esc(nextMod.href) + '" class="bold">前往 →</a></div>' : '<div class="note ok mt2 small"><b>全部完成！</b>去 5016B 做一個自己的專題吧。</div>') +
-      openAllBanner() + backupNote(total) + cloudPanel() +
+      '<section class="card pop" style="padding:1.5rem"><div class="tape"></div>'+
+      '<p class="kicker">'+esc(C.SCHOOL)+' · '+esc(SEMESTER.name(C.TERM))+'</p>'+
+      '<h1 class="title">資訊科技闖關地圖</h1>'+
+      (p?'<p class="soft bold mt1">'+esc(p.name)+'，歡迎回來！選擇單元，開始冒險吧。</p>':'')+
       '</section>';
 
     var cards = mods.map(function (m, i) {
@@ -189,6 +181,7 @@
         '<div class="bar mt1"><i style="width:' + pct + '%;' + (m.maxStars ? '' : 'background:var(--u4)') + '"></i></div>' +
         '</' + tag + '>';
     }).join('');
+
 
     var foot =
       '<section class="mt3 row small soft" style="justify-content:center">' +

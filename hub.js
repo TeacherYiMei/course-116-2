@@ -190,16 +190,6 @@
         '</' + tag + '>';
     }).join('');
 
-    // 上學期新版系統平臺先以獨立試玩卡展示，不計入 MODULES 星數或教師成績。
-    // 直接隨 HUB.render() 產生，避免登入後重新渲染時測試入口消失。
-    if (C.TERM === '11601') {
-      cards = '<a id="platform-preview-map-card" class="card pop platform-preview-card" href="platform-workshop-preview.html" '+
-        'style="grid-column:1/-1;text-decoration:none;border:2px solid #0d9488;border-top:7px solid #0d9488;background:linear-gradient(110deg,#e4fff8,#fff);min-height:190px">'+
-        '<div class="row between"><span class="chip" style="background:#ccfbf1;color:#115e59;border-color:transparent">🧪 新版試玩 · 不計正式成績</span><span class="tiny bold soft">原系統平臺仍保留</span></div>'+
-        '<div class="row mt2"><span style="font-size:2.4rem">🖥️</span><div><h2 class="black">系統平臺操作工作臺</h2><p class="small soft bold">8 關 · 97 個任務 · 操作式挑戰</p></div></div>'+
-        '<p class="small mt1">試試拖曳、排序與模擬操作，完成任務收集練習星星；正式成績不受影響。</p>'+
-        '<p class="bold mt2" style="color:#0f766e">點這裡進入新版測試 →</p></a>' + cards;
-    }
 
     var foot =
       '<section class="mt3 row small soft" style="justify-content:center">' +

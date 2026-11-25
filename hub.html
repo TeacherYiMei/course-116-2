@@ -21,7 +21,7 @@
 .extension-card .ext-stat{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-weight:800;font-size:.9rem}
 .extension-card .ext-bar{height:12px;background:#e5e7eb;border-radius:12px;overflow:hidden;margin-top:10px}
 .extension-card .ext-bar i{display:block;height:100%;background:#7c3aed;border-radius:12px}
-.platform-preview-card{border-top:6px solid #0d9488!important;background:linear-gradient(135deg,#fff,#f0fdfa);text-decoration:none}
+.platform-preview-card{grid-column:1/-1;border:2px solid #0d9488!important;border-top:7px solid #0d9488!important;background:linear-gradient(110deg,#e4fff8,#ffffff);text-decoration:none;min-height:190px!important}
 .platform-preview-card .preview-chip{display:inline-block;border-radius:999px;background:#ccfbf1;color:#115e59;padding:6px 13px;font-size:.82rem;font-weight:800}
 .platform-preview-card .preview-cta{margin-top:auto;padding-top:18px;color:#0f766e;font-weight:900}
 /* 上學期首頁：以一致的卡片、留白與色彩呈現課程進度。 */
@@ -83,14 +83,12 @@ function drawPlatformPreviewCard(){
     card.className='card pop platform-preview-card';
     card.href='platform-workshop-preview.html';
   }
-  // 測試入口置於正式單元之後、獨立特別挑戰之前，不參與正式星星計算。
-  var knowledge=root.querySelector('#knowledge-map-card');
-  if(knowledge)root.insertBefore(card,knowledge);
-  else if(card.parentNode!==root)root.appendChild(card);
+  // 測試卡置頂橫跨整列，避免六個正式單元的畫面將它推到螢幕下方。
+  if(root.firstElementChild!==card)root.insertBefore(card,root.firstElementChild);
   card.innerHTML='<div class="row between"><span class="preview-chip">🧪 新版試玩 · 不計正式成績</span><span class="tiny bold soft">原系統平臺仍保留</span></div>'+
     '<div class="row mt2" style="align-items:flex-start;flex-wrap:nowrap"><div style="font-size:2.4rem;line-height:1">🖥️</div><div><h2 style="font-size:1.25rem" class="black">系統平臺操作工作臺</h2><p class="small soft bold">8 關 · 97 個任務 · 操作式挑戰</p></div></div>'+
     '<p class="small mt1">試試拖曳、排序與模擬操作，完成任務收集練習星星；原本的闖關紀錄不受影響。</p>'+
-    '<div class="preview-cta">進入新版試玩 →</div>';
+    '<div class="preview-cta">點這裡進入新版測試 →</div>';
 }
 function refreshExtensionMap(){setTimeout(function(){drawExtensionCard();drawPlatformPreviewCard()},0)}
 UI.requireLogin(function(){HUB.render();drawExtensionCard();drawPlatformPreviewCard();});

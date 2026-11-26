@@ -143,9 +143,16 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 <div class="row">
 <button id="saveStage">🔎 檢查作品，領取星星</button>
 <button id="nextStage" class="secondary">➡️ 預習下一站 →</button>
+<button id="compilePlan">🪄 自動整理完整企畫與分鏡</button>
 <button id="exportPlan" class="secondary">📋 複製我的企畫與分鏡</button>
 </div>
-<p class="small">輸入內容先存放在本機瀏覽器；使用正式學生帳號時，完成星星才會透過原有進度系統同步。請另複製企畫保存，避免換電腦遺失草稿。</p>
+<section id="compiledPanel" class="mission-lesson" hidden>
+<h3>🎬 整理完成的創作企畫｜可帶入下學期</h3>
+<p class="small">將各站回答串成故事及分鏡時間軸；尚未填寫的部分會標為「待補充」，不會虛構拍攝內容。整理完後仍可回去修改答案並重新整理。</p>
+<pre id="compiledText" style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:white;border-radius:12px;padding:17px"></pre>
+<p id="compiledStatus" role="status"></p>
+</section>
+<p class="small">各站原始答案先暫存在目前的瀏覽器。請在完成填寫後按「自動整理完整企畫與分鏡」，使用正式學生帳號同步整理版，供下學期跨電腦讀取；原始草稿仍建議自行備份。整理企畫本身不會增加星星。</p>
 </section>
 <section id="cut">
 <h2>🎞️ 4 分 40 秒的故事時間軸</h2>
@@ -163,8 +170,10 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 </main>
 <script src="../11601/config.js">
 </script>
+<script src="firebase-config.js"></script>
 <script src="store.js?v=16.80">
 </script>
+<script src="firebase-sync.js"></script>
 <script>
 (()=>{'use strict';const $=id=>document.getElementById(id);const values=['友情與團隊合作','成長與獨立','尊重與同理','環境永續','文化探索','珍惜與感恩','勇氣與突破','健康安全與自我照顧','資訊倫理／數位禮儀','自訂正向教育主題'];
 const valueTips={
@@ -237,6 +246,54 @@ const done=i=>Number(window.STORE?.level?.('filmPrep','FP'+(i+1))?.stars||0)>0;
 const aiEarned=i=>Number(window.STORE?.level?.('filmPrep','FP_AI'+(i+1))?.stars||0)>0;
 const aiReady=()=>aiLessons.every((_,i)=>aiEarned(i));
 const saved=()=>{try{localStorage.setItem(key(),JSON.stringify(draft));}catch(e){}};
+const filled=v=>String(v||'').trim()||'〔待補充〕';
+function compileStoryPlan(){
+ const topic=filled(draft.projectType),subtopic=filled(draft.subtopic),title=filled(draft.title);
+ const value=filled(draft.value==='自訂正向教育主題'?draft.customValue:draft.value);
+ const status={none:'尚未拍攝，先完成拍攝企畫',some:'已有部分素材，繼續補拍與整理',ready:'素材大致齊全，準備剪輯'}[draft.materialStatus]||'待確認素材狀況';
+ const segments=[['開場：讓觀眾想繼續看','0–20 秒',draft.open],['交代人物與背景','20–65 秒',draft.visit],['事件或轉折','65–140 秒',draft.conflict],['行動與改變','140–235 秒',draft.solve],['收束與核心訊息','235–280 秒',draft.ending]];
+ const locations=(draft.locations||[]).map((place,i)=>({place:String(place||'').trim(),shot:String((draft.locationShots||[])[i]||'').trim()})).filter(x=>x.place);
+ const lines=[
+  '🎬 '+title,'一、故事定位',
+  '主要主題：'+topic,'次主題：'+subtopic,'核心價值：'+value,
+  '目標觀眾與期待影響：'+filled(draft.audience),
+  '影片想傳達的一句話：'+filled(draft.message),'目前素材：'+status,'',
+  '二、連貫故事大綱',
+  '故事從「'+filled(draft.problem)+'」開始。',
+  '影片將呈現「'+filled(draft.action)+'」，希望觀眾看見「'+value+'」。',
+  '最後以「'+filled(draft.message)+'」作為故事的收束。','',
+  '三、五段式分鏡與時間軸（總長約 280 秒）',
+  ...segments.map(([label,time,detail],i)=>(i+1)+'. '+label+'｜'+time+'\n   畫面／敘事：'+filled(detail)),
+  '','四、場景與鏡頭拍攝清單',
+  ...(locations.length?locations.map((s,i)=>(i+1)+'. '+s.place+'\n   鏡頭規劃：'+filled(s.shot)):['〔尚未填寫場景；請回第一站規劃〕']),
+  '必拍景別與畫面：'+filled(draft.shots),'其他關鍵鏡頭：'+filled(draft.list),
+  '','五、聲音、素材與分工',
+  '旁白：'+filled(draft.script),'現場聲音：'+filled(draft.ambient),'配樂情緒：'+filled(draft.music),
+  '素材分類：'+filled(draft.folders),
+  '現有素材盤點／預計拍攝：'+filled(draft.materialStatus==='none'?draft.shootingInventory:draft.canvaInventory),
+  '工作分配：'+filled(draft.roles),'拍攝或整理時間：'+filled(draft.rolesPlan),
+  '','六、下學期接續任務',
+  '180 秒粗剪或剪輯計畫：'+filled(draft.rough),
+  '試看或討論回饋：'+filled(draft.feedback),
+  '缺少的素材：'+filled(draft.missing),
+  '待拍／補拍三鏡頭：'+filled(draft.shotsPlan),
+  '延伸到 280 秒的方式：'+filled(draft.extend),
+  '最優先的下一步：'+filled(draft.next)
+ ];
+ return {version:1,updatedAt:Date.now(),title,projectType:topic,subtopic,value,segments:segments.map(([label,time,detail])=>({label,time,detail:filled(detail)})),locations,storyText:lines.join('\n')};
+}
+function showCompiled(plan){$('compiledPanel').hidden=false;$('compiledText').textContent=plan.storyText;$('compiledPanel').scrollIntoView({behavior:'smooth',block:'start'});}
+const previousCompiled=window.STORE?.level?.('filmPrep','FP_PLAN')?.extra?.compiledPlan||draft.compiledPlan;
+if(previousCompiled?.storyText){$('compiledPanel').hidden=false;$('compiledText').textContent=previousCompiled.storyText;}
+$('compilePlan').onclick=async()=>{
+ const plan=compileStoryPlan();draft.compiledPlan=plan;saved();showCompiled(plan);
+ if(!window.STORE?.me?.()){$('compiledStatus').textContent='📋 已整理並暫存在此瀏覽器。請登入正式學生帳號後再按一次，才能存入雲端供下學期讀取。';return;}
+ const result=window.STORE.saveLevel('filmPrep','FP_PLAN',{stars:0,extra:{compiledPlan:plan}});
+ if(result?.error||!result?.record){$('compiledStatus').textContent='⚠️ 整理版已留在瀏覽器，但雲端保存尚未確認。請勿清除原稿。';return;}
+ $('compiledStatus').textContent='⏳ 已保存整理版，正在確認雲端同步…';
+ try{const synced=await window.STORE.syncToCloud();$('compiledStatus').textContent=synced?.ok?'✅ 整理版已同步雲端；下學期使用同一學生帳號即可讀取。':'⚠️ 整理版已在本機保存，雲端尚未確認。請保持登入並稍後重試。';}
+ catch(e){$('compiledStatus').textContent='⚠️ 雲端同步尚未確認，原稿仍在本機，請稍後重試。';}
+};
 function drawAI(){
  const root=$('aiPrimerCards');root.innerHTML='';
  aiLessons.forEach((lesson,i)=>{

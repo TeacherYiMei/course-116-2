@@ -50,6 +50,29 @@
       return plan&&typeof plan==='object'&&!Array.isArray(plan)?plan:null;
     }catch(e){return null;}
   }
+  function compiledFromLocal(){const p=firstSemesterPlan();return p?.compiledPlan?.storyText?p.compiledPlan:null;}
+  async function compiledFromCloud(){
+    const profile=window.STORE?.me?.(),db=window.CourseDB;
+    if(!profile||!db)return null;
+    await db.ready;
+    if(!db.matchesStudentProfile?.(profile))return null;
+    const data=await db.loadStudent();
+    const candidates=[
+      data?.courseProgress?.['11601']?.modules?.filmPrep?.levels?.FP_PLAN,
+      data?.progress?._mods?.filmPrep?.levels?.FP_PLAN,
+      data?.modules?.filmPrep?.levels?.FP_PLAN
+    ];
+    return candidates.map(x=>x?.extra?.compiledPlan).find(x=>x?.storyText)||null;
+  }
+  function renderCompiledPlan(box,plan,source){
+    box.innerHTML='';
+    const title=document.createElement('h3');title.textContent='🎬 已找到上學期整理版企畫';box.append(title);
+    const desc=document.createElement('p');desc.textContent='已依原本填寫的答案整合故事定位、五段時間軸、鏡頭、聲音和待補拍清單。'+(source==='cloud'?'（已從學生雲端紀錄讀取）':'（此裝置的整理版）');box.append(desc);
+    const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='📖 開啟上學期企畫（整理版）';box.append(open);
+    const content=document.createElement('pre');content.hidden=true;content.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.8;background:#f5fbff;border-radius:10px;padding:15px';content.textContent=plan.storyText;box.append(content);
+    open.onclick=()=>{content.hidden=!content.hidden;open.textContent=content.hidden?'📖 開啟上學期企畫（整理版）':'📕 收起上學期整理版';};
+    const link=document.createElement('a');link.href='../shared/educase-film.html#idea';link.textContent='✍️ 回上學期修改或重新整理企畫';link.style.fontWeight='800';box.append(link);
+  }
   function unlocked(i){return i===0||Array.from({length:i},(_,k)=>k).every(has);}
   function draw(){
     const n=count();$('questStars').textContent=tasks.map((_,i)=>has(i)?'⭐':'☆').join(' ');
@@ -81,16 +104,19 @@
     const ans=$('questAnswer'),draft=readDraft(current);
     if(t.mode==='review'){
       const plan=firstSemesterPlan();
+      const compiled=compiledFromLocal();
       const box=document.createElement('section');box.style.cssText='background:white;border:2px solid #b4d9e6;border-radius:16px;padding:18px;margin:12px 0';
-      const title=document.createElement('h3');title.textContent=plan?'📚 從上學期帶入的創作企畫（唯讀）':'📭 這台裝置尚未找到上學期企畫草稿';box.append(title);
-      if(plan){
-        const entries=[['影片類型',plan.projectType||'畢旅紀錄'],['片名',plan.title],['核心價值',plan.value==='自訂正向教育主題'?plan.customValue:plan.value],['場景／行程',Array.isArray(plan.locations)?plan.locations.filter(Boolean).join(' → '):plan.place],['開場（0–20 秒）',plan.open],['人物與場景（20–65 秒）',plan.visit],['重要事件（65–140 秒）',plan.conflict],['發展（140–235 秒）',plan.solve],['片尾（235–280 秒）',plan.ending],['素材盤點',plan.canvaInventory]];
-        const list=document.createElement('dl');list.style.cssText='display:grid;grid-template-columns:minmax(120px,1fr) 3fr;gap:9px;margin:10px 0';
-        entries.forEach(([label,value])=>{if(!String(value||'').trim())return;const dt=document.createElement('dt');dt.style.fontWeight='900';dt.textContent=label;const dd=document.createElement('dd');dd.style.margin='0';dd.style.whiteSpace='pre-wrap';dd.textContent=value;list.append(dt,dd);});box.append(list);
-      }else{
-        const p=document.createElement('p');p.textContent='上學期的企畫文字原本儲存在填寫時使用的瀏覽器；星星和企畫內容是不同資料。請不要重新填寫或清除瀏覽器資料，先回原電腦查看。';box.append(p);
+      if(compiled)renderCompiledPlan(box,compiled,'local');
+      else{
+        const title=document.createElement('h3');title.textContent='📚 正在尋找上學期整理版企畫…';box.append(title);
+        const p=document.createElement('p');p.textContent=plan?'這台裝置找到原稿，但尚未整理成完整企畫。可以回上學期按「自動整理完整企畫與分鏡」。':'正在檢查已登入的學生雲端紀錄；如果沒有整理版，請到上學期頁面產生一次。';box.append(p);
       }
-      const link=document.createElement('a');link.href='../shared/educase-film.html#idea';link.textContent='↗ 開啟上學期企畫（查看或修改原稿）';link.style.fontWeight='800';box.append(link);ans.append(box);
+      ans.append(box);
+      compiledFromCloud().then(cloud=>{
+        if(current!==0||!box.isConnected)return;
+        if(cloud&&(!compiled||Number(cloud.updatedAt||0)>Number(compiled.updatedAt||0)))renderCompiledPlan(box,cloud,'cloud');
+        else if(!compiled){const link=document.createElement('a');link.href='../shared/educase-film.html#idea';link.textContent='🪄 前往上學期整理完整企畫與分鏡';link.style.fontWeight='800';box.append(link);}
+      }).catch(()=>{if(!compiled&&box.isConnected){const note=document.createElement('p');note.textContent='目前無法確認雲端整理版，請確認使用相同學生帳號登入，或回上學期重新整理。';box.append(note);}});
       const prompt=document.createElement('p');prompt.style.cssText='background:#eaf7ed;padding:12px;border-radius:12px';prompt.textContent='🔎 這一站只要對照現有照片、影片與 180 秒粗剪，找出缺少的關鍵畫面；補鏡計畫會在後續操作站逐步完成。';ans.append(prompt);
     }
     if(t.mode==='text'){const inp=document.createElement('input');inp.id='questText';inp.className='quest-input';inp.placeholder='請輸入你的實際作品內容';inp.maxLength=80;inp.value=draft.answer||'';inp.addEventListener('input',()=>writeDraft(current,{answer:inp.value}));ans.append(inp);}
@@ -104,5 +130,5 @@
       const next=current+1;if(next<tasks.length)current=next;draw();});
     $('questNext').addEventListener('click',()=>{if(current+1<tasks.length&&unlocked(current+1)){current++;draw();}});
   }
-  draw();window.addEventListener('store:change',()=>draw());
+  draw();window.addEventListener('store:change',()=>draw());window.addEventListener('courseauth:stable',()=>draw());
 })();

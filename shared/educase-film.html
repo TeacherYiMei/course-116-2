@@ -506,6 +506,34 @@ function draw(){
      ['📖 Canva 音訊操作說明','https://www.canva.com/help/stock-music/']
    ].forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.textContent=label;links.append(a);});studio.append(links);
    const rights=document.createElement('p');rights.className='hint';rights.textContent='🔐 「免費下載」不代表沒有著作權。初學者優先選 Mixkit（確認 Free License）、自己錄的音效，或 YouTube 音效庫中不需署名的曲目；Pixabay 可能有 Content ID 聲明。Freesound 優先選 CC0，Free Music Archive 每首授權可能不同。請保存曲名、作者、原始網址、授權與查核日期；需署名的音樂請在片尾列出來源。Canva 中標示「熱門音樂／僅限個人使用」的曲目，不要直接當作對外參賽影片配樂。';studio.append(rights);
+   const copyrightLesson=document.createElement('section');copyrightLesson.className='mission-lesson';
+   const copyrightHeading=document.createElement('h3');copyrightHeading.textContent='🔎 授權偵探教室｜能下載，不代表能任意使用';copyrightLesson.append(copyrightHeading);
+   const basic=document.createElement('p');basic.textContent='先分辨三件事：免費＝不必付錢；免權利金（royalty-free）＝依授權使用時通常不用逐次付費；CC0＝創作者盡可能放棄著作權限制。這三個詞都不能代替閱讀該音檔的使用條款。';copyrightLesson.append(basic);
+   const licenseGrid=document.createElement('ul');[
+     'CC0：通常可下載、剪輯、公開發表，不強制署名；仍要尊重他人肖像、商標等其他權利。',
+     'CC BY：可改作與公開使用，但一定要適當標示作者、來源、授權與是否修改。',
+     'CC BY-NC：限非商業使用且需署名；比賽、贊助或日後公開利用是否符合非商業，不能只憑「學生作品」判定。',
+     'CC BY-ND：不得分享改作版本；把音樂配合影片、剪接重混可能涉及改作，先避開。',
+     'CC BY-SA：改作並分享時須遵守相同授權條件，可能影響作品發布方式；不確定先詢問老師。',
+     '網站自訂授權：Mixkit、Pixabay、Canva 的條件不是 CC0。可放進完成影片，不等於可單獨重新上傳、轉售或當成自己的音樂提供下載。'
+   ].forEach(line=>{const li=document.createElement('li');li.textContent=line;licenseGrid.append(li)});copyrightLesson.append(licenseGrid);
+   const siteTitle=document.createElement('h4');siteTitle.textContent='🧭 下載前要到哪裡看授權？';copyrightLesson.append(siteTitle);
+   const siteGuide=document.createElement('ul');[
+     ['Mixkit','打開歌曲頁面及 Stock Music Free License；確認是配樂授權，不是其他素材類型。','https://mixkit.co/license/modal/musicFree/'],
+     ['Pixabay','從音檔頁找到 Content License；注意不得將單獨音檔當素材重新散布，並留意 Content ID。','https://pixabay.com/service/license-summary/'],
+     ['YouTube 音效庫','開啟曲目的授權資訊；若標示需要署名，複製官方提供的署名文字。','https://support.google.com/youtube/answer/3376882?hl=zh-Hant'],
+     ['Freesound','逐一看音效頁面的 License，優先篩 CC0；若是 BY 就要署名，若有 NC 就要評估用途。','https://freesound.org/help/faq/'],
+     ['Free Music Archive','每首歌分別查看授權標籤與 License Guide；不要以整個網站「免費」推定每首都能參賽。','https://freemusicarchive.org/License_Guide']
+   ];siteGuide.forEach(([site,how,url])=>{const li=document.createElement('li');const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=site+' 官方授權說明';li.append(a,document.createTextNode('：'+how));siteGuide.append(li)});copyrightLesson.append(siteGuide);
+   const routine=document.createElement('p');routine.className='hint';routine.textContent='📋 五步核對：① 認出原始網站 ② 找到該音檔的授權頁 ③ 檢查能否剪輯、公開展映及參賽 ④ 記錄曲名、作者、網址、授權與查核日期（可留存頁面截圖作備查）⑤ 需要署名就寫入片尾。若條款不明，先不放入正式影片。';copyrightLesson.append(routine);
+   const quizTitle=document.createElement('h4');quizTitle.textContent='🧩 授權判讀小測驗（可重試，不影響原有星星）';copyrightLesson.append(quizTitle);
+   const quizzes=[
+     {q:'某網站寫「免費下載」，但沒有標示可用於影片。可以直接剪進公開參賽作品嗎？',options:['可以，免費就是無版權','先查該音檔的授權條款；不明就不要用'],right:1,why:'下載許可不等於影片公開使用許可。'},
+     {q:'一段腳步音效標示 CC BY，你要把它加進微電影，還應做什麼？',options:['在片尾或作品說明適當署名並記下來源','把檔名改掉就可以'],right:0,why:'BY 表示必須依授權署名。'},
+     {q:'一首歌標示 CC BY-ND，想剪短、配上影片後公開，最穩妥的選擇是？',options:['直接改，反正是非營利課程','改找允許改作的音樂，或先取得另行許可'],right:1,why:'ND 對公開分享改作有約束；影片配樂使用也要審慎確認。'},
+     {q:'從 Mixkit 下載音樂，可否把原 MP3 另外上傳成「我的免費音樂包」？',options:['可以，下載後就屬於我','不可以，網站許可用於作品，不等於可重新散布獨立素材'],right:1,why:'要區分「放入影片」與「把原音檔再次當素材散布」。'}
+   ];quizzes.forEach((item,index)=>{const box=document.createElement('div');box.style.cssText='border:1px solid #b8deda;border-radius:12px;padding:12px;margin:10px 0';const q=document.createElement('p');q.textContent=(index+1)+'．'+item.q;box.append(q);const feedback=document.createElement('p');feedback.className='hint';item.options.forEach((option,optionIndex)=>{const button=document.createElement('button');button.type='button';button.className='secondary';button.style.margin='4px';button.textContent=option;button.onclick=()=>{feedback.textContent=(optionIndex===item.right?'✅ 正確！':'🔁 再想想：')+item.why};box.append(button)});box.append(feedback);copyrightLesson.append(box)});
+   studio.append(copyrightLesson);
    const lesson=document.createElement('details');lesson.open=true;const lessonTitle=document.createElement('summary');lessonTitle.textContent='📚 迷你教室｜用聲音說故事：三個層次與三次試聽';lesson.append(lessonTitle);
    const lessonText=document.createElement('ol');['先聽原音：畫面本來有什麼人聲或環境音？如果已清楚，就不一定要放背景音樂。','再補關鍵聲音：需要腳步、開門、雨聲或旁白來幫助理解嗎？音效只放在對應動作發生的時刻。','最後選配樂：先挑觀眾應感受到的情緒，再挑曲風。每段音樂不必相同，也可以留白或安靜。','第一次試聽：關掉畫面，只聽聲音，能分辨故事開始、轉折及結尾嗎？','第二次試聽：打開畫面，檢查音效和動作同步、音樂切換不突兀。','第三次試聽：用一般音量播放，旁白與對話要清楚，背景音樂不可蓋住人聲。'].forEach(t=>{const li=document.createElement('li');li.textContent=t;lessonText.append(li)});lesson.append(lessonText);studio.append(lesson);
    const suno=document.createElement('details');const summary=document.createElement('summary');summary.textContent='🤖 可以用 Suno AI 製作配樂嗎？先看授權提醒';suno.append(summary);

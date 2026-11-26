@@ -54,6 +54,7 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 .topic-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}.topic-menu button{background:#fff;color:#17445b;border:2px solid #c6dfe8;text-align:left;min-height:112px;padding:17px 19px;font-size:1.13rem;line-height:1.5}.topic-menu button:hover,.topic-menu button[aria-pressed="true"]{border-color:#0b8b93;background:#e8faf8}.topic-menu button span{display:block;font-size:.85rem;color:#466677;font-weight:500;margin-top:6px}.topic-top{position:sticky;top:0;z-index:10;background:#eef7f9ee;backdrop-filter:blur(8px);border:1px solid #b6d8e4;border-radius:12px;padding:10px 14px;margin:12px 0}.topic-top button{font-size:.9rem;padding:7px 12px}.topic-top strong{margin-left:12px}body.topic-mode #calendar,body.topic-mode #concepts,body.topic-mode #aiPrimer,body.topic-mode #idea,body.topic-mode #cut,body.topic-mode #topics{display:none}body.topic-mode[data-topic="calendar"] #calendar,body.topic-mode[data-topic="concepts"] #concepts,body.topic-mode[data-topic="ai"] #aiPrimer,body.topic-mode[data-topic="plan"] #idea,body.topic-mode[data-topic="audio"] #idea,body.topic-mode[data-topic="cut"] #cut{display:block}body.topic-mode[data-topic="audio"] #stageTabs,body.topic-mode[data-topic="audio"] #idea>details,body.topic-mode[data-topic="audio"] #idea>p:first-of-type,body.topic-mode[data-topic="audio"] #nextStage{display:none}body.topic-mode[data-topic="audio"] #idea>h2{font-size:1.2rem}body.topic-mode[data-topic="audio"] #saveStage,body.topic-mode[data-topic="audio"] #compilePlan,body.topic-mode[data-topic="audio"] #exportPlan{margin-top:7px}
 body.topic-mode[data-topic="menu"] #topics{display:block}
 @media(max-width:620px){.topic-menu{grid-template-columns:1fr}.topic-menu button{min-height:90px}}
+body.stage-quest-mode #lessonOverview,body.stage-quest-mode .lesson-map-actions,body.stage-quest-mode #idea>details,body.stage-quest-mode #idea>p:first-of-type,body.stage-quest-mode #valueGuide,body.stage-quest-mode #idea>.row,body.stage-quest-mode #compiledPanel{display:none}body.stage-quest-mode.show-overview #lessonOverview,body.stage-quest-mode.show-overview .lesson-map-actions{display:flex}body.stage-quest-mode.show-overview #lessonOverview{display:grid}body.stage-quest-mode #stageContent{padding:0;border:0;background:transparent}#previewAllLessons{background:#fff;color:#17607e;font-size:.92rem;padding:9px 13px;margin:10px 0;border:1px solid #a0cbdc}body.topic-mode[data-topic="audio"] #previewAllLessons{display:none}
 .sound-quest{background:linear-gradient(145deg,#eaf7ff,#f7efff);border:2px solid #99c7ee;border-radius:24px;padding:clamp(17px,3vw,28px);margin:15px 0}.sound-hero{display:flex;gap:14px;align-items:center}.sound-hero .sound-mascot{font-size:3.6rem;line-height:1}.sound-hero h3{font-size:1.5rem!important;margin:0!important;color:#194e83!important}.sound-pips{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.sound-pips button{flex:1;min-width:90px;background:#fff;color:#215a79;border:2px solid #b9d8e9;padding:10px 6px}.sound-pips button.active{background:#185b93;color:white;border-color:#185b93}.sound-pips button.won{background:#fff0b7;color:#754d05;border-color:#e6b943}.sound-task{background:white;border-radius:18px;padding:clamp(16px,3vw,25px);box-shadow:0 8px 25px #235f8a14}.sound-task h4{font-size:1.25rem;color:#1b5278;margin:7px 0}.sound-task .options{display:grid;gap:9px}.sound-task .options button{background:#f5faff;color:#164965;border:1px solid #a9c9df;text-align:left}.sound-task .options button[aria-pressed="true"]{border:3px solid #0a8391;background:#e5faf6}.sound-cta{width:100%;font-size:1.13rem;background:#0c817f;padding:15px;margin-top:12px}.sound-feedback{min-height:28px;font-weight:800;color:#225a77}.sound-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.sound-nav button{flex:1}.sound-prize{background:#fff5ce;border:2px solid #e9c867;border-radius:15px;padding:13px;margin:14px 0;font-weight:800}.sound-sources{margin-top:16px}.sound-sources summary{color:#205d7c}body.topic-mode[data-topic="audio"] #lessonOverview,body.topic-mode[data-topic="audio"] .lesson-map-actions,body.topic-mode[data-topic="audio"] #valueGuide,body.topic-mode[data-topic="audio"] #saveStage,body.topic-mode[data-topic="audio"] #compilePlan,body.topic-mode[data-topic="audio"] #exportPlan,body.topic-mode[data-topic="audio"] #compiledPanel{display:none}body.topic-mode[data-topic="audio"] #stageContent{padding:0;border:0;background:transparent}body.topic-mode[data-topic="audio"] #status{font-size:.9rem}
 </style>
 </head>
@@ -70,7 +71,7 @@ body.topic-mode[data-topic="menu"] #topics{display:block}
 </header>
 <section id="topics">
 <h2>📚 今天想學哪一個主題？</h2>
-<p>先點選一張卡片，一次只看一個主題。聲音課改為五個獨立小關卡：看一張教學卡、答一題、寫下自己的設計，再收集星星。<small>（介面版 v17.51）</small></p>
+<p>先點選一張卡片，一次只看一個主題。五站企畫都能一關一關學習、答題、實作並收集星星；原有完整工作表可自由開啟。<small>（介面版 v17.52）</small></p>
 <div class="topic-menu" id="topicMenu">
 <button type="button" data-topic-choice="plan">✍️ ① 主題企畫與五段分鏡<span>選主題、寫故事、列鏡頭與整理企畫</span></button>
 <button type="button" data-topic-choice="audio">🎧 ② 聲音、音效與版權<span>免費音樂、授權小測驗、分段配樂、Canva</span></button>
@@ -141,6 +142,7 @@ body.topic-mode[data-topic="menu"] #topics{display:block}
 </section>
 <section id="idea">
 <h2>🌟 我的微電影企畫闖關｜五站累積五顆星</h2>
+<button type="button" id="previewAllLessons">📚 查看全部五站教學（可自由預覽）</button>
 <p>先挑選一個有教育意義的主題，再縮小為自己能拍的次主題。從「觀察到什麼 → 想傳達什麼 → 準備拍什麼」一步步形成作品。<b>五個站點全部開放，可以先預習與練習 Canva；完成該站實作再領星星。</b></p>
 <div class="lesson-map-actions"><button type="button" id="expandLessons">📖 展開全部五站教學</button><button type="button" id="collapseLessons">收合教學內容</button></div>
 <div id="lessonOverview" class="lesson-map" aria-label="五站完整教學目錄"></div>
@@ -409,6 +411,8 @@ function renderLessonOverview(){
 }
 $('expandLessons').onclick=()=>{overviewExpanded=true;renderLessonOverview();};
 $('collapseLessons').onclick=()=>{overviewExpanded=false;renderLessonOverview();};
+let showOverviewInQuest=false;
+$('previewAllLessons').onclick=()=>{showOverviewInQuest=!showOverviewInQuest;document.body.classList.toggle('show-overview',showOverviewInQuest);$('previewAllLessons').textContent=showOverviewInQuest?'📚 收起五站完整教學':'📚 查看全部五站教學（可自由預覽）';};
 const soundMissions=[
  {icon:'🎙️',name:'旁白錄音師',learn:'好的旁白不必很長。先寫一到兩句真實感受，選安靜地方試錄，前後各留兩秒，再戴耳機聽有沒有雜音。',example:'「原來有人陪伴，就能多一點勇氣。」這句話比「今天很好玩」更能說出故事。',q:'哪個做法能讓旁白比較清楚？',opts:['在吵雜教室一次錄完','先到安靜處試錄、重聽再調整'],right:1,prompt:'替你的微電影寫一句能表達核心價值的旁白（至少 12 字）。'},
  {icon:'👣',name:'現場音捕手',learn:'現場音是當時真實聽見的聲音，例如腳步、翻書、談話、車聲。先聽原片，決定要保留哪些聲音，不是每個畫面都要放配樂。',example:'關燈動作可以保留「喀」一聲，觀眾就知道角色做了什麼。',q:'哪一種聲音最能呈現人物關上門的動作？',opts:['和動作同步的關門聲','從頭到尾都播放很大的音樂'],right:0,prompt:'寫出故事中的一個動作，以及你會保留或錄製什麼現場音（至少 12 字）。'},
@@ -416,6 +420,65 @@ const soundMissions=[
  {icon:'🎼',name:'情緒配樂師',learn:'聲音要跟著故事變化。開場可輕快，衝突可留白或稍緊張，片尾可溫暖；人聲出現時要降低背景音量。',example:'同學猶豫時先保留安靜與呼吸聲；有人伸出援手後，才讓溫暖配樂慢慢進來。',q:'旁白被背景音樂蓋住，最適合的調整是？',opts:['把背景音樂音量降低','再增加一首音樂'],right:0,prompt:'描述故事中的一個轉折，以及你想讓觀眾感受的情緒和聲音安排（至少 12 字）。'},
  {icon:'🎬',name:'Canva 混音師',learn:'先把自己的錄音或已確認授權的音檔放進專案，上傳到 Canva，拖到影片時間軸，修剪起訖點，再調音量、重聽。沒有影片也能先用空白頁練習。',example:'03事件_腳步_01.m4a → 上傳 → 拖到第三段 → 對齊角色走路畫面 → 播放檢查。',q:'把音訊加入 Canva 後，下一步最重要的是？',opts:['不用聽，直接交作業','對齊畫面、調整音量並播放檢查'],right:1,prompt:'寫出你要放入哪一種聲音、放在第幾段，以及在 Canva 如何檢查（至少 12 字）。'}
 ];
+const otherStageMissions={
+ 0:[
+  {icon:'🔎',name:'故事觀察家',learn:'微電影先從真實生活找故事：想想校園、社區或自己的經歷中，有哪件值得分享的事。不要一開始就只想特效。',example:'觀察到教室放學後忘記關燈，這就是能拍攝的具體事件。',q:'哪個故事比較容易拍成有意義的影片？',opts:['一件自己觀察過的具體事件','隨意剪輯很多漂亮畫面'],right:0,prompt:'寫下你親眼觀察或親身經歷、想拍成影片的一件事（至少 12 字）。'},
+  {icon:'🎯',name:'主題聚焦師',learn:'從大主題縮小到次主題，明確說出人物面對什麼問題、做了什麼。主題越清楚，越容易知道要拍哪些鏡頭。',example:'「環保」太廣；「放學前最後一位同學關燈」就比較具體。',q:'哪個次主題較明確？',opts:['青春與人生的一切','班級同學一起改善資源浪費'],right:1,prompt:'寫出主要主題和一個具體次主題，說明故事要拍什麼（至少 12 字）。'},
+  {icon:'💖',name:'核心價值守護者',learn:'一部好微電影有想傳達的價值，例如尊重、合作、誠實、關懷或永續。這個價值應該從人物行動被觀眾看見。',example:'不是只在片尾寫「互助」，而是拍出同學如何停下來幫助別人。',q:'怎麼讓觀眾理解「尊重」？',opts:['只在片尾寫尊重兩字','拍出傾聽不同意見的具體行動'],right:1,prompt:'寫出這部片的核心價值，以及一個能看出這個價值的行動（至少 12 字）。'},
+  {icon:'🎬',name:'片名創造家',learn:'片名要跟故事有關，也要讓觀眾產生好奇。可以從主角的選擇、關鍵物件或一句話發想。',example:'拍節能行動，片名可以叫「離開前的最後一件事」。',q:'哪種片名更適合？',opts:['能呼應事件、行動與核心價值','完全與故事無關的熱門詞語'],right:0,prompt:'幫你的影片取一個片名，並寫出為什麼這樣取名（至少 12 字）。'}
+ ],
+ 1:[
+  {icon:'🗂️',name:'素材整理師',learn:'先建立「微電影_班級座號_片名」資料夾，再分開存放原始影片、照片、聲音、分鏡與輸出檔。原始素材保留備份。',example:'01_開場、02_人物、03_事件、04_行動、05_結尾、06_音訊。',q:'拍攝素材最好的管理方式是？',opts:['全部放桌面，不用分類','依故事分類並保留原始檔備份'],right:1,prompt:'規劃自己的素材資料夾，寫出至少三個分類及用途（至少 12 字）。'},
+  {icon:'🧩',name:'五段故事編劇',learn:'五段式故事可以安排「開場 → 人物背景 → 事件或轉折 → 行動與改變 → 片尾」。每段都要推進故事。',example:'教室還亮燈 → 發現問題 → 討論原因 → 分工改善 → 觀察改變。',q:'哪個順序最能讓觀眾看懂故事？',opts:['隨機排列精彩畫面','先介紹情境，再拍問題、行動與結果'],right:1,prompt:'用五個短句寫出你的開場、背景、事件、行動、結尾（至少 20 字）。'},
+  {icon:'📷',name:'鏡頭構圖師',learn:'全景介紹環境、中景交代人物互動、特寫強調動作或情緒。拍攝前先想鏡頭要讓觀眾注意什麼。',example:'教室全景 → 同學討論中景 → 關燈手部特寫。',q:'想讓觀眾看清主角按下開關，應選哪種鏡頭？',opts:['開關特寫','遠遠的建築全景'],right:0,prompt:'為自己的故事設計全景、中景、特寫各一個，說出要拍什麼（至少 20 字）。'},
+  {icon:'⏱️',name:'分鏡時間管理員',learn:'每段分鏡先預估秒數，讓影片能在規定長度內說完故事。拍攝清單也應寫出地點、鏡頭、負責人。',example:'開場 20 秒，人物介紹 45 秒，事件 75 秒，行動 95 秒，片尾 45 秒，總計 280 秒。',q:'分鏡規劃應包含什麼？',opts:['只列出畫面顏色','畫面內容、秒數與需要的素材'],right:1,prompt:'挑選兩個關鍵鏡頭，寫出畫面、預估秒數與拍攝地點（至少 20 字）。'}
+ ],
+ 3:[
+  {icon:'🤝',name:'拍攝合作隊長',learn:'開拍前確認分工：導演安排故事，攝影負責鏡頭，收音注意聲音，整理人員保留檔案。人少可以兼任，但責任要清楚。',example:'一人拍全景，一人錄人物對話，一人檢查鏡頭是否漏拍。',q:'分工前最重要的是？',opts:['全組都不知道誰負責','先列出每項任務與負責人'],right:1,prompt:'寫下至少兩個拍攝工作，以及負責者要完成什麼（至少 12 字）。'},
+  {icon:'🛡️',name:'拍攝安全守護者',learn:'拍攝同學前先說明用途並取得同意；不要偷拍、公開個資或進入危險區域。拒絕入鏡時應尊重，可改拍物件。',example:'同學不想露臉，可以改拍雙手合作的動作，避免顯示姓名。',q:'同學不願意被拍攝時怎麼辦？',opts:['尊重並修改鏡頭','先偷拍，拍完再問'],right:0,prompt:'設計一個取得同意或保護拍攝對象的方法（至少 12 字）。'},
+  {icon:'📋',name:'鏡頭蒐集員',learn:'對照第二站分鏡列出必拍清單：畫面、景別、地點、人物、秒數與目前狀態。完成後才知道哪些需要補拍。',example:'教室全景：已拍；同學互助中景：待拍；物件特寫：待補拍。',q:'缺少重要的事件畫面時應？',opts:['先列入補拍清單','直接忽略，讓觀眾自己猜'],right:0,prompt:'列出至少三個必拍畫面，標記已拍、待拍或待補拍（至少 20 字）。'},
+  {icon:'☁️',name:'檔案備份員',learn:'拍完當天就整理素材。確認檔案能播放，再備份到學校允許的儲存位置。上傳 Canva 前確認取得必要同意。',example:'先依日期存原片，再複製備份，最後挑選需要的畫面匯入 Canva。',q:'完成拍攝後最安全的做法是？',opts:['刪除原檔，只留剪輯畫面','整理、測試播放並備份原始素材'],right:1,prompt:'寫出你要如何命名、備份及確認素材可用（至少 12 字）。'}
+ ],
+ 4:[
+  {icon:'✂️',name:'粗剪探險家',learn:'粗剪先顧故事清楚，不必急著加特效。依分鏡排好畫面順序，上學期先嘗試完成約 180 秒的故事雛形。',example:'先把五段重要畫面串好，再刪掉重複或無法推進故事的鏡頭。',q:'粗剪時優先做什麼？',opts:['先用大量特效蓋住故事','先確認畫面順序與故事是否完整'],right:1,prompt:'寫出你要保留的三個重要畫面，以及各自的作用（至少 20 字）。'},
+  {icon:'🗣️',name:'觀眾試映員',learn:'請同學試看粗剪，詢問「哪裡看不懂？哪一段最有感？」用具體回饋找出需要調整的地方。',example:'觀眾說不知道主角為何改變，就補一段關鍵對話或動作。',q:'有人看不懂故事轉折時應？',opts:['問清楚疑惑並調整鏡頭','只把背景音樂放大'],right:0,prompt:'寫出你會問試映同學的兩個問題，以及回饋如何幫助修改（至少 20 字）。'},
+  {icon:'🔧',name:'補拍修復師',learn:'先找出不清楚或缺少的畫面，再列補拍清單。可以補全景交代地點、中景呈現互動、特寫強調動作，也可以補錄旁白。',example:'缺少人物做出選擇的畫面，補拍手部動作或人物反應。',q:'補拍應依據什麼？',opts:['同學看不懂的地方和故事缺口','隨機增加漂亮的影片'],right:0,prompt:'列出三個可能補拍的鏡頭，說明原因與景別（至少 20 字）。'},
+  {icon:'🏁',name:'完成版檢查官',learn:'完成前檢查：片長、字幕、音量、肖像同意、素材授權及輸出檔。重要的是讓觀眾看懂核心價值。',example:'播放完整影片，確認旁白清楚、音效不蓋人聲，片尾需要的授權署名都有列出。',q:'輸出影片前最需要檢查的是？',opts:['只確認片頭特效漂亮','內容、字幕、聲音、授權與檔案能播放'],right:1,prompt:'為作品寫下至少四項交件前檢查事項（至少 20 字）。'}
+ ]
+};
+const stageQuestCurrent=[0,0,0,0,0],classicStageOpen=[false,false,false,false,false];
+const stageQuestKey=(stage,i)=>'FP_STAGE'+(stage+1)+'_Q'+(i+1);
+const stageQuestWon=(stage,i)=>Number(window.STORE?.level?.('filmPrep',stageQuestKey(stage,i))?.stars||0)>0;
+function renderStageQuest(root){
+ const stage=current,items=otherStageMissions[stage],index=stageQuestCurrent[stage],s=items[index],won=stageQuestWon(stage,index);
+ const shell=document.createElement('div');shell.className='sound-quest';const hero=document.createElement('div');hero.className='sound-hero';
+ const mascot=document.createElement('div');mascot.className='sound-mascot';mascot.textContent=['🎬','🗺️','🎧','📸','✂️'][stage];const title=document.createElement('div');
+ title.innerHTML='<h3>'+topicText(missions[stage].title)+'的四項任務</h3><p>每次只學一個重點，完成測驗與創作練習就能領星星。</p>';hero.append(mascot,title);shell.append(hero);
+ const tabs=document.createElement('div');tabs.className='sound-pips';items.forEach((item,i)=>{const b=document.createElement('button');b.type='button';b.className=(i===index?'active ':'')+(stageQuestWon(stage,i)?'won':'');b.textContent=(stageQuestWon(stage,i)?'⭐ ':'☆ ')+(i+1)+' '+item.name;b.onclick=()=>{stageQuestCurrent[stage]=i;draw()};tabs.append(b)});shell.append(tabs);
+ const card=document.createElement('div');card.className='sound-task';const head=document.createElement('h4');head.textContent=s.icon+' 第 '+(index+1)+' 關｜'+s.name;card.append(head);
+ const learn=document.createElement('p');learn.className='hint';learn.textContent='📖 今天學什麼：'+s.learn;card.append(learn);
+ const example=document.createElement('p');example.className='demo';example.textContent='🎬 看看範例：'+s.example;card.append(example);
+ const question=document.createElement('h4');question.textContent='🧩 觀念挑戰｜'+s.q;card.append(question);
+ const opts=document.createElement('div');opts.className='options';const answerKey='stageQuestAnswer_'+stage+'_'+index;
+ s.opts.forEach((opt,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(i+1)+'．'+opt;b.setAttribute('aria-pressed',String(draft[answerKey]===i));b.onclick=()=>{draft[answerKey]=i;saved();renderStageQuest(root)};opts.append(b)});card.append(opts);
+ const feedback=document.createElement('p');feedback.className='sound-feedback';feedback.textContent=draft[answerKey]===undefined?'先選一個答案。':draft[answerKey]===s.right?'✅ 答對了！再完成下方的小任務。':'💡 再想想，回頭看上方教學後重試。';card.append(feedback);
+ const label=document.createElement('label');label.textContent='✍️ 換你實作｜'+s.prompt;const noteKey='stageQuestNote_'+stage+'_'+index;const textarea=document.createElement('textarea');textarea.rows=4;textarea.value=draft[noteKey]||'';textarea.placeholder='請依自己的故事填寫，不要直接複製範例。';textarea.oninput=()=>{draft[noteKey]=textarea.value;saved()};label.append(textarea);card.append(label);
+ const result=document.createElement('p');result.className='sound-feedback';result.setAttribute('role','status');card.append(result);
+ const award=document.createElement('button');award.type='button';award.className='sound-cta';award.textContent=won?'⭐ 已經過關｜可以繼續修改':'🌟 檢查答案並領星星';award.onclick=()=>{
+  if(draft[answerKey]!==s.right){result.textContent='請先回答正確上面的觀念題。';return;}
+  const minimum=/20 字/.test(s.prompt)?20:12;
+  if(String(textarea.value||'').trim().length<minimum){result.textContent='還需要寫得更具體，至少 '+minimum+' 個字。';textarea.focus();return;}
+  if(!window.STORE?.me?.()){result.textContent='目前答案已暫存，請先到闖關地圖登入學生帳號，再回來領星。';return;}
+  const record=window.STORE.saveLevel('filmPrep',stageQuestKey(stage,index),{stars:1,done:true,extra:{kind:'film-stage-quest',version:'17.52'}});
+  if(record?.error||!record?.record){result.textContent='星星尚未儲存成功，請保留答案並告訴老師。';return;}
+  if(items.every((_,i)=>stageQuestWon(stage,i)))window.STORE.saveLevel('filmPrep','FP'+(stage+1),{stars:1,done:true,extra:{kind:'film-stage-quest',version:'17.52'}});
+  renderStageQuest(root);
+ };card.append(award);
+ const nav=document.createElement('div');nav.className='sound-nav';if(index>0){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='上一關';b.onclick=()=>{stageQuestCurrent[stage]--;draw()};nav.append(b)}if(index<items.length-1){const b=document.createElement('button');b.type='button';b.textContent='前往下一關';b.onclick=()=>{stageQuestCurrent[stage]++;draw()};nav.append(b)}card.append(nav);shell.append(card);
+ const prize=document.createElement('div');prize.className='sound-prize';const count=items.filter((_,i)=>stageQuestWon(stage,i)).length;prize.textContent=count===items.length?'🏆 四關全數完成！第 '+(stage+1)+' 站已過關。':'✨ 本站已獲得 '+count+' / '+items.length+' 顆星星，可自由選擇預習關卡。';shell.append(prize);
+ const advanced=document.createElement('button');advanced.type='button';advanced.className='secondary';advanced.textContent='📋 需要更完整的企畫填寫表？開啟原本的進階工作表';advanced.onclick=()=>{classicStageOpen[stage]=true;draw();requestAnimationFrame(()=>$('stageContent').scrollIntoView({behavior:'smooth',block:'start'}))};shell.append(advanced);
+ root.replaceChildren(shell);$('status').textContent='已保留原本的作品草稿及站點星星；各小關的新星星獨立記錄。';
+}
 let soundCurrent=0;
 const soundWon=i=>Number(window.STORE?.level?.('filmPrep','FP_AUDIO'+(i+1))?.stars||0)>0;
 function renderSoundQuest(root){
@@ -450,6 +513,8 @@ function renderSoundQuest(root){
  $('status').textContent='🎧 聲音五關獨立紀錄星星；原本五站企畫星星與答案不會被清除。';
 }
 function draw(){
+ document.body.classList.toggle('stage-quest-mode',current!==2&&!classicStageOpen[current]);
+ document.body.classList.toggle('show-overview',showOverviewInQuest);
  updateTimelineExample();
  renderLessonOverview();
  const tabs=$('stageTabs');tabs.innerHTML='';
@@ -465,6 +530,8 @@ function draw(){
  root.append(progress);
  const h=document.createElement('h3');h.textContent=`🎯 第 ${current+1} 站｜${topicText(missions[current].title)}`;root.append(h);
  if(current===2){renderSoundQuest(root);return;}
+ if(!classicStageOpen[current]){renderStageQuest(root);return;}
+ const backToQuest=document.createElement('button');backToQuest.type='button';backToQuest.className='secondary';backToQuest.textContent='🎮 返回一關一關闖關';backToQuest.onclick=()=>{classicStageOpen[current]=false;draw()};root.append(backToQuest);
  const lesson=lessons[current];
  const teach=document.createElement('section');teach.className='mission-lesson';
  const teachHead=document.createElement('h3');teachHead.textContent='📚 先學招式｜'+lesson.name;teach.append(teachHead);

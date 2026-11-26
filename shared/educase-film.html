@@ -50,26 +50,34 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 #status{min-height:38px;margin:13px 0;padding:9px 14px;border-radius:12px;background:#edf9f3}
 #saveStage{background:#087b77;border-color:#087b77}#nextStage:not(:disabled){background:#155c93;color:white;border-color:#155c93}#stageContent label{margin:12px 0 17px}
 .project-choice{grid-column:1/-1;padding:17px 20px;background:#e9f7fb;border:1px solid #b9deeb;border-radius:17px;margin:10px 0}.project-choice h3{margin:0 0 9px!important}.wide-card{grid-column:1/-1}.material-check{display:flex!important;gap:12px;align-items:flex-start;font-weight:600!important}.material-check input{width:auto;flex:0 0 auto;accent-color:#087b77;margin-top:6px}
+.topic-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}.topic-menu button{background:#fff;color:#17445b;border:2px solid #c6dfe8;text-align:left;min-height:112px;padding:17px 19px;font-size:1.13rem;line-height:1.5}.topic-menu button:hover,.topic-menu button[aria-pressed="true"]{border-color:#0b8b93;background:#e8faf8}.topic-menu button span{display:block;font-size:.85rem;color:#466677;font-weight:500;margin-top:6px}.topic-top{position:sticky;top:0;z-index:10;background:#eef7f9ee;backdrop-filter:blur(8px);border:1px solid #b6d8e4;border-radius:12px;padding:10px 14px;margin:12px 0}.topic-top button{font-size:.9rem;padding:7px 12px}.topic-top strong{margin-left:12px}body.topic-mode #calendar,body.topic-mode #concepts,body.topic-mode #aiPrimer,body.topic-mode #idea,body.topic-mode #cut,body.topic-mode #topics{display:none}body.topic-mode[data-topic="calendar"] #calendar,body.topic-mode[data-topic="concepts"] #concepts,body.topic-mode[data-topic="ai"] #aiPrimer,body.topic-mode[data-topic="plan"] #idea,body.topic-mode[data-topic="audio"] #idea,body.topic-mode[data-topic="cut"] #cut{display:block}body.topic-mode[data-topic="audio"] #stageTabs,body.topic-mode[data-topic="audio"] #idea>details,body.topic-mode[data-topic="audio"] #idea>p:first-of-type,body.topic-mode[data-topic="audio"] #nextStage{display:none}body.topic-mode[data-topic="audio"] #idea>h2{font-size:1.2rem}body.topic-mode[data-topic="audio"] #saveStage,body.topic-mode[data-topic="audio"] #compilePlan,body.topic-mode[data-topic="audio"] #exportPlan{margin-top:7px}
+body.topic-mode[data-topic="menu"] #topics{display:block}
+@media(max-width:620px){.topic-menu{grid-template-columns:1fr}.topic-menu button{min-height:90px}}
 </style>
 </head>
 <body>
 <main>
 <nav>
 <a href="../11601/hub.html">← 上學期闖關地圖</a>
-<a href="../11602/media.html">下學期多媒體</a>
-<a href="../11602/canva-travel.html">Canva 精剪教室 →</a>
 </nav>
 <header>
 <div class="term">116 學年度｜我的故事微電影創作課程</div>
 <h1>🎬 我的故事微電影：讓畫面說出核心價值</h1>
 <p>從校園、社區與生活中找到值得分享的問題或故事，用真實觀察、具體行動與創意影像，傳達一個有教育意義的核心價值。還沒有拍攝素材也沒關係，可以先完成拍攝企畫。</p>
 <p>作品目標 <b>4 分 40 秒（280 秒）</b>。上學期完成主題、核心價值、分鏡、錄音及 <b>180 秒粗剪</b>；下學期透過討論、補拍與精剪完成作品。</p>
-<nav>
-<a href="#idea">✍️ 上學期企畫闖關</a>
-<a href="#calendar">📅 跨學期時程</a>
-<a href="#cut">🎞️ 故事時間軸</a>
-</nav>
 </header>
+<section id="topics">
+<h2>📚 今天想學哪一個主題？</h2>
+<p>先點選一張卡片，一次只看一個主題。想換主題，隨時按「返回主題選單」。沒有影片素材也能先練習，不鎖關。<small>（介面版 v17.49）</small></p>
+<div class="topic-menu" id="topicMenu">
+<button type="button" data-topic-choice="plan">✍️ ① 主題企畫與五段分鏡<span>選主題、寫故事、列鏡頭與整理企畫</span></button>
+<button type="button" data-topic-choice="audio">🎧 ② 聲音、音效與版權<span>免費音樂、授權小測驗、分段配樂、Canva</span></button>
+<button type="button" data-topic-choice="concepts">🎞️ ③ 多媒體概念四關<span>解析度、時間軸、影像與著作權基礎</span></button>
+<button type="button" data-topic-choice="ai">🤖 ④ AI 創作先修六關<span>了解 AI、查證、創意發想與安全使用</span></button>
+<button type="button" data-topic-choice="calendar">📅 ⑤ 課程進度與寒假準備<span>上學期時程、Canva 素材整理與備份</span></button>
+</div>
+</section>
+<div id="topicTop" class="topic-top" hidden><button type="button" id="backTopics">← 返回主題選單</button><strong id="topicName"></strong></div>
 <section id="calendar">
 <h2>📅 我們的微電影製作進度</h2>
 <p class="small">先選擇主題與次主題，再規劃故事及拍攝清單；有素材的同學可以同步整理、粗剪與討論補鏡。</p>
@@ -496,7 +504,7 @@ function draw(){
      '⑤ 開啟 Canva 影片專案 →「上傳」→「上傳檔案」選音訊 → 拖曳到對應時間軸 → 修剪長度、調整音量 → 播放檢查。',
      '⑥ 每完成一段就先匯入、試聽並勾選下面的紀錄。旁白要清楚，背景樂不宜蓋過說話聲。'
    ].forEach(s=>{const li=document.createElement('li');li.textContent=s;methods.append(li);});studio.append(methods);
-   const links=document.createElement('div');links.className='row';[
+   const linkPanel=document.createElement('details');const linkTitle=document.createElement('summary');linkTitle.textContent='🎵 免費音檔網站與 Canva 入口（需要時展開）';linkPanel.append(linkTitle);const links=document.createElement('div');links.className='row';[
      ['🎬 開啟 Canva','https://www.canva.com/'],
      ['🎵 YouTube 官方音效庫','https://www.youtube.com/audiolibrary'],
      ['🎶 Pixabay 音樂與音效','https://pixabay.com/music/'],
@@ -504,10 +512,10 @@ function draw(){
      ['👣 Freesound 環境音效','https://freesound.org/'],
      ['🎻 Free Music Archive','https://freemusicarchive.org/'],
      ['📖 Canva 音訊操作說明','https://www.canva.com/help/stock-music/']
-   ].forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.textContent=label;links.append(a);});studio.append(links);
+   ].forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.textContent=label;links.append(a);});linkPanel.append(links);studio.append(linkPanel);
    const rights=document.createElement('p');rights.className='hint';rights.textContent='🔐 「免費下載」不代表沒有著作權。初學者優先選 Mixkit（確認 Free License）、自己錄的音效，或 YouTube 音效庫中不需署名的曲目；Pixabay 可能有 Content ID 聲明。Freesound 優先選 CC0，Free Music Archive 每首授權可能不同。請保存曲名、作者、原始網址、授權與查核日期；需署名的音樂請在片尾列出來源。Canva 中標示「熱門音樂／僅限個人使用」的曲目，不要直接當作對外參賽影片配樂。';studio.append(rights);
-   const copyrightLesson=document.createElement('section');copyrightLesson.className='mission-lesson';
-   const copyrightHeading=document.createElement('h3');copyrightHeading.textContent='🔎 授權偵探教室｜能下載，不代表能任意使用';copyrightLesson.append(copyrightHeading);
+   const copyrightLesson=document.createElement('details');copyrightLesson.className='mission-lesson';copyrightLesson.open=true;
+   const copyrightHeading=document.createElement('summary');copyrightHeading.textContent='🔎 第一步｜授權偵探教室與小測驗';copyrightLesson.append(copyrightHeading);
    const basic=document.createElement('p');basic.textContent='先分辨三件事：免費＝不必付錢；免權利金（royalty-free）＝依授權使用時通常不用逐次付費；CC0＝創作者盡可能放棄著作權限制。這三個詞都不能代替閱讀該音檔的使用條款。';copyrightLesson.append(basic);
    const licenseGrid=document.createElement('ul');[
      'CC0：通常可下載、剪輯、公開發表，不強制署名；仍要尊重他人肖像、商標等其他權利。',
@@ -544,8 +552,8 @@ function draw(){
    const moodHints={'溫暖':'warm cinematic piano','青春活潑':'upbeat acoustic','神祕':'mysterious ambient','緊張':'cinematic suspense','感動':'emotional piano','希望':'uplifting cinematic','不捨':'nostalgic piano','歡樂':'happy upbeat','安靜／自然聲':'ambient footsteps nature sound'};
    draft.audioSegments=Array.isArray(draft.audioSegments)?draft.audioSegments:[];
    labels.forEach(([name,time],i)=>{
-     const state=draft.audioSegments[i]||{},block=document.createElement('section');block.style.cssText='border:1px solid #b8deda;background:#fff;border-radius:14px;padding:15px;margin:14px 0';
-     const heading=document.createElement('h3');heading.textContent='🎵 第 '+(i+1)+' 段｜'+name+'（'+time+'）';block.append(heading);
+     const state=draft.audioSegments[i]||{},block=document.createElement('details');block.open=i===0;block.style.cssText='border:1px solid #b8deda;background:#fff;border-radius:14px;padding:15px;margin:14px 0';
+     const heading=document.createElement('summary');heading.textContent='🎵 第 '+(i+1)+' 段｜'+name+'（'+time+'）'+(state.uploaded?' ✅ 已記錄匯入':'');block.append(heading);
      const scene=document.createElement('p');scene.textContent='🎞️ 對應分鏡：'+(draft[['open','visit','conflict','solve','ending'][i]]||'尚未填寫，先到第二站規劃畫面');block.append(scene);
      const moodLabel=document.createElement('label');moodLabel.textContent='① 你想讓觀眾感受到什麼？';const moodSelect=document.createElement('select');moodSelect.append(new Option('先選情緒，再找音樂',''));moods.forEach(v=>moodSelect.append(new Option(v,v)));moodSelect.value=state.mood||'';const keyword=document.createElement('p');keyword.className='hint';const updateKeyword=()=>{keyword.textContent=moodSelect.value?'🔎 建議用英文搜尋：'+moodHints[moodSelect.value]+'（可複製到上方音樂網站）':'先聽原音，再決定是否需要音樂。'};moodSelect.onchange=()=>{draft.audioSegments[i]={...(draft.audioSegments[i]||{}),mood:moodSelect.value};saved();updateKeyword()};moodLabel.append(moodSelect);block.append(moodLabel,keyword);updateKeyword();
      const source=document.createElement('label');source.textContent='這段聲音從哪裡來？';const sel=document.createElement('select');[
@@ -612,7 +620,22 @@ $('exportPlan').onclick=async()=>{const text=missions.map((m,i)=>`【${i+1} ${m.
 function showValueTip(){const panel=$('valueGuide'),t=topicTemplates[draft.projectType];if(current===0){panel.hidden=false;panel.textContent=t?'🎥「'+draft.projectType+'」建議核心價值：'+t.values+'。鏡頭可從「'+t.shots+'」開始，次主題、片名與事件要彼此呼應。': '🎥 先選主要主題，再決定次主題與片名；選好後會提供相符的範例。';}else if(current===4){panel.hidden=false;panel.textContent='📷 還沒拍攝可以先列出至少三個必拍鏡頭；已有素材卻缺少畫面時，可以補拍訪談、物品特寫或旁白，並清楚區分真實紀錄和後製畫面。';}else{panel.hidden=true;}}
 new MutationObserver(showValueTip).observe($('stageContent'),{childList:true});
 document.addEventListener('input',e=>{if(e.target?.dataset?.id==='value')showValueTip();});
-draw();drawConcepts();drawAI();showValueTip();})();
+draw();drawConcepts();drawAI();showValueTip();
+const topicNames={plan:'主題企畫與分鏡',audio:'聲音、音效與版權',concepts:'多媒體概念四關',ai:'AI 創作先修',calendar:'課程進度與寒假準備',cut:'故事時間軸'};
+function showTopic(topic,updateHash=true){
+  const valid=Object.prototype.hasOwnProperty.call(topicNames,topic)?topic:'';
+  document.body.classList.add('topic-mode');document.body.dataset.topic=valid||'menu';
+  $('topicTop').hidden=!valid;$('topicName').textContent=topicNames[valid]||'';
+  document.querySelectorAll('[data-topic-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.topicChoice===valid)));
+  if(valid==='audio'){current=2;draw();}else if(valid==='plan'&&current===2){current=0;draw();}
+  if(updateHash){history.replaceState(null,'',valid?'#'+valid:'#topics');}
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('[data-topic-choice]').forEach(button=>button.addEventListener('click',()=>showTopic(button.dataset.topicChoice)));
+$('backTopics').onclick=()=>showTopic('');
+const incoming=location.hash.replace('#','');
+showTopic(({idea:'plan',aiPrimer:'ai',cut:'cut'}[incoming])||incoming,false);
+})();
 </script>
 </body>
 </html>

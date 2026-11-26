@@ -54,6 +54,7 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 .topic-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:18px}.topic-menu button{background:#fff;color:#17445b;border:2px solid #c6dfe8;text-align:left;min-height:112px;padding:17px 19px;font-size:1.13rem;line-height:1.5}.topic-menu button:hover,.topic-menu button[aria-pressed="true"]{border-color:#0b8b93;background:#e8faf8}.topic-menu button span{display:block;font-size:.85rem;color:#466677;font-weight:500;margin-top:6px}.topic-top{position:sticky;top:0;z-index:10;background:#eef7f9ee;backdrop-filter:blur(8px);border:1px solid #b6d8e4;border-radius:12px;padding:10px 14px;margin:12px 0}.topic-top button{font-size:.9rem;padding:7px 12px}.topic-top strong{margin-left:12px}body.topic-mode #calendar,body.topic-mode #concepts,body.topic-mode #aiPrimer,body.topic-mode #idea,body.topic-mode #cut,body.topic-mode #topics{display:none}body.topic-mode[data-topic="calendar"] #calendar,body.topic-mode[data-topic="concepts"] #concepts,body.topic-mode[data-topic="ai"] #aiPrimer,body.topic-mode[data-topic="plan"] #idea,body.topic-mode[data-topic="audio"] #idea,body.topic-mode[data-topic="cut"] #cut{display:block}body.topic-mode[data-topic="audio"] #stageTabs,body.topic-mode[data-topic="audio"] #idea>details,body.topic-mode[data-topic="audio"] #idea>p:first-of-type,body.topic-mode[data-topic="audio"] #nextStage{display:none}body.topic-mode[data-topic="audio"] #idea>h2{font-size:1.2rem}body.topic-mode[data-topic="audio"] #saveStage,body.topic-mode[data-topic="audio"] #compilePlan,body.topic-mode[data-topic="audio"] #exportPlan{margin-top:7px}
 body.topic-mode[data-topic="menu"] #topics{display:block}
 @media(max-width:620px){.topic-menu{grid-template-columns:1fr}.topic-menu button{min-height:90px}}
+.sound-quest{background:linear-gradient(145deg,#eaf7ff,#f7efff);border:2px solid #99c7ee;border-radius:24px;padding:clamp(17px,3vw,28px);margin:15px 0}.sound-hero{display:flex;gap:14px;align-items:center}.sound-hero .sound-mascot{font-size:3.6rem;line-height:1}.sound-hero h3{font-size:1.5rem!important;margin:0!important;color:#194e83!important}.sound-pips{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.sound-pips button{flex:1;min-width:90px;background:#fff;color:#215a79;border:2px solid #b9d8e9;padding:10px 6px}.sound-pips button.active{background:#185b93;color:white;border-color:#185b93}.sound-pips button.won{background:#fff0b7;color:#754d05;border-color:#e6b943}.sound-task{background:white;border-radius:18px;padding:clamp(16px,3vw,25px);box-shadow:0 8px 25px #235f8a14}.sound-task h4{font-size:1.25rem;color:#1b5278;margin:7px 0}.sound-task .options{display:grid;gap:9px}.sound-task .options button{background:#f5faff;color:#164965;border:1px solid #a9c9df;text-align:left}.sound-task .options button[aria-pressed="true"]{border:3px solid #0a8391;background:#e5faf6}.sound-cta{width:100%;font-size:1.13rem;background:#0c817f;padding:15px;margin-top:12px}.sound-feedback{min-height:28px;font-weight:800;color:#225a77}.sound-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.sound-nav button{flex:1}.sound-prize{background:#fff5ce;border:2px solid #e9c867;border-radius:15px;padding:13px;margin:14px 0;font-weight:800}.sound-sources{margin-top:16px}.sound-sources summary{color:#205d7c}body.topic-mode[data-topic="audio"] #lessonOverview,body.topic-mode[data-topic="audio"] .lesson-map-actions,body.topic-mode[data-topic="audio"] #valueGuide,body.topic-mode[data-topic="audio"] #saveStage,body.topic-mode[data-topic="audio"] #compilePlan,body.topic-mode[data-topic="audio"] #exportPlan,body.topic-mode[data-topic="audio"] #compiledPanel{display:none}body.topic-mode[data-topic="audio"] #stageContent{padding:0;border:0;background:transparent}body.topic-mode[data-topic="audio"] #status{font-size:.9rem}
 </style>
 </head>
 <body>
@@ -69,7 +70,7 @@ body.topic-mode[data-topic="menu"] #topics{display:block}
 </header>
 <section id="topics">
 <h2>📚 今天想學哪一個主題？</h2>
-<p>先點選一張卡片，一次只看一個主題。五站教學內容可以全部預覽，想去哪一站都能直接進入；沒有影片素材也能先練習，不鎖關。<small>（介面版 v17.50）</small></p>
+<p>先點選一張卡片，一次只看一個主題。聲音課改為五個獨立小關卡：看一張教學卡、答一題、寫下自己的設計，再收集星星。<small>（介面版 v17.51）</small></p>
 <div class="topic-menu" id="topicMenu">
 <button type="button" data-topic-choice="plan">✍️ ① 主題企畫與五段分鏡<span>選主題、寫故事、列鏡頭與整理企畫</span></button>
 <button type="button" data-topic-choice="audio">🎧 ② 聲音、音效與版權<span>免費音樂、授權小測驗、分段配樂、Canva</span></button>
@@ -402,12 +403,52 @@ function renderLessonOverview(){
   const goal=document.createElement('p');goal.textContent='🎯 '+shortGoals[i];card.append(goal);
   const steps=document.createElement('ol');lessons[i].steps.forEach(t=>{const li=document.createElement('li');li.textContent=topicText(t);steps.append(li)});card.append(steps);
   const fields=document.createElement('p');fields.textContent='✍️ 這站會完成：'+mission.fields.filter(([id])=>id!=='customValue').map(([id,label])=>label.replace(/^[①②③④⑤⑥⑦⑧⑨]\s*/,'')).join('、');card.append(fields);
-  const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='🎯 直接開啟第 '+(i+1)+' 站實作';open.onclick=()=>{current=i;draw();if(document.body.dataset.topic==='audio'&&i!==2)showTopic('plan');$('stageContent').scrollIntoView({behavior:'smooth',block:'start'})};card.append(open);
+  const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='🎯 直接開啟第 '+(i+1)+' 站實作';open.onclick=()=>{showTopic(i===2?'audio':'plan');current=i;draw();requestAnimationFrame(()=>$('stageContent').scrollIntoView({behavior:'smooth',block:'start'}));};card.append(open);
   root.append(card);
  });
 }
 $('expandLessons').onclick=()=>{overviewExpanded=true;renderLessonOverview();};
 $('collapseLessons').onclick=()=>{overviewExpanded=false;renderLessonOverview();};
+const soundMissions=[
+ {icon:'🎙️',name:'旁白錄音師',learn:'好的旁白不必很長。先寫一到兩句真實感受，選安靜地方試錄，前後各留兩秒，再戴耳機聽有沒有雜音。',example:'「原來有人陪伴，就能多一點勇氣。」這句話比「今天很好玩」更能說出故事。',q:'哪個做法能讓旁白比較清楚？',opts:['在吵雜教室一次錄完','先到安靜處試錄、重聽再調整'],right:1,prompt:'替你的微電影寫一句能表達核心價值的旁白（至少 12 字）。'},
+ {icon:'👣',name:'現場音捕手',learn:'現場音是當時真實聽見的聲音，例如腳步、翻書、談話、車聲。先聽原片，決定要保留哪些聲音，不是每個畫面都要放配樂。',example:'關燈動作可以保留「喀」一聲，觀眾就知道角色做了什麼。',q:'哪一種聲音最能呈現人物關上門的動作？',opts:['和動作同步的關門聲','從頭到尾都播放很大的音樂'],right:0,prompt:'寫出故事中的一個動作，以及你會保留或錄製什麼現場音（至少 12 字）。'},
+ {icon:'🔐',name:'授權偵探',learn:'「免費下載」不代表能公開使用。CC0 一般不要求署名；CC BY 要署名；NC 限非商業，ND 限制分享改作。網站自訂授權要逐首查。',example:'下載 Freesound 的腳步聲前，查看該音效頁面 License；若標示 CC BY，片尾要正確署名。',q:'音檔網站寫「免費下載」，想用在公開參賽影片，應先做什麼？',opts:['直接使用，免費就是沒版權','查單曲授權、公開使用條件及署名規定'],right:1,prompt:'選一個音效網站或自錄方案，寫下你要如何確認音檔合法使用（至少 12 字）。'},
+ {icon:'🎼',name:'情緒配樂師',learn:'聲音要跟著故事變化。開場可輕快，衝突可留白或稍緊張，片尾可溫暖；人聲出現時要降低背景音量。',example:'同學猶豫時先保留安靜與呼吸聲；有人伸出援手後，才讓溫暖配樂慢慢進來。',q:'旁白被背景音樂蓋住，最適合的調整是？',opts:['把背景音樂音量降低','再增加一首音樂'],right:0,prompt:'描述故事中的一個轉折，以及你想讓觀眾感受的情緒和聲音安排（至少 12 字）。'},
+ {icon:'🎬',name:'Canva 混音師',learn:'先把自己的錄音或已確認授權的音檔放進專案，上傳到 Canva，拖到影片時間軸，修剪起訖點，再調音量、重聽。沒有影片也能先用空白頁練習。',example:'03事件_腳步_01.m4a → 上傳 → 拖到第三段 → 對齊角色走路畫面 → 播放檢查。',q:'把音訊加入 Canva 後，下一步最重要的是？',opts:['不用聽，直接交作業','對齊畫面、調整音量並播放檢查'],right:1,prompt:'寫出你要放入哪一種聲音、放在第幾段，以及在 Canva 如何檢查（至少 12 字）。'}
+];
+let soundCurrent=0;
+const soundWon=i=>Number(window.STORE?.level?.('filmPrep','FP_AUDIO'+(i+1))?.stars||0)>0;
+function renderSoundQuest(root){
+ const s=soundMissions[soundCurrent],won=soundWon(soundCurrent),all=soundMissions.every((_,i)=>soundWon(i));
+ const shell=document.createElement('div');shell.className='sound-quest';
+ const hero=document.createElement('div');hero.className='sound-hero';hero.innerHTML='<div class="sound-mascot" aria-hidden="true">🎧</div><div><h3>聲音魔法師的五個試煉</h3><p>一次只挑戰一關，每通過一關獲得 ⭐；已通過的關卡也能回來複習。</p></div>';shell.append(hero);
+ const pips=document.createElement('div');pips.className='sound-pips';soundMissions.forEach((m,i)=>{const b=document.createElement('button');b.type='button';b.className=(i===soundCurrent?'active ':'')+(soundWon(i)?'won':'');b.textContent=(soundWon(i)?'⭐ ':'☆ ')+(i+1)+' '+m.name;b.onclick=()=>{soundCurrent=i;draw();};pips.append(b)});shell.append(pips);
+ const card=document.createElement('div');card.className='sound-task';
+ const tag=document.createElement('div');tag.className='small';tag.textContent='試煉 '+(soundCurrent+1)+' / 5　｜　'+(won?'⭐ 已獲得星星':'☆ 等待挑戰');card.append(tag);
+ const heading=document.createElement('h4');heading.textContent=s.icon+' '+s.name;card.append(heading);
+ const study=document.createElement('p');study.className='hint';study.textContent='📖 小魔法教學：'+s.learn;card.append(study);
+ const example=document.createElement('p');example.className='demo';example.textContent='🎥 情境範例：'+s.example;card.append(example);
+ const question=document.createElement('h4');question.textContent='🧩 觀念挑戰｜'+s.q;card.append(question);
+ const opts=document.createElement('div');opts.className='options';const answerKey='soundAnswer'+soundCurrent;
+ s.opts.forEach((option,i)=>{const b=document.createElement('button');b.type='button';b.textContent=(i+1)+'．'+option;b.setAttribute('aria-pressed',String(draft[answerKey]===i));b.onclick=()=>{draft[answerKey]=i;saved();renderSoundQuest(root)};opts.append(b)});card.append(opts);
+ const feedback=document.createElement('p');feedback.className='sound-feedback';feedback.textContent=draft[answerKey]===undefined?'先選答案，看看你是否理解。':draft[answerKey]===s.right?'✅ 答對了！接著完成自己的創作。':'💡 還可以再試一次，回頭讀小魔法教學。';card.append(feedback);
+ const label=document.createElement('label');label.textContent='✍️ 換你設計｜'+s.prompt;const area=document.createElement('textarea');area.rows=3;const noteKey='soundNote'+soundCurrent;area.value=draft[noteKey]||'';area.placeholder='寫下自己的微電影內容，請勿只抄範例。';area.oninput=()=>{draft[noteKey]=area.value;saved()};label.append(area);card.append(label);
+ const result=document.createElement('p');result.className='sound-feedback';result.setAttribute('role','status');card.append(result);
+ const earn=document.createElement('button');earn.type='button';earn.className='sound-cta';earn.textContent=won?'⭐ 已過關｜可以更新練習':'🌟 檢查答案，領取這一顆星';earn.onclick=()=>{
+  if(draft[answerKey]!==s.right){result.textContent='先回答正確觀念題，再來領星星。';return;}
+  if(String(area.value||'').trim().length<12){result.textContent='請至少寫 12 個字，說明你自己的聲音設計。';area.focus();return;}
+  if(!window.STORE?.me?.()){result.textContent='請先從闖關地圖登入學生帳號。文字已暫存於這台電腦，登入後可回來領星星。';return;}
+  const savedStar=window.STORE.saveLevel('filmPrep','FP_AUDIO'+(soundCurrent+1),{stars:1,done:true,extra:{lesson:'sound-design',version:'17.51'}});
+  if(savedStar?.error||!savedStar?.record){result.textContent='星星尚未儲存成功，請保留畫面並告訴老師。';return;}
+  if(soundMissions.every((_,i)=>soundWon(i))){window.STORE.saveLevel('filmPrep','FP3',{stars:1,done:true,extra:{kind:'sound-design',version:'17.51'}});}
+  renderSoundQuest(root);
+ };card.append(earn);
+ const nav=document.createElement('div');nav.className='sound-nav';if(soundCurrent>0){const back=document.createElement('button');back.type='button';back.className='secondary';back.textContent='上一關';back.onclick=()=>{soundCurrent--;draw()};nav.append(back)}if(soundCurrent<4){const next=document.createElement('button');next.type='button';next.textContent='前往下一關';next.onclick=()=>{soundCurrent++;draw()};nav.append(next)}card.append(nav);shell.append(card);
+ const prize=document.createElement('div');prize.className='sound-prize';prize.textContent=all?'🏆 恭喜完成聲音五關！已收集 5 / 5 顆星，可以回顧或修改內容。':'✨ 我的聲音星星：'+soundMissions.filter((_,i)=>soundWon(i)).length+' / 5 顆（可自由預習，每關分別領星）';shell.append(prize);
+ const sources=document.createElement('details');sources.className='sound-sources';sources.innerHTML='<summary>📚 我需要免費音效網站、授權說明與 Canva 操作步驟</summary><p>免費不等於無著作權。選音檔前，請看該首的授權，記下作者、音檔名、網址與查核日期。</p><ul><li><a href="https://mixkit.co/free-sound-effects/" target="_blank" rel="noopener noreferrer">Mixkit 音效</a>：核對 Free License。</li><li><a href="https://freesound.org/" target="_blank" rel="noopener noreferrer">Freesound</a>：逐首看 CC0、BY 或其他條件。</li><li><a href="https://www.youtube.com/audiolibrary" target="_blank" rel="noopener noreferrer">YouTube 音效庫</a>：查看是否需要署名。</li><li><a href="https://pixabay.com/sound-effects/" target="_blank" rel="noopener noreferrer">Pixabay</a>：核對內容授權及限制。</li></ul><p>Canva 練習：開啟影片專案 → 上傳音檔 → 拖到時間軸 → 修剪 → 調整音量 → 播放檢查。</p>';shell.append(sources);
+ root.replaceChildren(shell);
+ $('status').textContent='🎧 聲音五關獨立紀錄星星；原本五站企畫星星與答案不會被清除。';
+}
 function draw(){
  updateTimelineExample();
  renderLessonOverview();
@@ -423,6 +464,7 @@ function draw(){
  progress.innerHTML='<span>🎮 微電影導演挑戰</span>'+missions.map((_,i)=>`<span class="${done(i)?'earned':''}">${done(i)?'⭐':'☆'}</span>`).join('')+'<span>第 '+(current+1)+' / 5 站</span>';
  root.append(progress);
  const h=document.createElement('h3');h.textContent=`🎯 第 ${current+1} 站｜${topicText(missions[current].title)}`;root.append(h);
+ if(current===2){renderSoundQuest(root);return;}
  const lesson=lessons[current];
  const teach=document.createElement('section');teach.className='mission-lesson';
  const teachHead=document.createElement('h3');teachHead.textContent='📚 先學招式｜'+lesson.name;teach.append(teachHead);

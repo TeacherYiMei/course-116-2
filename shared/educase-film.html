@@ -165,7 +165,7 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 </div>
 <p>這是課堂建議節奏，可視故事調整，但要讓觀眾看懂「觀察到什麼、為什麼重要、採取什麼行動、最後有什麼發現」。<b>不需要硬編問題，也不必讓每段等長。</b>
 </p>
-<p class="hint">例：「校園節能 × 責任」：發現空教室燈還亮著 → 採訪同學的想法 → 分工記錄與提醒 → 觀察改變 → 片尾留下「小小行動，讓校園更好」的訊息。</p>
+<p class="hint" id="storyTimelineExample">先在上方選擇主題，這裡會顯示相對應的五段式故事示範。</p>
 </section>
 </main>
 <script src="../11601/config.js">
@@ -229,6 +229,43 @@ const projectExamples={
  '個人成長與挑戰':'次主題例：克服困難、學習自律、勇敢表達。',
  '其他教育主題':'找一件真實可觀察、帶有正向教育意義的事，聚焦為具體次主題。'
 };
+// 各主題的例子共享同一故事脈絡，不改動學生原本的回答。
+const topicTemplates={
+ '畢業旅行與青春成長':{subtopic:'友情與互助｜一次同伴彼此鼓勵的時刻',title:'我們一起跨出的那一步',problem:'有人面對旅途中的新挑戰感到緊張，身旁同伴如何回應？',action:'依行程記錄出發、彼此鼓勵、嘗試挑戰和事後的真實感想',message:'最珍貴的旅行回憶，是有人陪我一起成長。',open:'同學在集合時整理行李，帶出即將出發的期待',visit:'車上與景點全景，介紹同行的人及即將面對的挑戰',conflict:'某位同伴猶豫要不要參與活動，大家停下來聽他的想法',solve:'拍下同學給予鼓勵、一起嘗試與互相照顧的過程',ending:'回程車窗與同學背影，留下對這次成長的真實感受',shots:'集合遠景、互相鼓勵中景、手勢與表情特寫',script:'這趟旅程最難忘的，不只有風景，還有一起勇敢的我們。',ambient:'車上交談、集合聲、現場活動聲',values:'友情與團隊合作、勇氣與突破、珍惜與感恩'},
+ '數位安全與資訊倫理':{subtopic:'網路留言與同理｜傳送訊息前多想一步',title:'送出之前',problem:'有人在群組看到未經查證或可能傷害他人的訊息',action:'用情境重演對話，展示查證來源、詢問同意與友善回覆',message:'按下傳送前的一秒鐘，也是尊重別人的選擇。',open:'手機跳出模擬訊息，手指停在傳送鍵上',visit:'交代班級群組的使用情境及人物心情',conflict:'一則未查證的訊息讓同學產生誤會',solve:'主角停下來查證、詢問當事人並改用尊重的方式溝通',ending:'手機畫面停在「再確認一次」，以文字提醒觀眾',shots:'模擬手機畫面特寫、人物反應中景、查證步驟近景',script:'訊息可以很快送出，理解別人卻值得多花一點時間。',ambient:'訊息提示音、按鍵聲、對話聲',values:'資訊倫理／數位禮儀、尊重與同理'},
+ 'AI 與學習生活':{subtopic:'查證 AI 答案｜把工具變成學習幫手',title:'答案之外的那一步',problem:'學生用 AI 找資料時，發現有些回答看似合理卻不正確',action:'示範提出問題、檢查來源、修正答案並自行理解的過程',message:'AI 可以提供方向，真正的學習仍需要自己思考。',open:'螢幕出現一段令人懷疑的 AI 回答',visit:'介紹學生遇到的學習問題與使用工具的目的',conflict:'查到的資料互相矛盾，無法直接採信',solve:'用課本、可信資料與實作交叉確認，修正原本答案',ending:'學生用自己的話解釋答案，留下學習心得',shots:'輸入提示畫面特寫、查證過程中景、筆記變化近景',script:'工具讓我找到更多答案，也提醒我學會提出更好的問題。',ambient:'鍵盤聲、翻書聲、討論聲',values:'成長與獨立、資訊倫理／數位禮儀'},
+ '校園生活與共同成長':{subtopic:'合作與尊重｜班級活動如何照顧不同意見',title:'不一樣，也能在一起',problem:'小組準備活動時，每個人的想法和習慣不同',action:'記錄傾聽、分工、遇到困難以及共同完成任務的過程',message:'學會合作，是讓每個人的聲音都被聽見。',open:'組員對著同一份活動企畫提出不同想法',visit:'交代活動任務、組員與分工方式',conflict:'分工或意見不同，讓進度一度停下來',solve:'彼此傾聽、重新分配任務並一起完成',ending:'活動成果與每位成員的短句心得',shots:'小組討論中景、筆記分工特寫、完成活動全景',script:'我們不必完全一樣，也能找到一起前進的方法。',ambient:'教室討論聲、活動現場聲、掌聲',values:'友情與團隊合作、尊重與同理'},
+ '環境永續與能源':{subtopic:'校園節能｜離開教室時記得關燈',title:'離開前的最後一件事',problem:'放學後的空教室偶爾還亮著燈',action:'觀察用電情形、和同學討論提醒方式並記錄改變',message:'節能不是口號，是每天願意做的一件小事。',open:'空教室電燈特寫，字幕問「誰來關燈？」',visit:'教室和走廊全景，介紹觀察的時間與場景',conflict:'同學以為別人會關燈，沒有人確認',solve:'討論分工、設計提醒並觀察一週的實際情況',ending:'最後一位離開的學生關燈，畫面慢慢暗下',shots:'走廊遠景、討論中景、電燈開關特寫',script:'讓校園更好，可以從離開前的一個小動作開始。',ambient:'下課鐘聲、腳步聲、電燈開關聲',values:'環境永續、成長與獨立'},
+ '社區文化與地方關懷':{subtopic:'在地故事｜一間老店與街區的記憶',title:'街角的一個故事',problem:'每天經過的街道，有哪些人與故事從未被注意？',action:'徵求同意後拍攝社區景物，訪談居民或店家並整理發現',message:'理解生活的地方，從願意停下來傾聽開始。',open:'街角招牌或熟悉的小巷特寫',visit:'街道全景，介紹店家或地方特色',conflict:'發現年輕人對這段在地故事所知不多',solve:'記錄訪談、舊物與地方特色，讓故事被更多人理解',ending:'回到街角全景，分享自己對這裡的新認識',shots:'街道遠景、受訪者中景、老物件與招牌特寫',script:'原來最熟悉的街角，也藏著值得被記住的故事。',ambient:'街道環境聲、受訪者說話聲',values:'文化探索、尊重與同理'},
+ '健康安全與反詐':{subtopic:'辨識詐騙｜收到可疑訊息先停看查',title:'這個連結，先別點',problem:'有人收到假冒熟人的求助訊息與可疑連結',action:'演出不提供個資、查核來源和尋求可信協助的正確步驟',message:'多一分查證，就能少一分風險。',open:'模擬手機出現緊急付款訊息',visit:'介紹人物在什麼情境收到訊息',conflict:'訊息催促立刻操作，讓主角感到緊張',solve:'主角停下來查證，透過原本的聯絡方式確認真偽',ending:'螢幕出現「停、看、查」及正確處理方法',shots:'手機模擬畫面特寫、人物反應中景、查證動作近景',script:'面對急著要你行動的訊息，先確認，比急著回覆更重要。',ambient:'訊息通知音、電話撥號聲',values:'健康安全與自我照顧、資訊倫理／數位禮儀'},
+ '公益服務與互助':{subtopic:'同理與陪伴｜用小小行動關心他人',title:'有人陪你走一段',problem:'生活中有人需要協助，卻不一定會主動開口',action:'在取得同意後，記錄了解需求、分工與實際服務的過程',message:'真正的關心，是先聆聽對方需要什麼。',open:'一雙伸出援手的手部特寫',visit:'交代參與服務的人與活動目的',conflict:'原本的幫忙方式不一定符合對方需求',solve:'先詢問、調整方法，再一起完成服務',ending:'參與者分享心情，畫面回到互助的小動作',shots:'服務場所遠景、分工中景、互助動作特寫',script:'陪伴不需要偉大的口號，從願意傾聽開始。',ambient:'活動現場聲、交談聲',values:'尊重與同理、友情與團隊合作'},
+ '個人成長與挑戰':{subtopic:'面對挫折｜從失敗練習到完成一件事',title:'再試一次的勇氣',problem:'一個原本不擅長的任務，讓主角想放棄',action:'記錄練習、調整方法、尋求建議與再次嘗試的真實過程',message:'進步不是一次成功，而是願意再試一次。',open:'主角第一次練習失敗的畫面',visit:'介紹想完成的目標與練習環境',conflict:'連續失敗，主角開始懷疑自己的能力',solve:'尋求協助、調整方法並持續練習',ending:'對比前後練習畫面，說出真正的收穫',shots:'練習全景、困難時的中景、進步細節特寫',script:'改變也許很慢，但每一次嘗試都算數。',ambient:'練習聲、腳步聲、鼓勵聲',values:'勇氣與突破、成長與獨立'},
+ '其他教育主題':{subtopic:'從日常出發｜一件值得分享的真實小事',title:'一件小事的改變',problem:'生活裡有一件值得大家理解或關心的事情',action:'拍攝真實觀察、人物心情和具體行動，不虛構結果',message:'留心身邊的小事，也能發現成長的力量。',open:'一個生活細節特寫，讓觀眾產生好奇',visit:'交代人物、時間、地點與事件背景',conflict:'事情出現讓人意外或值得思考的轉折',solve:'記錄人物如何回應、理解或做出選擇',ending:'回到主角的感受，呼應片名與主題',shots:'場景遠景、人物中景、重要動作特寫',script:'原來日常裡，也有值得好好記住的故事。',ambient:'與故事場景相符的真實環境聲',values:'尊重與同理、成長與獨立'}
+};
+function topicHint(id,defaultHint){
+ const t=topicTemplates[draft.projectType];
+ if(!t)return id==='subtopic'?'先選主要主題，再看符合這個主題的次主題例子。':id==='title'?'先決定次主題，再為故事取名。':defaultHint;
+ const common={
+  audience:'希望讓同學或家人看懂「'+t.message+'」，並願意分享感受。',
+  customValue:'用自己的話寫出與「'+draft.projectType+'」有關的正向價值。',
+  music:'開頭帶出好奇，中段配合事件轉折，結尾呼應「'+t.message+'」。',
+  quality:'重錄第二版旁白，語速放慢、重點更清楚。',
+  folders:'01_開場、02_人物場景、03_事件轉折、04_行動成果、05_結尾、06_聲音',
+  list:t.shots+'；每個鏡頭再寫上地點、景別和秒數。',
+  roles:'甲負責「'+t.shots.split('、')[0]+'」，乙記錄對話，丙整理素材及聲音。',
+  consent:'拍攝人物前先說明用途並取得同意；不願入鏡時改拍物品或避開。',
+  backup:'缺少關鍵事件時，改拍相關物件、現場細節或取得同意後補錄訪談。',
+  rough:'先安排開場、背景、事件、行動與結尾五段，估算每段長度。',
+  feedback:'請同學看完後說出這部片的次主題，以及哪個畫面最能表現「'+t.values.split('、')[0]+'」。',
+  missing:'檢查「'+t.conflict+'」與「'+t.solve+'」兩段之間是否缺少說明畫面。',
+  shotsPlan:t.shots.split('、').map((s,i)=>s+' '+[5,8,6][i]+' 秒').join('、'),
+  rolesPlan:'先分配「'+t.shots.split('、').join('、')+'」的拍攝者，再訂好完成日期。',
+  extend:'補充人物背景、關鍵行動及真實感想，讓故事自然延伸到 280 秒。',
+  next:'先確認「'+t.conflict+'」能否拍到，拍攝後請同學指出故事主旨。'
+ };
+ return '例如：'+(t[id]||common[id]||defaultHint.replace(/^例如[:：]\s*/,''));
+}
+function updateTimelineExample(){const el=$('storyTimelineExample'),t=topicTemplates[draft.projectType];if(el)el.textContent=t?'🎬「'+draft.projectType+'」示範：'+[t.open,t.visit,t.conflict,t.solve,t.ending].join(' → '):'先在上方選擇主題，這裡會顯示相對應的五段式故事示範。';}
 let current=0;
 const identity=()=>{const p=window.STORE?.me?.();return p?`${p.cls}_${p.seat}`:'guest';};
 const key=()=>`educase_11601_plan_${identity()}`;
@@ -338,6 +375,7 @@ function drawConcepts(){
  });
 }
 function draw(){
+ updateTimelineExample();
  const tabs=$('stageTabs');tabs.innerHTML='';
  missions.forEach((m,i)=>{
    const b=document.createElement('button');b.type='button';b.textContent=`${done(i)?'⭐':i===current?'🎯':'📖'} ${i+1}｜${m.title}`;
@@ -354,7 +392,9 @@ function draw(){
  const teach=document.createElement('section');teach.className='mission-lesson';
  const teachHead=document.createElement('h3');teachHead.textContent='📚 先學招式｜'+lesson.name;teach.append(teachHead);
  const ol=document.createElement('ol');lesson.steps.forEach(step=>{const li=document.createElement('li');li.textContent=topicText(step);ol.append(li);});teach.append(ol);
- const demo=document.createElement('p');demo.className='demo';demo.textContent='🎬 小導演示範：'+topicText(lesson.example);teach.append(demo);root.append(teach);
+ const t=topicTemplates[draft.projectType];
+ const contextualDemo=t?[t.subtopic+' → '+t.title+' → '+t.action,[t.open,t.visit,t.conflict,t.solve,t.ending].join(' → '),t.script+'（可搭配'+t.ambient+'）',t.shots+'，請先徵得拍攝同意。','若缺少關鍵畫面，可補拍：'+t.shots+'。'][current]:lesson.example;
+ const demo=document.createElement('p');demo.className='demo';demo.textContent='🎬 小導演示範：'+contextualDemo;teach.append(demo);root.append(teach);
  if(isTrip()&&(current===0||current===1)){
    const trip=document.createElement('section');trip.className='mission-lesson';
    const head=document.createElement('h3');head.textContent='🧳 畢旅故事拍攝引導｜沿用行程規劃';trip.append(head);
@@ -375,7 +415,7 @@ function draw(){
    b.onclick=()=>{draft['quiz'+current]=i;saved();draw();};choices.append(b);
  });quiz.append(choices);
  const qHint=document.createElement('p');qHint.className='small';qHint.textContent=draft['quiz'+current]===lesson.right?'✅ 觀念正確！接著完成自己的故事。':'挑選一個答案，再到下面實作區寫出你的故事。';quiz.append(qHint);root.append(quiz);
- const practice=document.createElement('h3');practice.textContent='✍️ 換你實作｜用自己的「'+draft.projectType+'」故事回答';root.append(practice);
+ const practice=document.createElement('h3');practice.textContent='✍️ 換你實作｜'+(draft.projectType?'用自己的「'+draft.projectType+'」故事回答':'先從下方選擇影片主題');root.append(practice);
  const fields=document.createElement('div');fields.className='fields';
  let sceneBox=null,materialBox=null;
  if(current===0){
@@ -413,7 +453,7 @@ function draw(){
    });
    const inventory=document.createElement('label');inventory.textContent=draft.materialStatus==='none'?'📋 預計拍攝清單｜至少列出三個鏡頭、人物、地點與負責人':'📦 素材盤點｜目前有幾段影片、幾張照片？哪種畫面最缺？';
    const inventoryId=draft.materialStatus==='none'?'shootingInventory':'canvaInventory';
-   const notes=document.createElement('textarea');notes.value=draft[inventoryId]||'';notes.placeholder=draft.materialStatus==='none'?'例如：① 教室全景 5 秒（教室／我）② 同學關燈特寫 4 秒（教室／小美）③ 訪問同學 15 秒（走廊／小華）':'例如：影片 12 段、照片 35 張；有全景和活動畫面，但缺少同學互助特寫。';notes.oninput=()=>{draft[inventoryId]=notes.value;saved();};notes.dataset.id=inventoryId;inventory.append(notes);canva.append(inventory);
+   const notes=document.createElement('textarea');notes.value=draft[inventoryId]||'';notes.placeholder=draft.materialStatus==='none'?'例如：'+(topicTemplates[draft.projectType]?.shots||'場景遠景、人物中景、動作特寫')+'；分別寫上拍攝地點、負責人和秒數。':'例如：目前已有「'+(topicTemplates[draft.projectType]?.shots||'人物、場景與細節畫面')+'」，還缺少哪一段？';notes.oninput=()=>{draft[inventoryId]=notes.value;saved();};notes.dataset.id=inventoryId;inventory.append(notes);canva.append(inventory);
    fields.append(canva);
  }
  if(current===0){
@@ -423,7 +463,7 @@ function draw(){
    draft.locations.forEach((place,i)=>{
      const row=document.createElement('div');row.className='row';
      const label=document.createElement('label');label.textContent=isTrip()?'第 '+(i+1)+' 站｜行程地點與人物互動':'場景 '+(i+1)+'｜地點與事件';label.style.flex='1 1 220px';
-     const input=document.createElement('input');input.type='text';input.placeholder=isTrip()?'例如：第一天車上｜同學互相照顧；第二天景點｜突破挑戰':'例如：教室｜下課後關燈的行動';input.value=place;
+     const input=document.createElement('input');input.type='text';input.placeholder=isTrip()?'例如：第一天車上｜同學互相照顧；第二天景點｜突破挑戰':'例如：'+(topicTemplates[draft.projectType]?.visit||'人物活動的場景與事件');input.value=place;
      input.dataset.id='location'+i;
      input.addEventListener('input',()=>{draft.locations[i]=input.value;saved();});label.append(input);row.append(label);
      if(draft.locations.length>1){const remove=document.createElement('button');remove.type='button';remove.className='secondary';remove.textContent='移除這站';remove.onclick=()=>{draft.locations.splice(i,1);if(Array.isArray(draft.locationShots))draft.locationShots.splice(i,1);saved();draw();};row.append(remove);}
@@ -438,7 +478,7 @@ function draw(){
    draft.locations.forEach((place,i)=>{
      if(!String(place).trim())return;
      const label=document.createElement('label');label.textContent='📍 '+(i+1)+'．'+place+'｜已有哪些素材／要拍的行動／如何呈現核心價值／秒數';
-     const input=document.createElement('textarea');input.placeholder='例如：入口全景 5 秒、同學互動中景 8 秒、笑容特寫 3 秒';input.value=(draft.locationShots||[])[i]||'';
+     const input=document.createElement('textarea');input.placeholder=topicHint('shotsPlan','安排三個鏡頭與秒數');input.value=(draft.locationShots||[])[i]||'';
      input.dataset.id='locationShot'+i;input.addEventListener('input',()=>{draft.locationShots=draft.locationShots||[];draft.locationShots[i]=input.value;saved();});
      label.append(input);box.append(label);
    });fields.append(box);
@@ -450,12 +490,14 @@ function draw(){
      input=document.createElement('select');input.append(new Option('請選擇主要主題',''));projectTypes.forEach(v=>input.append(new Option(v,v)));input.value=draft[id]||'';
    }else if(hint==='select'){
      input=document.createElement('select');input.append(new Option('請先選擇核心價值',''));
-     values.forEach(v=>input.append(new Option(v,v)));input.value=draft[id]||'';
-   }else{input=document.createElement('textarea');input.placeholder=topicText(hint);input.value=draft[id]||'';}
+     const recommended=(topicTemplates[draft.projectType]?.values||'').split('、').filter(Boolean);
+     recommended.forEach(v=>input.append(new Option('⭐ 推薦｜'+v,v)));
+     values.filter(v=>!recommended.includes(v)).forEach(v=>input.append(new Option(v,v)));input.value=draft[id]||'';
+   }else{input=document.createElement('textarea');input.placeholder=topicHint(id,hint);input.value=draft[id]||'';}
    input.dataset.id=id;
    input.addEventListener('input',()=>{draft[id]=input.value;saved();if(id==='value'||id==='projectType')draw();});
    wrap.append(input);fields.append(wrap);
-   if(id==='projectType'&&draft.projectType){const tip=document.createElement('p');tip.className='hint';tip.textContent='💡 次主題靈感：'+projectExamples[draft.projectType];fields.append(tip);}
+   if(id==='projectType'&&draft.projectType){const tip=document.createElement('p');tip.className='hint';tip.textContent='💡 次主題靈感：'+projectExamples[draft.projectType]+(draft.subtopic?' 已填寫過的答案仍保留；如果變更主題，請檢查原本次主題和故事是否仍相符。':'');fields.append(tip);}
  });
  if(materialBox)fields.append(materialBox);
  if(sceneBox)fields.append(sceneBox);
@@ -490,7 +532,7 @@ $('nextStage').onclick=()=>{
  if(current<missions.length-1){current++;draw();$('stageTabs').scrollIntoView({behavior:'smooth',block:'start'});}
 };
 $('exportPlan').onclick=async()=>{const text=missions.map((m,i)=>`【${i+1} ${m.title}】\n`+(i===0?'素材狀況：'+({none:'尚未拍攝',some:'已有部分素材',ready:'素材大致齊全'}[draft.materialStatus]||'未選')+'\n預計場景：\n'+draft.locations.map((v,j)=>`${j+1}. ${v||'（未填）'}`).join('\n')+'\n':'')+(i===1?'各場景拍攝計畫：\n'+draft.locations.map((v,j)=>`${v}：${(draft.locationShots||[])[j]||'（未填）'}`).join('\n')+'\n'+(draft.materialStatus==='none'?'拍攝清單：'+(draft.shootingInventory||'（未填）'):'素材盤點：'+(draft.canvaInventory||'（未填）'))+'\n':'')+m.fields.map(([id,label])=>`${label}：${draft[id]||'（未填）'}`).join('\n')).join('\n\n');try{await navigator.clipboard.writeText(text);$('status').textContent='📋 已複製企畫，可貼到自己的文件保存。';}catch(e){$('status').textContent='無法自動複製，請手動選取文字。';const pre=document.createElement('textarea');pre.value=text;pre.rows=10;$('stageContent').append(pre);}};
-function showValueTip(){const panel=$('valueGuide');if(current===0){panel.hidden=false;panel.textContent=valueTips[draft.value]||'🎥 先想一件能真實拍到的校園或生活事件，從上方選擇核心價值，逐步規劃能呈現這個價值的鏡頭。';}else if(current===4){panel.hidden=false;panel.textContent='📷 還沒拍攝可以先列出至少三個必拍鏡頭；已有素材卻缺少畫面時，可以補拍訪談、物品特寫或旁白，並清楚區分真實紀錄和後製畫面。';}else{panel.hidden=true;}}
+function showValueTip(){const panel=$('valueGuide'),t=topicTemplates[draft.projectType];if(current===0){panel.hidden=false;panel.textContent=t?'🎥「'+draft.projectType+'」建議核心價值：'+t.values+'。鏡頭可從「'+t.shots+'」開始，次主題、片名與事件要彼此呼應。': '🎥 先選主要主題，再決定次主題與片名；選好後會提供相符的範例。';}else if(current===4){panel.hidden=false;panel.textContent='📷 還沒拍攝可以先列出至少三個必拍鏡頭；已有素材卻缺少畫面時，可以補拍訪談、物品特寫或旁白，並清楚區分真實紀錄和後製畫面。';}else{panel.hidden=true;}}
 new MutationObserver(showValueTip).observe($('stageContent'),{childList:true});
 document.addEventListener('input',e=>{if(e.target?.dataset?.id==='value')showValueTip();});
 draw();drawConcepts();drawAI();showValueTip();})();

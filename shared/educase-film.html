@@ -306,6 +306,7 @@ function compileStoryPlan(){
   '必拍景別與畫面：'+filled(draft.shots),'其他關鍵鏡頭：'+filled(draft.list),
   '','五、聲音、素材與分工',
   '旁白：'+filled(draft.script),'現場聲音：'+filled(draft.ambient),'配樂情緒：'+filled(draft.music),
+  ...(['開場','人物與背景','事件或轉折','行動與改變','片尾'].map((name,i)=>{const s=(draft.audioSegments||[])[i]||{};return '聲音分段 '+(i+1)+'（'+name+'）：'+filled(s.description)+'；來源：'+filled(s.source)+'；'+(s.recorded?'已備妥音訊':'待錄製或選曲')+'；'+(s.uploaded?'已自行確認匯入 Canva':'待匯入 Canva');})),
   '素材分類：'+filled(draft.folders),
   '現有素材盤點／預計拍攝：'+filled(draft.materialStatus==='none'?draft.shootingInventory:draft.canvaInventory),
   '工作分配：'+filled(draft.roles),'拍攝或整理時間：'+filled(draft.rolesPlan),
@@ -482,6 +483,44 @@ function draw(){
      input.dataset.id='locationShot'+i;input.addEventListener('input',()=>{draft.locationShots=draft.locationShots||[];draft.locationShots[i]=input.value;saved();});
      label.append(input);box.append(label);
    });fields.append(box);
+ }
+ if(current===2){
+   const studio=document.createElement('section');studio.className='mission-lesson wide-card';
+   const h=document.createElement('h3');h.textContent='🎧 五段式聲音工作室｜做好一段，就先放進 Canva';studio.append(h);
+   const lead=document.createElement('p');lead.textContent='依照前一站的故事分鏡，分五段安排旁白、現場音、音效與配樂。沒有影片也可以先錄一段旁白，或用空白影片練習放入音軌；不需要等全部聲音做好才匯入。';studio.append(lead);
+   const methods=document.createElement('ol');[
+     '① 選定一段故事，先讀當段分鏡：畫面是什麼、人物要說什麼？',
+     '② 決定聲音層次：原始現場音、自己錄的旁白、自製音效，最後才考慮背景音樂。',
+     '③ 先做一小段：手機錄音、拍手／腳步聲，或選一段符合授權的背景樂。試聽並修剪頭尾。',
+     '④ 將音檔命名「段落_聲音類型_編號」，例如「03事件_腳步_01.m4a」，原始檔另外備份。',
+     '⑤ 開啟 Canva 影片專案 →「上傳」→「上傳檔案」選音訊 → 拖曳到對應時間軸 → 修剪長度、調整音量 → 播放檢查。',
+     '⑥ 每完成一段就先匯入、試聽並勾選下面的紀錄。旁白要清楚，背景樂不宜蓋過說話聲。'
+   ].forEach(s=>{const li=document.createElement('li');li.textContent=s;methods.append(li);});studio.append(methods);
+   const links=document.createElement('div');links.className='row';[
+     ['🎬 開啟 Canva','https://www.canva.com/'],
+     ['🎵 YouTube 官方音效庫','https://www.youtube.com/audiolibrary'],
+     ['🎶 Pixabay 音樂與音效','https://pixabay.com/music/'],
+     ['📖 Canva 音訊操作說明','https://www.canva.com/help/stock-music/']
+   ].forEach(([label,url])=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.className='link';a.textContent=label;links.append(a);});studio.append(links);
+   const rights=document.createElement('p');rights.className='hint';rights.textContent='🔐 音樂「免費下載」不代表沒有著作權。優先使用自己錄製的聲音、已確認授權的 Canva 音訊或官方音效庫；YouTube 音效庫有些作品要標示作者，Pixabay 也可能有 Content ID 聲明。請保存曲名、作者、來源網址與授權資訊。Canva 中標示「熱門音樂／僅限個人使用」的曲目，不要直接當作對外參賽影片的配樂。';studio.append(rights);
+   const suno=document.createElement('details');const summary=document.createElement('summary');summary.textContent='🤖 可以用 Suno AI 製作配樂嗎？先看授權提醒';suno.append(summary);
+   const notice=document.createElement('p');notice.textContent='Suno 可以用文字描述生成音樂，但免費方案產生的作品只提供非商業使用許可，不能視為完全無版權的音樂。13–17 歲使用者需要家長或監護人事先同意；是否可用於公開展映、比賽或其他活動，還須依實際授權及活動要求確認。課堂不要求學生註冊 Suno，也不要求付費。若老師已確認授權，可作選修示範。';suno.append(notice);
+   const guide=document.createElement('p');guide.textContent='可用的純音樂描述範例：「溫暖、輕柔、無人聲的鋼琴與木吉他，適合友情與成長故事片尾，節奏平穩，不模仿特定歌手或歌曲。」這只是風格練習，不等於取得使用授權。';suno.append(guide);studio.append(suno);
+   const labels=[['開場','0–20 秒'],['人物與背景','20–65 秒'],['事件或轉折','65–140 秒'],['行動與改變','140–235 秒'],['片尾','235–280 秒']];
+   draft.audioSegments=Array.isArray(draft.audioSegments)?draft.audioSegments:[];
+   labels.forEach(([name,time],i)=>{
+     const state=draft.audioSegments[i]||{},block=document.createElement('section');block.style.cssText='border:1px solid #b8deda;background:#fff;border-radius:14px;padding:15px;margin:14px 0';
+     const heading=document.createElement('h3');heading.textContent='🎵 第 '+(i+1)+' 段｜'+name+'（'+time+'）';block.append(heading);
+     const scene=document.createElement('p');scene.textContent='🎞️ 對應分鏡：'+(draft[['open','visit','conflict','solve','ending'][i]]||'尚未填寫，先到第二站規劃畫面');block.append(scene);
+     const source=document.createElement('label');source.textContent='這段聲音從哪裡來？';const sel=document.createElement('select');[
+       ['','請選聲音來源'],['自錄旁白','自己錄製旁白'],['自錄現場音','自己拍攝時錄下現場音'],['自製音效','自己製作並錄下音效'],['Canva 授權音樂','Canva 內已確認授權的音樂／音效'],['YouTube 官方音效庫','YouTube 官方音效庫（確認標示）'],['Pixabay','Pixabay（確認單曲授權）'],['先不配樂','先不配樂，保留自然聲音']
+     ].forEach(([value,label])=>sel.append(new Option(label,value)));sel.value=state.source||'';sel.onchange=()=>{draft.audioSegments[i]={...(draft.audioSegments[i]||{}),source:sel.value};saved();};source.append(sel);block.append(source);
+     const description=document.createElement('label');description.textContent='準備錄什麼聲音、使用哪個檔案，何時進入或淡出？';const area=document.createElement('textarea');area.placeholder='例如：'+(topicTemplates[draft.projectType]?.ambient||'現場腳步聲、旁白或柔和配樂')+'；寫下檔名、起訖秒數和音量安排。';area.value=state.description||'';area.oninput=()=>{draft.audioSegments[i]={...(draft.audioSegments[i]||{}),description:area.value};saved();};description.append(area);block.append(description);
+     [['recorded','✅ 這段聲音已完成錄製或選曲，並確認授權'],['uploaded','☁️ 我已親自匯入 Canva、對齊時間軸並播放檢查']].forEach(([id,label])=>{const row=document.createElement('label');row.className='material-check';const check=document.createElement('input');check.type='checkbox';check.checked=!!state[id];check.onchange=()=>{draft.audioSegments[i]={...(draft.audioSegments[i]||{}),[id]:check.checked};saved();const counter=studio.querySelector('[data-audio-count]');if(counter)counter.textContent='🎯 目前已記錄 '+draft.audioSegments.filter(s=>s?.uploaded).length+' / 5 段音訊匯入。可分次完成；此勾選只是個人操作紀錄，不代表網站已驗證 Canva 檔案。';};row.append(check,document.createTextNode(label));block.append(row);});
+     studio.append(block);
+   });
+   const count=document.createElement('p');count.className='hint';count.dataset.audioCount='1';count.textContent='🎯 目前已記錄 '+draft.audioSegments.filter(s=>s?.uploaded).length+' / 5 段音訊匯入。可分次完成；此勾選只是個人操作紀錄，不代表網站已驗證 Canva 檔案。';studio.append(count);
+   fields.append(studio);
  }
  missions[current].fields.forEach(([id,label,hint])=>{
    if(id==='customValue'&&draft.value!=='自訂正向教育主題')return;

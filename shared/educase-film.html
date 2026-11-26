@@ -36,6 +36,7 @@ section>h2{font-size:clamp(1.35rem,2.5vw,1.75rem);line-height:1.35;margin-bottom
 #stageContent label{font-size:.97rem;margin:12px 0}
 #stageContent textarea,#stageContent select{border:1px solid #b8d1df;border-radius:12px;background:#fff;transition:border-color .15s,box-shadow .15s}
 #stageContent textarea:focus,#stageContent select:focus{outline:none;border-color:#168da0;box-shadow:0 0 0 3px #168da01c}
+.lesson-map{display:grid;gap:12px;margin:16px 0 24px}.lesson-map details{background:#f6fbff;border:1px solid #c6deed;padding:13px 16px}.lesson-map details[open]{border-color:#1590a0}.lesson-map summary{font-size:1.02rem;color:#154b67}.lesson-map p{font-size:.9rem;color:#476475}.lesson-map ol{padding-left:25px}.lesson-map li{margin:4px 0}.lesson-map .secondary{font-size:.9rem;padding:8px 14px;margin:8px 0}.lesson-map-actions{display:flex;gap:10px;flex-wrap:wrap}.lesson-map-actions button{font-size:.9rem;padding:8px 12px;background:#fff;color:#12516a}.lesson-map .current-lesson{background:#eaf9f5}
 #valueGuide{margin-top:15px}
 .timeline{gap:8px}
 .timeline span{border-radius:13px;padding:14px 9px;line-height:1.5;background:#e7f4fb;border:1px solid #bfdbe9}
@@ -68,7 +69,7 @@ body.topic-mode[data-topic="menu"] #topics{display:block}
 </header>
 <section id="topics">
 <h2>📚 今天想學哪一個主題？</h2>
-<p>先點選一張卡片，一次只看一個主題。想換主題，隨時按「返回主題選單」。沒有影片素材也能先練習，不鎖關。<small>（介面版 v17.49）</small></p>
+<p>先點選一張卡片，一次只看一個主題。五站教學內容可以全部預覽，想去哪一站都能直接進入；沒有影片素材也能先練習，不鎖關。<small>（介面版 v17.50）</small></p>
 <div class="topic-menu" id="topicMenu">
 <button type="button" data-topic-choice="plan">✍️ ① 主題企畫與五段分鏡<span>選主題、寫故事、列鏡頭與整理企畫</span></button>
 <button type="button" data-topic-choice="audio">🎧 ② 聲音、音效與版權<span>免費音樂、授權小測驗、分段配樂、Canva</span></button>
@@ -140,6 +141,8 @@ body.topic-mode[data-topic="menu"] #topics{display:block}
 <section id="idea">
 <h2>🌟 我的微電影企畫闖關｜五站累積五顆星</h2>
 <p>先挑選一個有教育意義的主題，再縮小為自己能拍的次主題。從「觀察到什麼 → 想傳達什麼 → 準備拍什麼」一步步形成作品。<b>五個站點全部開放，可以先預習與練習 Canva；完成該站實作再領星星。</b></p>
+<div class="lesson-map-actions"><button type="button" id="expandLessons">📖 展開全部五站教學</button><button type="button" id="collapseLessons">收合教學內容</button></div>
+<div id="lessonOverview" class="lesson-map" aria-label="五站完整教學目錄"></div>
 <details><summary>💡 還沒想法？看看可以拍的方向</summary><div class="fields"><div><b>🛡️ 數位安全</b><p>用一段網路訊息或可疑連結，呈現查證與保護個資的行動。</p></div><div><b>🤖 AI 與學習</b><p>實際記錄如何善用工具、查核資訊並解決學習難題。</p></div><div><b>♻️ 環境與能源</b><p>觀察校園資源使用，記錄節能或減塑的前後改變。</p></div><div><b>🤝 尊重與合作</b><p>呈現一次傾聽、互助、解決衝突或共同完成任務。</p></div><div><b>🏘️ 社區探索</b><p>找到一個地方故事或生活問題，用鏡頭介紹發現與行動。</p></div><div><b>🌱 個人成長</b><p>記錄嘗試、練習、失敗、調整與進步的真實過程。</p></div></div></details>
 <div id="stageTabs" class="steps">
 </div>
@@ -383,8 +386,31 @@ function drawConcepts(){
   };buttons.append(b);});section.append(buttons,feedback);root.append(section);
  });
 }
+let overviewExpanded=true;
+function renderLessonOverview(){
+ const root=$('lessonOverview');root.innerHTML='';
+ const shortGoals=[
+  '選主要主題、次主題與名稱，決定故事想傳達什麼。',
+  '把故事安排成五段，先建立 Canva 資料夾與鏡頭清單。',
+  '學授權、找免費音效、錄旁白、分五段配樂並練習 Canva。',
+  '安排拍攝分工、同意與安全，列出可補拍的畫面。',
+  '練習 180 秒粗剪、試看、補鏡，準備下學期完成作品。'
+ ];
+ missions.forEach((mission,i)=>{
+  const card=document.createElement('details');card.open=overviewExpanded;card.className=i===current?'current-lesson':'';
+  const head=document.createElement('summary');head.textContent=(done(i)?'⭐ 已完成｜':'📖 自由預習｜')+'第 '+(i+1)+' 站：'+mission.title;card.append(head);
+  const goal=document.createElement('p');goal.textContent='🎯 '+shortGoals[i];card.append(goal);
+  const steps=document.createElement('ol');lessons[i].steps.forEach(t=>{const li=document.createElement('li');li.textContent=topicText(t);steps.append(li)});card.append(steps);
+  const fields=document.createElement('p');fields.textContent='✍️ 這站會完成：'+mission.fields.filter(([id])=>id!=='customValue').map(([id,label])=>label.replace(/^[①②③④⑤⑥⑦⑧⑨]\s*/,'')).join('、');card.append(fields);
+  const open=document.createElement('button');open.type='button';open.className='secondary';open.textContent='🎯 直接開啟第 '+(i+1)+' 站實作';open.onclick=()=>{current=i;draw();if(document.body.dataset.topic==='audio'&&i!==2)showTopic('plan');$('stageContent').scrollIntoView({behavior:'smooth',block:'start'})};card.append(open);
+  root.append(card);
+ });
+}
+$('expandLessons').onclick=()=>{overviewExpanded=true;renderLessonOverview();};
+$('collapseLessons').onclick=()=>{overviewExpanded=false;renderLessonOverview();};
 function draw(){
  updateTimelineExample();
+ renderLessonOverview();
  const tabs=$('stageTabs');tabs.innerHTML='';
  missions.forEach((m,i)=>{
    const b=document.createElement('button');b.type='button';b.textContent=`${done(i)?'⭐':i===current?'🎯':'📖'} ${i+1}｜${m.title}`;

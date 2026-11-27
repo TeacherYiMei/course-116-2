@@ -1,4 +1,4 @@
-/* Canva 校園微電影 v17.53：逐步說明與 Canva 實作雙頁配對。 */
+/* Canva 校園微電影 v17.54：每關皆有直接 Canva 入口。 */
 (()=>{
   'use strict';
   const $=id=>document.getElementById(id),mod='media';
@@ -90,13 +90,13 @@
       const teach=document.createElement('div');teach.className='canva-teach';
       teach.innerHTML='<h3>📖 這一步怎麼做？</h3><p class="canva-step-meter" id="canvaStepMeter"></p><div class="canva-current-step" id="canvaCurrentStep"></div><div class="canva-step-actions"><button type="button" id="canvaPrevStep">上一步</button><button type="button" id="canvaNextStep">我看懂了，下一步</button></div><p class="small">先在右邊開 Canva 實作，再回來按下一步。可以重看，原本作品不會被修改。</p>';
       const work=document.createElement('div');work.className='canva-do';
-      const actionName=canvaTask(current)?'🎨 開啟 Canva 實際操作':'🧭 開啟上學期企畫對照';
-      const actionUrl=canvaTask(current)?'https://www.canva.com/':'../shared/educase-film.html#idea';
-      const a=document.createElement('a');a.className='btn';a.href=actionUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent=actionName;
+      const a=document.createElement('a');a.className='btn';a.href='https://www.canva.com/';a.target='_blank';a.rel='noopener noreferrer';a.textContent='🎨 開啟 Canva 實際操作（新分頁）';
       const official=document.createElement('a');official.className='btn alt';official.href='https://www.canva.com/help/creating-and-editing-videos/';official.target='_blank';official.rel='noopener noreferrer';official.textContent='❔ Canva 官方影片操作說明';
       const check=document.createElement('label');check.className='canva-finish';const tick=document.createElement('input');tick.type='checkbox';tick.checked=!!state.canvaChecked;check.append(tick,document.createTextNode(canvaTask(current)?' 我已在 Canva 親手完成本關操作，並播放檢查':' 我已確認本關對照資料'));
       const small=document.createElement('p');small.className='small';small.textContent='這裡不會連線控制 Canva 或讀取私人作品；勾選只代表自行檢查，教師仍須核對作品。';
-      work.append(Object.assign(document.createElement('h3'),{textContent:'🎨 換你在 Canva 做'}),a,official,check,small);
+      work.append(Object.assign(document.createElement('h3'),{textContent:'🎨 換你在 Canva 做'}),a);
+      if(current===0){const plan=document.createElement('a');plan.className='btn alt';plan.href='../shared/educase-film.html#idea';plan.target='_blank';plan.rel='noopener noreferrer';plan.textContent='🧭 另開上學期企畫對照';work.append(plan);}
+      work.append(official,check,small);
       wrapper.append(teach,work);
       function updateStep(){
         teach.querySelector('#canvaStepMeter').textContent='教學步驟 '+(step+1)+' / '+t.steps.length;

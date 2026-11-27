@@ -1,4 +1,4 @@
-/* Canva 校園微電影 4 分 40 秒逐步冒險 v17.11：上學期企畫、下學期精剪。 */
+/* Canva 校園微電影 v17.53：逐步說明與 Canva 實作雙頁配對。 */
 (()=>{
   'use strict';
   const $=id=>document.getElementById(id),mod='media';
@@ -38,6 +38,7 @@
   const tipsForTask=[[0,1,3],[0,1],[0,4],[2,3,4],[0,1],[0,3],[2,3],[2,3,4],[0,1,2,3,4,5],[4,5],[5,4],[0,1,5]];
   // 訪客練習進度只供畫面使用，正式星星以學生 STORE 為準。
   let guest=Array.from({length:tasks.length},(_,i)=>sessionStorage.getItem('travel_pdf_guest_'+i)==='1'),current=0;
+  const canvaTask=i=>i!==0&&i!==9;
   const has=i=>earned(i)||guest[i],count=()=>tasks.filter((_,i)=>has(i)).length;
   window.travelQuestReady=()=>count()===tasks.length;
   function draftKey(i){const p=window.STORE?.me();return 'travel_quest_draft_'+(p?String(p.cls)+'_'+String(p.seat):'guest')+'_'+i;}
@@ -81,7 +82,35 @@
     $('questTrack').innerHTML=tasks.map((t,i)=>`<button type="button" data-step="${i}" ${unlocked(i)?'':'disabled'} ${i===current?'aria-current="step"':''}>${has(i)?'⭐':i===current?'👉':'○'} ${i+1}</button>`).join('');
     $('questTrack').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{current=Number(b.dataset.step);draw();}));
     const t=tasks[current],needsCheck=t.mode!=='form'&&t.mode!=='storyboard',checkText=current===0?'我已核對上學期企畫或粗剪，知道需要補充哪些素材。':current===1?'我已成功建立 Canva 影片專案並找到時間軸。':current===2?'我已上傳素材，並在時間軸播放確認順序。':current===3?'我已實際修剪至少兩段影片並播放比較。':current===4?'我已在影片開頭加入空白片段並預覽。':current===5?'我已在 Canva 片頭放入文字並播放確認。':current===7?'我已套用文字動畫，並播放檢查效果。':current===8?'我已在兩段畫面之間試用轉場。':current===10?'我已放入音訊軌並調整過音量。':'我已在 Canva 完成上面的操作並播放確認。';
-    $('questStep').innerHTML=`<div style="font-size:2.4rem">${t.icon}</div><p style="color:#145d81;font-weight:800">任務 ${current+1}／${tasks.length}</p><h2>${t.title}</h2><p><b>🎯 這次只做一件事：</b>${t.goal}</p><ol>${t.steps.map(s=>`<li>${s}</li>`).join('')}</ol><p class="quest-hint">🎯 請完成：${t.ask}</p><div id="questAnswer"></div>${needsCheck?'<label class="quest-check"><input type="checkbox" id="questReally"> '+checkText+'</label>':'<p class="small">✏️ 每一格都要填寫；這些草稿只保留在本次瀏覽器分頁，不會上傳到教師資料庫。</p>'}<p id="questMessage" role="status" aria-live="polite"></p><div class="quest-actions"><button id="questClaim" type="button">${has(current)?'⭐ 已獲得這顆星星':'🌟 完成任務，領一顆星星'}</button><button id="questNext" class="secondary" type="button" ${unlocked(current+1)&&current<tasks.length-1?'':'disabled'}>下一關 →</button></div>${n===tasks.length?'<div class="quest-complete"><h3>🏆 12 顆星星收集完成！</h3><p>現在才進行最後 MP4 技術檢測。這些星星只記錄學習任務完成情形，作品內容仍須老師查看。</p><a class="btn" href="#travelSubmission">🚀 前往最後檢測</a></div>':''}`;
+    $('questStep').innerHTML=`<div style="font-size:2.4rem">${t.icon}</div><p style="color:#145d81;font-weight:800">任務 ${current+1}／${tasks.length}</p><h2>${t.title}</h2><p><b>🎯 這次只做一件事：</b>${t.goal}</p><div id="canvaCompanion"></div><details><summary>📖 一次預覽本關全部操作說明</summary><ol>${t.steps.map(s=>`<li>${s}</li>`).join('')}</ol></details><p class="quest-hint">🎯 請完成：${t.ask}</p><div id="questAnswer"></div>${needsCheck?'<label class="quest-check"><input type="checkbox" id="questReally"> '+checkText+'</label>':'<p class="small">✏️ 每一格都要填寫；這些草稿只保留在本次瀏覽器分頁，不會上傳到教師資料庫。</p>'}<p id="questMessage" role="status" aria-live="polite"></p><div class="quest-actions"><button id="questClaim" type="button">${has(current)?'⭐ 已獲得這顆星星':'🌟 完成任務，領一顆星星'}</button><button id="questNext" class="secondary" type="button" ${unlocked(current+1)&&current<tasks.length-1?'':'disabled'}>下一關 →</button></div>${n===tasks.length?'<div class="quest-complete"><h3>🏆 12 顆星星收集完成！</h3><p>現在才進行最後 MP4 技術檢測。這些星星只記錄學習任務完成情形，作品內容仍須老師查看。</p><a class="btn" href="#travelSubmission">🚀 前往最後檢測</a></div>':''}`;
+    {
+      const wrapper=$('canvaCompanion'),state=readDraft(current),last=t.steps.length-1;
+      let step=Math.max(0,Math.min(last,Number(state.walkthroughStep)||0));
+      wrapper.className='canva-companion';
+      const teach=document.createElement('div');teach.className='canva-teach';
+      teach.innerHTML='<h3>📖 這一步怎麼做？</h3><p class="canva-step-meter" id="canvaStepMeter"></p><div class="canva-current-step" id="canvaCurrentStep"></div><div class="canva-step-actions"><button type="button" id="canvaPrevStep">上一步</button><button type="button" id="canvaNextStep">我看懂了，下一步</button></div><p class="small">先在右邊開 Canva 實作，再回來按下一步。可以重看，原本作品不會被修改。</p>';
+      const work=document.createElement('div');work.className='canva-do';
+      const actionName=canvaTask(current)?'🎨 開啟 Canva 實際操作':'🧭 開啟上學期企畫對照';
+      const actionUrl=canvaTask(current)?'https://www.canva.com/':'../shared/educase-film.html#idea';
+      const a=document.createElement('a');a.className='btn';a.href=actionUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent=actionName;
+      const official=document.createElement('a');official.className='btn alt';official.href='https://www.canva.com/help/creating-and-editing-videos/';official.target='_blank';official.rel='noopener noreferrer';official.textContent='❔ Canva 官方影片操作說明';
+      const check=document.createElement('label');check.className='canva-finish';const tick=document.createElement('input');tick.type='checkbox';tick.checked=!!state.canvaChecked;check.append(tick,document.createTextNode(canvaTask(current)?' 我已在 Canva 親手完成本關操作，並播放檢查':' 我已確認本關對照資料'));
+      const small=document.createElement('p');small.className='small';small.textContent='這裡不會連線控制 Canva 或讀取私人作品；勾選只代表自行檢查，教師仍須核對作品。';
+      work.append(Object.assign(document.createElement('h3'),{textContent:'🎨 換你在 Canva 做'}),a,official,check,small);
+      wrapper.append(teach,work);
+      function updateStep(){
+        teach.querySelector('#canvaStepMeter').textContent='教學步驟 '+(step+1)+' / '+t.steps.length;
+        teach.querySelector('#canvaCurrentStep').textContent=t.steps[step];
+        teach.querySelector('#canvaPrevStep').disabled=step===0;
+        teach.querySelector('#canvaNextStep').disabled=step===last;
+        teach.querySelector('#canvaNextStep').textContent=step===last?'🎯 已看到最後一步':'我看懂了，下一步';
+        check.style.display=step===last?'block':'none';
+      }
+      teach.querySelector('#canvaPrevStep').onclick=()=>{step--;writeDraft(current,{...readDraft(current),walkthroughStep:step});updateStep()};
+      teach.querySelector('#canvaNextStep').onclick=()=>{step++;writeDraft(current,{...readDraft(current),walkthroughStep:step});updateStep()};
+      tick.onchange=()=>{writeDraft(current,{...readDraft(current),canvaChecked:tick.checked})};
+      updateStep();
+    }
     const pageForTask=[8,2,3,5,6,6,7,8,10,13,14,15];
     const manualButton=document.createElement('button');manualButton.type='button';manualButton.className='btn alt';manualButton.textContent='📖 對照圖解手冊第 '+pageForTask[current]+' 頁';manualButton.style.margin='12px 0';manualButton.addEventListener('click',()=>{const panel=$('travelManual');panel.open=true;const viewer=panel.querySelector('iframe');viewer.src='90秒旅拍_Canva零基礎繁體中文圖解操作手冊.pdf#page='+pageForTask[current]+'&view=FitH';panel.scrollIntoView({behavior:'smooth',block:'start'});});$('questAnswer').before(manualButton);
     const tipButton=document.createElement('button');tipButton.type='button';tipButton.className='btn alt';tipButton.style.margin='12px 0 12px 8px';tipButton.textContent='🎬 影像魔法教室｜探索本關技巧';tipButton.setAttribute('aria-expanded','false');
@@ -119,10 +148,11 @@
       }).catch(()=>{if(!compiled&&box.isConnected){const note=document.createElement('p');note.textContent='目前無法確認雲端整理版，請確認使用相同學生帳號登入，或回上學期重新整理。';box.append(note);}});
       const prompt=document.createElement('p');prompt.style.cssText='background:#eaf7ed;padding:12px;border-radius:12px';prompt.textContent='🔎 這一站只要對照現有照片、影片與 180 秒粗剪，找出缺少的關鍵畫面；補鏡計畫會在後續操作站逐步完成。';ans.append(prompt);
     }
-    if(t.mode==='text'){const inp=document.createElement('input');inp.id='questText';inp.className='quest-input';inp.placeholder='請輸入你的實際作品內容';inp.maxLength=80;inp.value=draft.answer||'';inp.addEventListener('input',()=>writeDraft(current,{answer:inp.value}));ans.append(inp);}
+    if(t.mode==='text'){const inp=document.createElement('input');inp.id='questText';inp.className='quest-input';inp.placeholder='請輸入你的實際作品內容';inp.maxLength=80;inp.value=draft.answer||'';inp.addEventListener('input',()=>writeDraft(current,{...readDraft(current),answer:inp.value}));ans.append(inp);}
     if(t.mode==='form')t.fields.forEach(([label,placeholder],i)=>{const wrap=document.createElement('label');wrap.style.display='block';wrap.style.margin='15px 0';const heading=document.createElement('strong');heading.textContent=(i+1)+'. '+label;heading.style.display='block';const field=document.createElement('textarea');field.className='quest-input';field.rows=2;field.maxLength=180;field.placeholder=placeholder;field.setAttribute('aria-label',label);field.dataset.field=i;field.value=draft[i]||'';field.addEventListener('input',()=>{const d=readDraft(current);d[i]=field.value;writeDraft(current,d);});wrap.append(heading,field);ans.append(wrap);});
     if(t.mode==='choice')t.options.forEach((o,i)=>{const label=document.createElement('label');label.className='quest-check';const radio=document.createElement('input');radio.type='radio';radio.name='questChoice';radio.value=i;label.append(radio,document.createTextNode(' '+o));ans.append(label);});
-    $('questClaim').addEventListener('click',()=>{if(needsCheck&&!document.getElementById('questReally').checked){$('questMessage').textContent='請先完成上面的實作，再勾選具體完成項目。';return;}
+    $('questClaim').addEventListener('click',()=>{if(!has(current)&&(!readDraft(current).canvaChecked||Number(readDraft(current).walkthroughStep)!==t.steps.length-1)){$('questMessage').textContent='請先依序看完教學，到 Canva 親手實作，再勾選右側的完成確認。';$('canvaCompanion').scrollIntoView({behavior:'smooth',block:'center'});return;}
+      if(needsCheck&&!document.getElementById('questReally').checked){$('questMessage').textContent='請先完成上面的實作，再勾選具體完成項目。';return;}
       if(t.mode==='text'&&($('questText').value.trim().length<2)){ $('questMessage').textContent='請填寫你實際製作的內容。';return;}
       if(t.mode==='form'){const fields=[...document.querySelectorAll('#questAnswer textarea')];if(fields.some(f=>f.value.trim().length<2)||(current===0&&fields[0].value.trim().length<4)){$('questMessage').textContent='還有欄位尚未完成。請逐格填寫；旅拍主題至少四個字。';return;}}
       if(t.mode==='choice'&&Number(document.querySelector('input[name="questChoice"]:checked')?.value)!==t.right){$('questMessage').textContent='這一步還需要再想想，回到上方操作指示看看。';return;}
